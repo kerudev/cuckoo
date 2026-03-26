@@ -1,0 +1,34 @@
+[
+  {
+    "name": "client1",
+    "color": "#6334B4",
+    "processes": {
+      "process1": { "crontab1": "8 4 * * *", "crontab2": "15 21 * * *" },
+      "process2": { "crontab1": "24 23 * * *", "crontab2": "49 08 * * *" },
+      "process3": { "crontab1": "24 7 * * *" }
+    }
+  },
+  {
+    "name": "client2",
+    "color": "#41938A",
+    "processes": {
+      "process1": { "crontab1": "34 2 * * 1,3,6", "crontab2": "30 4 * * *" },
+      "process2": { "crontab1": "33 22 * * *", "crontab2": "21 4,12 * * *" },
+      "process3": { "crontab1": "54 23 * * *", "crontab2": "5 *12 * * *" },
+      "process4": { "crontab1": "50 0 * * *", "crontab2": "50 12 * * *" },
+      "process5": { "crontab1": "4 7 * * *" },
+      "process6": { "crontab1": "46 1,12 * * *", "crontab2": "25 1,16,20 * * *" }
+    }
+  },
+  {
+    "name": "client3",
+    "color": "#047221",
+    "processes": {
+      "process1": { "crontab1": "27 1 * * *", "crontab2": "30 14,22 * * *" },
+      "process2": { "crontab1": "34 14 * * *" },
+      "process3": { "crontab1": "35 16 * * *", "crontab2": "35 12,16 * * *" },
+      "process4": { "crontab1": "8 16 * * *" },
+      "process5": { "crontab1": "13 13 * * *" }
+    }
+  }
+]
