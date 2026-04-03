@@ -8,12 +8,30 @@ import (
 )
 
 type Cron struct {
-	name 	string
-	hour 	int
-	min 	int
+	Name 	string
+	Hour 	int
+	Min 	int
+}
+
+type Coord struct {
+	Name 	string
+	X 		int
+	Y 		int
+}
+
+type Cell struct {
+	W		float32
+	H		float32	
+}
+
+type Grid struct {
+	W		float32
+	H		float32
+	Cell	Cell
 }
 
 var offset = rl.Vector2{ X: 20, Y: 20 }
+var grid = Grid{}
 
 func stringsToCrons(crons []string) []Cron {
 	result := []Cron{}
@@ -30,9 +48,9 @@ func stringsToCrons(crons []string) []Cron {
 			for _, m := range mins {
 				min, _ := strconv.Atoi(m)
 				result = append(result, Cron{
-					hour: hour,
-					min: min,
-					name: "process" + strconv.Itoa(i),
+					Hour: hour,
+					Min: min,
+					Name: "process" + strconv.Itoa(i),
 				})
 			}
 		}
@@ -52,41 +70,41 @@ func main() {
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
-	rl.InitWindow(800, 600, "Go test")
+	rl.InitWindow(800, 600, "Cuckoo")
 	rl.SetWindowMinSize(800, 600)
 
-	cellsX := float32(24)
-	cellsY := float32(8)
+	cell := Cell{W: 24, H: 12}
+	grid.Cell = cell
 
 	for !rl.WindowShouldClose() {
 		screenW := float32(rl.GetScreenWidth())
 		screenH := float32(rl.GetScreenHeight())
 
-		gridW := screenW - 40
-		gridH := screenH - 140
+		grid.W = screenW - 40
+		grid.H = screenH - 140
 
 		rl.BeginDrawing()
 			rl.ClearBackground(rl.RayWhite)
 
 			// Draw lines vertically
-			for col := range int(cellsX) - 1 {
-				x := gridW / cellsX * float32(col + 1) + offset.X
+			for col := range int(cell.W) - 1 {
+				x := grid.W / cell.W * float32(col + 1) + offset.X
 
 				rl.DrawLineEx(
 					rl.Vector2{ X: x, Y: offset.Y },
-					rl.Vector2{ X: x, Y: gridH + offset.Y },
+					rl.Vector2{ X: x, Y: grid.H + offset.Y },
 					2,
 					rl.LightGray,
 				)
 			}
 
 			// Draw lines horizontally
-			for row := range int(cellsY) - 1 {
-				y := gridH / cellsY * float32(row + 1) + offset.Y
+			for row := range int(cell.H) - 1 {
+				y := grid.H / cell.H * float32(row + 1) + offset.Y
 
 				rl.DrawLineEx(
 					rl.Vector2{ X: offset.X, Y: y },
-					rl.Vector2{ X: gridW + offset.Y, Y: y },
+					rl.Vector2{ X: grid.W + offset.Y, Y: y },
 					2,
 					rl.LightGray,
 				)
@@ -94,7 +112,7 @@ func main() {
 
 			// Draw grid container
 			rl.DrawRectangleLinesEx(
-				rl.Rectangle{ X: offset.X, Y: offset.Y, Width: gridW, Height: gridH },
+				rl.Rectangle{ X: offset.X, Y: offset.Y, Width: grid.W, Height: grid.H },
 				2,
 				rl.Black,
 			)
@@ -105,16 +123,16 @@ func main() {
 				text := strconv.Itoa(i)
 				
 				textW := rl.MeasureText(text, fontSize)
-				textX := gridW / cellsX * float32(i) - float32(textW / 2) + offset.X
+				textX := grid.W / cell.W * float32(i) - float32(textW / 2) + offset.X
 
-				rl.DrawText(text, int32(textX), int32(gridH + 22), fontSize, rl.Black)
+				rl.DrawText(text, int32(textX), int32(grid.H + offset.Y + 2), fontSize, rl.Black)
 			}
 
 			// Draw coordinates
 			for _, cron := range crons {
 				rl.DrawCircle(
-					int32(float32(cron.hour) / cellsX * gridW + offset.X),
-					int32(gridH + 18),
+					int32(float32(cron.Hour) / cell.W * grid.W + offset.X),
+					int32(grid.H + offset.X - 2),
 					4,
 					rl.Red,
 				)
