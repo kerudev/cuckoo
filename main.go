@@ -1,9 +1,11 @@
 package main
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 
+	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -38,6 +40,8 @@ type GridCoord struct {
 
 var offset = rl.Vector2{ X: 20, Y: 20 }
 var grid = Grid{}
+
+var drawMode = int32(0)
 
 func stringsToCrons(crons []string) []Cron {
 	result := []Cron{}
@@ -188,6 +192,32 @@ func main() {
 			// Draw coordinates
 			for _, coord := range gridCoords {
 				rl.DrawCircle(coord.X, coord.Y, 4, rl.Red)
+			}
+
+			rl.DrawText("Draw mode", int32(offset.X), int32(grid.H + offset.Y * 2 + 2), 12, rl.Black)
+
+			drawMode = rg.ToggleGroup(
+				rl.Rectangle{ X: offset.X, Y: grid.H + offset.Y * 3, Width: 20, Height: 20 },
+				"#113#;#127#;#125#",
+				drawMode,
+			)
+
+			if drawMode != 0 {
+				// Sort coordinates to draw line in order
+				sort.Slice(gridCoords, func(i, j int) bool {
+					return gridCoords[i].X < gridCoords[j].X
+				})
+	
+				for i := 0; i < len(gridCoords) - 1; i++ {
+					start := rl.Vector2{X: float32(gridCoords[i].X), Y: float32(gridCoords[i].Y)}
+					end := rl.Vector2{X: float32(gridCoords[i + 1].X), Y: float32(gridCoords[i + 1].Y)}
+					
+					if drawMode == 1 {
+						rl.DrawLineEx(start, end, 2, rl.Red)
+					} else if drawMode == 2 {
+						rl.DrawLineBezier(start, end, 2, rl.Red)
+					}
+				}
 			}
 		rl.EndDrawing()
 	}
