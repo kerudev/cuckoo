@@ -15,8 +15,8 @@ type Cron struct {
 
 type Coord struct {
 	Name 	string
-	X 		int
-	Y 		int
+	X 		int32
+	Y 		int32
 }
 
 type Cell struct {
@@ -28,6 +28,12 @@ type Grid struct {
 	W		float32
 	H		float32
 	Cell	Cell
+}
+
+type GridCoord struct {
+	Names []string
+	X 		int32
+	Y 		int32
 }
 
 var offset = rl.Vector2{ X: 20, Y: 20 }
@@ -59,8 +65,56 @@ func stringsToCrons(crons []string) []Cron {
 	return result
 }
 
+func cronsToCoords(crons []Cron) []Coord {
+	result := []Coord{}
+
+	for _, cron := range crons {
+		result = append(result, Coord{
+			Name: cron.Name,
+			X: int32(cron.Hour),
+			Y: 1,
+		})
+	}
+
+	return result
+}
+
+func coordToGrid(coords []Coord, grid Grid) []GridCoord {
+	result := []GridCoord{}
+
+	for _, coord := range coords {
+		found := false
+
+		for i := range result {
+			if coord.X == result[i].X {
+				found = true
+				result[i].Names = append(result[i].Names, coord.Name)
+			}
+		}
+
+		if !found {
+			result = append(result, GridCoord{
+				Names: []string{coord.Name},
+				X: coord.X,
+				Y: coord.Y,
+			})
+		}
+	}
+
+	cell := grid.Cell
+
+	for i := range result {
+		result[i].X = int32(float32(result[i].X) / cell.W * grid.W + offset.X)
+		result[i].Y = int32(grid.H + offset.Y) - int32(grid.H / cell.H * float32(len(result[i].Names)))
+	}
+
+	return result
+}
+
 func main() {
 	sample := []string{
+		"25 1,16,20 * * *",
+		"25 1,16,20 * * *",
 		"25 1,16,20 * * *",
 		"24 7 * * *",
 		"46 1,12 * * *",
@@ -82,6 +136,9 @@ func main() {
 
 		grid.W = screenW - 40
 		grid.H = screenH - 140
+
+		coords := cronsToCoords(crons)
+		gridCoords := coordToGrid(coords, grid)
 
 		rl.BeginDrawing()
 			rl.ClearBackground(rl.RayWhite)
@@ -129,13 +186,8 @@ func main() {
 			}
 
 			// Draw coordinates
-			for _, cron := range crons {
-				rl.DrawCircle(
-					int32(float32(cron.Hour) / cell.W * grid.W + offset.X),
-					int32(grid.H + offset.X - 2),
-					4,
-					rl.Red,
-				)
+			for _, coord := range gridCoords {
+				rl.DrawCircle(coord.X, coord.Y, 4, rl.Red)
 			}
 		rl.EndDrawing()
 	}
