@@ -39,8 +39,6 @@ type GridCoord struct {
 }
 
 var offset = rl.Vector2{X: 20, Y: 20}
-var grid = Grid{}
-
 var drawMode = int32(0)
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
@@ -53,14 +51,12 @@ func stringsToCrons(crons []string) []Cron {
 	for i, cron := range crons {
 		split := strings.Split(cron, " ")
 
-		mins := strings.Split(split[0], ",")
-		hours := strings.Split(split[1], ",")
-
-		for _, h := range hours {
+		for h := range strings.SplitSeq(split[1], ",") {
 			hour, _ := strconv.Atoi(h)
 
-			for _, m := range mins {
+			for m := range strings.SplitSeq(split[0], ",") {
 				min, _ := strconv.Atoi(m)
+
 				result = append(result, Cron{
 					Hour: hour,
 					Min:  min,
@@ -138,11 +134,19 @@ func main() {
 	nCols := 24
 	nRows := 10
 
+	step := rl.Vector2{}
 	cell := Cell{W: float32(nCols), H: float32(nRows)}
+	grid := Grid{}
 	grid.Cell = cell
+
+	gridCoords := []GridCoord{}
 
 	boxRoundness := float32(0.2)
 	boxSegments := int32(8)
+	boxPadX := float32(16)
+
+	prevScreenW := int32(0)
+	prevScreenH := int32(0)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
@@ -157,17 +161,23 @@ func main() {
 		screenW := float32(rl.GetScreenWidth())
 		screenH := float32(rl.GetScreenHeight())
 
-		grid.W = screenW - 40
-		grid.H = screenH - 140
+		// Recalculate grid and coordinates only when screen changes size
+		if screenH != float32(prevScreenH) && screenW != float32(prevScreenW) {
+			grid.W = screenW - 40
+			grid.H = screenH - 140
 
-		gridCoords := coordToGrid(coords, grid)
+			step.X = grid.W / cell.W
+			step.Y = grid.H / cell.H
+
+			gridCoords = coordToGrid(coords, grid)
+		}
 
 		rl.BeginDrawing()
 			rl.ClearBackground(rl.RayWhite)
 
 			// Draw lines vertically
 			for col := range int(cell.W) - 1 {
-				x := grid.W/cell.W*float32(col+1) + offset.X
+				x := step.X*float32(col+1) + offset.X
 
 				rl.DrawLineEx(
 					rl.Vector2{X: x, Y: offset.Y},
@@ -179,7 +189,7 @@ func main() {
 
 			// Draw lines horizontally
 			for row := range int(cell.H) - 1 {
-				y := grid.H/cell.H*float32(row+1) + offset.Y
+				y := step.Y*float32(row+1) + offset.Y
 
 				rl.DrawLineEx(
 					rl.Vector2{X: offset.X, Y: y},
@@ -201,7 +211,7 @@ func main() {
 				text := strconv.Itoa(i)
 
 				textW := rl.MeasureTextEx(font, text, fontSize, 1).X
-				textX := grid.W/cell.W*float32(i) - textW/2 + offset.X
+				textX := step.X*float32(i) - textW/2 + offset.X
 
 				rl.DrawText(text, int32(textX), int32(grid.H+offset.Y+2), int32(fontSize), rl.Black)
 			}
@@ -209,18 +219,18 @@ func main() {
 			// Draw text on Y axis
 			for i := range nRows + 1 {
 				text := strconv.Itoa(i)
-				textY := -grid.H/cell.H*float32(i) - textH/2 + offset.Y + grid.H
+				textY := -step.Y*float32(i) - textH/2 + offset.Y + grid.H
 
 				rl.DrawText(text, int32(offset.X/2), int32(textY), int32(fontSize), rl.Black)
 			}
 
-			// Draw lines that connect coordinates
 			if drawMode != 0 {
 				// Sort coordinates to draw line in order
 				sort.Slice(gridCoords, func(i, j int) bool {
 					return gridCoords[i].X < gridCoords[j].X
 				})
 
+				// Draw lines that connect coordinates
 				for i := 0; i < len(gridCoords)-1; i++ {
 					start := coordToVec2(gridCoords[i])
 					end := coordToVec2(gridCoords[i+1])
@@ -254,6 +264,7 @@ func main() {
 				if mouseOverCoord {
 					maxW := float32(0)
 
+					// Calculate max text size
 					for _, name := range coord.Names {
 						textW := float32(rl.MeasureText(name, int32(fontSize)))
 
@@ -273,12 +284,11 @@ func main() {
 					rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
 
 					for i, name := range coord.Names {
-						padX := float32(16)
-						spacingY := float32(i)*fontSize
+						spacingY := float32(i) * fontSize
 
 						rl.DrawText(
 							name,
-							int32(coord.X+padX),
+							int32(coord.X+boxPadX),
 							int32(coord.Y+spacingY),
 							int32(fontSize),
 							rl.Black,
@@ -287,6 +297,9 @@ func main() {
 				}
 			}
 		rl.EndDrawing()
+
+		prevScreenW = int32(screenW)
+		prevScreenH = int32(screenH)
 	}
 
 	rl.CloseWindow()
