@@ -131,8 +131,14 @@ func main() {
 	rl.InitWindow(800, 600, "Cuckoo")
 	rl.SetWindowMinSize(800, 600)
 
-	cell := Cell{W: 24, H: 12}
+	nCols := 24
+	nRows := 10
+
+	cell := Cell{W: float32(nCols), H: float32(nRows)}
 	grid.Cell = cell
+
+	font := rl.GetFontDefault()
+	fontSize := float32(12)
 
 	for !rl.WindowShouldClose() {
 		screenW := float32(rl.GetScreenWidth())
@@ -179,14 +185,23 @@ func main() {
 			)
 
 			// Draw text on X axis
-			for i := range 24 {
-				fontSize := int32(12)
+			for i := range nCols {
 				text := strconv.Itoa(i)
-				
-				textW := rl.MeasureText(text, fontSize)
+
+				textW := rl.MeasureTextEx(font, text, fontSize, 1).X
 				textX := grid.W / cell.W * float32(i) - float32(textW / 2) + offset.X
 
-				rl.DrawText(text, int32(textX), int32(grid.H + offset.Y + 2), fontSize, rl.Black)
+				rl.DrawText(text, int32(textX), int32(grid.H + offset.Y + 2), int32(fontSize), rl.Black)
+			}
+
+			// Draw text on Y axis
+			for i := range nRows + 1 {
+				text := strconv.Itoa(i)
+
+				textH := rl.MeasureTextEx(font, text, fontSize, 1).Y
+				textY := (- grid.H) / cell.H * float32(i) - float32(textH / 2) + offset.Y + grid.H
+
+				rl.DrawText(text, int32(offset.X / 2), int32(textY), int32(fontSize), rl.Black)
 			}
 
 			// Draw coordinates
@@ -195,7 +210,6 @@ func main() {
 			}
 
 			rl.DrawText("Draw mode", int32(offset.X), int32(grid.H + offset.Y * 2 + 2), 12, rl.Black)
-
 			drawMode = rg.ToggleGroup(
 				rl.Rectangle{ X: offset.X, Y: grid.H + offset.Y * 3, Width: 20, Height: 20 },
 				"#113#;#127#;#125#",
