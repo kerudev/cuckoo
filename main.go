@@ -17,8 +17,8 @@ type Cron struct {
 
 type Coord struct {
 	Name 	string
-	X 		int32
-	Y 		int32
+	X 		float32
+	Y 		float32
 }
 
 type Cell struct {
@@ -34,8 +34,8 @@ type Grid struct {
 
 type GridCoord struct {
 	Names []string
-	X 		int32
-	Y 		int32
+	X 		float32
+	Y 		float32
 }
 
 var offset = rl.Vector2{ X: 20, Y: 20 }
@@ -75,7 +75,7 @@ func cronsToCoords(crons []Cron) []Coord {
 	for _, cron := range crons {
 		result = append(result, Coord{
 			Name: cron.Name,
-			X: int32(cron.Hour),
+			X: float32(cron.Hour) + float32(cron.Min) / 60,
 			Y: 1,
 		})
 	}
@@ -108,8 +108,8 @@ func coordToGrid(coords []Coord, grid Grid) []GridCoord {
 	cell := grid.Cell
 
 	for i := range result {
-		result[i].X = int32(float32(result[i].X) / cell.W * grid.W + offset.X)
-		result[i].Y = int32(grid.H + offset.Y) - int32(grid.H / cell.H * float32(len(result[i].Names)))
+		result[i].X = float32(result[i].X) / cell.W * grid.W + offset.X
+		result[i].Y = grid.H + offset.Y - (grid.H / cell.H * float32(len(result[i].Names)))
 	}
 
 	return result
@@ -117,7 +117,7 @@ func coordToGrid(coords []Coord, grid Grid) []GridCoord {
 
 func main() {
 	sample := []string{
-		"25 1,16,20 * * *",
+		"0 1,16,20 * * *",
 		"25 1,16,20 * * *",
 		"25 1,16,20 * * *",
 		"24 7 * * *",
@@ -199,14 +199,14 @@ func main() {
 				text := strconv.Itoa(i)
 
 				textH := rl.MeasureTextEx(font, text, fontSize, 1).Y
-				textY := (- grid.H) / cell.H * float32(i) - float32(textH / 2) + offset.Y + grid.H
+				textY := -grid.H / cell.H * float32(i) - float32(textH / 2) + offset.Y + grid.H
 
 				rl.DrawText(text, int32(offset.X / 2), int32(textY), int32(fontSize), rl.Black)
 			}
 
 			// Draw coordinates
 			for _, coord := range gridCoords {
-				rl.DrawCircle(coord.X, coord.Y, 4, rl.Red)
+				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
 			}
 
 			rl.DrawText("Draw mode", int32(offset.X), int32(grid.H + offset.Y * 2 + 2), 12, rl.Black)
