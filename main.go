@@ -118,8 +118,12 @@ func coordToGrid(coords []Coord, grid Grid) []GridCoord {
 func main() {
 	sample := []string{
 		"0 1,16,20 * * *",
+		"0 1,16,20 * * *",
 		"25 1,16,20 * * *",
 		"25 1,16,20 * * *",
+		"25 1,16,20 * * *",
+		"24 6 * * *",
+		"24 7 * * *",
 		"24 7 * * *",
 		"46 1,12 * * *",
 	}
@@ -139,6 +143,10 @@ func main() {
 
 	font := rl.GetFontDefault()
 	fontSize := float32(12)
+	textH := rl.MeasureTextEx(font, "0", fontSize, 1).Y
+
+	roundness := float32(0.2)
+	segments := int32(8)
 
 	for !rl.WindowShouldClose() {
 		screenW := float32(rl.GetScreenWidth())
@@ -197,25 +205,12 @@ func main() {
 			// Draw text on Y axis
 			for i := range nRows + 1 {
 				text := strconv.Itoa(i)
-
-				textH := rl.MeasureTextEx(font, text, fontSize, 1).Y
 				textY := -grid.H / cell.H * float32(i) - float32(textH / 2) + offset.Y + grid.H
 
 				rl.DrawText(text, int32(offset.X / 2), int32(textY), int32(fontSize), rl.Black)
 			}
 
-			// Draw coordinates
-			for _, coord := range gridCoords {
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
-			}
-
-			rl.DrawText("Draw mode", int32(offset.X), int32(grid.H + offset.Y * 2 + 2), 12, rl.Black)
-			drawMode = rg.ToggleGroup(
-				rl.Rectangle{ X: offset.X, Y: grid.H + offset.Y * 3, Width: 20, Height: 20 },
-				"#113#;#127#;#125#",
-				drawMode,
-			)
-
+			// Draw lines that connect coordinates
 			if drawMode != 0 {
 				// Sort coordinates to draw line in order
 				sort.Slice(gridCoords, func(i, j int) bool {
@@ -230,6 +225,49 @@ func main() {
 						rl.DrawLineEx(start, end, 2, rl.Red)
 					} else if drawMode == 2 {
 						rl.DrawLineBezier(start, end, 2, rl.Red)
+					}
+				}
+			}
+
+			// Draw coordinates
+			for _, coord := range gridCoords {
+				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
+			}
+
+			// Draw options
+			rl.DrawText("Draw mode", int32(offset.X), int32(grid.H + offset.Y * 2 + 2), 12, rl.Black)
+			drawMode = rg.ToggleGroup(
+				rl.Rectangle{ X: offset.X, Y: grid.H + offset.Y * 3, Width: 20, Height: 20 },
+				"#113#;#127#;#125#",
+				drawMode,
+			)
+
+			// Draw coordinate information on mouse hover
+			for _, coord := range gridCoords {
+				if rl.CheckCollisionPointCircle(rl.GetMousePosition(), rl.Vector2{X: coord.X, Y: coord.Y}, 4) {
+					maxW := float32(0)
+
+					for _, name := range coord.Names {
+						textW := float32(rl.MeasureText(name, int32(fontSize)))
+
+						if textW > maxW {
+							maxW = textW
+						}
+					}
+
+					rec := rl.Rectangle{
+						X: coord.X + 8,
+						Y: coord.Y,
+						Width: maxW + 16,
+						Height: fontSize * float32(len(coord.Names)),
+					}
+
+					rl.DrawRectangleRounded(rec, roundness, segments, rl.White)
+					rl.DrawRectangleRoundedLinesEx(rec, roundness, segments, 2, rl.Black)
+
+					for i, name := range coord.Names {
+						spacing := int32(i) * int32(fontSize)
+						rl.DrawText(name, int32(coord.X) + 16, int32(coord.Y) + spacing, int32(fontSize), rl.Black)
 					}
 				}
 			}
