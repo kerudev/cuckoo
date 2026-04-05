@@ -51,10 +51,12 @@ type GroupBy int32
 const (
 	GroupByHourMin GroupBy = iota
 	GroupByHour
+	// GroupByMin
 )
 
 var offset = rl.Vector2{X: 20, Y: 20}
 
+var drawCoords = true
 var drawMode = DrawNone
 var groupBy = GroupByHourMin
 
@@ -269,12 +271,16 @@ func main() {
 			}
 
 			// Draw coordinates
-			for _, coord := range gridCoords {
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
+			if drawCoords {
+				for _, coord := range gridCoords {
+					rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
+				}
 			}
 
 			// Draw option - GroupBy
 			rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
+			
+
 			groupByIdx := int32(groupBy)
 			groupByIdx = rg.ListView(
 				rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 63},
@@ -299,6 +305,13 @@ func main() {
 				drawModeIdx,
 			)
 			drawMode = DrawMode(drawModeIdx)
+
+			// Draw option - DrawCoords
+			drawCoords = rg.CheckBox(
+				rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: 20, Height: 20},
+				"Draw coordinates",
+				drawCoords,
+			)
 
 			// Draw coordinate information on mouse hover
 			for _, coord := range gridCoords {
