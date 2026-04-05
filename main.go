@@ -38,8 +38,25 @@ type GridCoord struct {
 	Y     float32
 }
 
+type DrawMode int32
+
+const (
+	DrawNone DrawMode = iota
+	DrawLines
+	DrawBezier
+)
+
+type GroupBy int32
+
+const (
+	GroupByHourMin GroupBy = iota
+	GroupByHour
+)
+
 var offset = rl.Vector2{X: 20, Y: 20}
-var drawMode = int32(0)
+
+var drawMode = DrawNone
+var groupBy = GroupByHourMin
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
@@ -73,11 +90,13 @@ func cronsToCoords(crons []Cron) []Coord {
 	result := []Coord{}
 
 	for _, cron := range crons {
-		result = append(result, Coord{
-			Name: cron.Name,
-			X:    float32(cron.Hour) + float32(cron.Min)/60,
-			Y:    1,
-		})
+		x := float32(cron.Hour)
+
+		if groupBy == GroupByHourMin {
+			x += float32(cron.Min)/60
+		}
+
+		result = append(result, Coord{Name: cron.Name, X: x, Y: 1})
 	}
 
 	return result
@@ -145,8 +164,13 @@ func main() {
 	boxSegments := int32(8)
 	boxPadX := float32(16)
 
+	groupByScroll := int32(0)
+
+	// Previous state
 	prevScreenW := int32(0)
 	prevScreenH := int32(0)
+
+	prevGroupBy := groupBy
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
@@ -224,7 +248,7 @@ func main() {
 				rl.DrawText(text, int32(offset.X/2), int32(textY), int32(fontSize), rl.Black)
 			}
 
-			if drawMode != 0 {
+			if drawMode != DrawNone {
 				// Sort coordinates to draw line in order
 				sort.Slice(gridCoords, func(i, j int) bool {
 					return gridCoords[i].X < gridCoords[j].X
@@ -236,9 +260,9 @@ func main() {
 					end := coordToVec2(gridCoords[i+1])
 
 					switch drawMode {
-					case 1:
+					case DrawLines:
 						rl.DrawLineEx(start, end, 2, rl.Red)
-					case 2:
+					case DrawBezier:
 						rl.DrawLineBezier(start, end, 2, rl.Red)
 					}
 				}
@@ -249,13 +273,32 @@ func main() {
 				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
 			}
 
-			// Draw options
-			rl.DrawText("Draw mode", int32(offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
-			drawMode = rg.ToggleGroup(
-				rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
-				"#113#;#127#;#125#",
-				drawMode,
+			// Draw option - GroupBy
+			rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
+			groupByIdx := int32(groupBy)
+			groupByIdx = rg.ListView(
+				rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 63},
+				"Hour+Minute;Hour",
+				&groupByScroll,
+				groupByIdx,
 			)
+			groupBy = GroupBy(groupByIdx)
+
+			// Recalculate coordinates based on group by
+			if prevGroupBy != groupBy {
+				coords = cronsToCoords(crons)
+				gridCoords = coordToGrid(coords, grid)
+			}
+
+			// Draw option - DrawMode
+			rl.DrawText("Draw mode", int32(120 + offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
+			drawModeIdx := int32(drawMode)
+			drawModeIdx = rg.ToggleGroup(
+				rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
+				"#113#;#127#;#125#",
+				drawModeIdx,
+			)
+			drawMode = DrawMode(drawModeIdx)
 
 			// Draw coordinate information on mouse hover
 			for _, coord := range gridCoords {
@@ -300,6 +343,8 @@ func main() {
 
 		prevScreenW = int32(screenW)
 		prevScreenH = int32(screenH)
+
+		prevGroupBy = groupBy
 	}
 
 	rl.CloseWindow()
