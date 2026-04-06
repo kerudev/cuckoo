@@ -54,14 +54,33 @@ const (
 	// GroupByMin
 )
 
+type BucketMin int32
+
+const (
+	BucketMin1  BucketMin = iota
+	BucketMin5
+	BucketMin10
+	BucketMin15
+	BucketMin20
+	BucketMin30
+)
+
 var offset = rl.Vector2{X: 20, Y: 20}
 
 var drawCoords = true
 var drawMode = DrawNone
+var bucketMin = BucketMin1
 var groupBy = GroupByHourMin
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
+}
+
+func calcBucket(value int, segment int) int {
+	if value == 0 {
+		return 0
+	}
+	return ((value - 1) / segment) * segment + (segment - 1)
 }
 
 func stringsToCrons(crons []string) []Cron {
@@ -79,7 +98,7 @@ func stringsToCrons(crons []string) []Cron {
 				result = append(result, Cron{
 					Hour: hour,
 					Min:  min,
-					Name: "process" + strconv.Itoa(i),
+					Name: "process_" + strconv.Itoa(i),
 				})
 			}
 		}
@@ -91,11 +110,29 @@ func stringsToCrons(crons []string) []Cron {
 func cronsToCoords(crons []Cron) []Coord {
 	result := []Coord{}
 
+	minuteSegment := float32(0)
+
+	switch bucketMin {
+	case BucketMin1:
+		minuteSegment = 1
+	case BucketMin5:
+		minuteSegment = 5
+	case BucketMin10:
+		minuteSegment = 10
+	case BucketMin15:
+		minuteSegment = 15
+	case BucketMin20:
+		minuteSegment = 20
+	case BucketMin30:
+		minuteSegment = 30
+	}
+
 	for _, cron := range crons {
 		x := float32(cron.Hour)
 
 		if groupBy == GroupByHourMin {
-			x += float32(cron.Min)/60
+			bucket := calcBucket(cron.Min, int(minuteSegment))
+			x += float32(bucket)/60
 		}
 
 		result = append(result, Coord{Name: cron.Name, X: x, Y: 1})
@@ -146,6 +183,7 @@ func main() {
 		"24 6 * * *",
 		"24 7 * * *",
 		"24 7 * * *",
+		"44 1,12 * * *",
 		"46 1,12 * * *",
 	}
 
@@ -173,6 +211,7 @@ func main() {
 	prevScreenH := int32(0)
 
 	prevGroupBy := groupBy
+	prevBucketMin := bucketMin
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
@@ -279,8 +318,6 @@ func main() {
 
 			// Draw option - GroupBy
 			rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
-			
-
 			groupByIdx := int32(groupBy)
 			groupByIdx = rg.ListView(
 				rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 63},
@@ -306,9 +343,27 @@ func main() {
 			)
 			drawMode = DrawMode(drawModeIdx)
 
+			// Draw option - BucketMin
+			rl.DrawText("Minute bucket", int32(120 + offset.X), int32(grid.H+offset.Y*4+2), 12, rl.Black)
+			bucketMinIdx := int32(bucketMin)
+			bucketMinIdx = rg.ToggleGroup(
+				rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: 20, Height: 20},
+				"#113#;5;10;15;20;30",
+				bucketMinIdx,
+			)
+			bucketMin = BucketMin(bucketMinIdx)
+
+			if prevBucketMin != bucketMin {
+				coords = cronsToCoords(crons)
+				gridCoords = coordToGrid(coords, grid)
+
+				step.X = grid.W / cell.W
+				step.Y = grid.H / cell.H
+			}
+
 			// Draw option - DrawCoords
 			drawCoords = rg.CheckBox(
-				rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: 20, Height: 20},
+				rl.Rectangle{X: 220 + offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
 				"Draw coordinates",
 				drawCoords,
 			)
@@ -358,6 +413,7 @@ func main() {
 		prevScreenH = int32(screenH)
 
 		prevGroupBy = groupBy
+		prevBucketMin = bucketMin
 	}
 
 	rl.CloseWindow()
