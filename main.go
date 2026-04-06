@@ -66,11 +66,16 @@ const (
 )
 
 var offset = rl.Vector2{X: 20, Y: 20}
+var step = rl.Vector2{X: 0, Y: 0}
+var grid = Grid{Cell: Cell{W: float32(nCols), H: float32(nRows)}}
 
 var drawCoords = true
-var drawMode = DrawNone
+var drawMode = DrawLines
 var bucketMin = BucketMin1
 var groupBy = GroupByHourMin
+
+var nCols = 24
+var nRows = 10
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
@@ -141,8 +146,10 @@ func cronsToCoords(crons []Cron) []Coord {
 	return result
 }
 
-func coordToGrid(coords []Coord, grid Grid) []GridCoord {
+func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 	result := []GridCoord{}
+
+	nRows = 10
 
 	for _, coord := range coords {
 		found := false
@@ -151,6 +158,10 @@ func coordToGrid(coords []Coord, grid Grid) []GridCoord {
 			if coord.X == result[i].X {
 				found = true
 				result[i].Names = append(result[i].Names, coord.Name)
+			}
+
+			if len(result[i].Names) >= nRows {
+				nRows = len(result[i].Names) + 2
 			}
 		}
 
@@ -162,6 +173,11 @@ func coordToGrid(coords []Coord, grid Grid) []GridCoord {
 			})
 		}
 	}
+
+	grid.Cell.H = float32(nRows)
+
+	step.X = grid.W / grid.Cell.W
+	step.Y = grid.H / grid.Cell.H
 
 	cell := grid.Cell
 
@@ -189,14 +205,6 @@ func main() {
 
 	crons := stringsToCrons(sample)
 	coords := cronsToCoords(crons)
-
-	nCols := 24
-	nRows := 10
-
-	step := rl.Vector2{}
-	cell := Cell{W: float32(nCols), H: float32(nRows)}
-	grid := Grid{}
-	grid.Cell = cell
 
 	gridCoords := []GridCoord{}
 
@@ -226,15 +234,14 @@ func main() {
 		screenW := float32(rl.GetScreenWidth())
 		screenH := float32(rl.GetScreenHeight())
 
+		cell := grid.Cell
+
 		// Recalculate grid and coordinates only when screen changes size
 		if screenH != float32(prevScreenH) && screenW != float32(prevScreenW) {
 			grid.W = screenW - 40
 			grid.H = screenH - 140
 
-			step.X = grid.W / cell.W
-			step.Y = grid.H / cell.H
-
-			gridCoords = coordToGrid(coords, grid)
+			gridCoords = coordToGrid(coords, &grid)
 		}
 
 		rl.BeginDrawing()
@@ -253,7 +260,7 @@ func main() {
 			}
 
 			// Draw lines horizontally
-			for row := range int(cell.H) - 1 {
+			for row := range int(nRows) - 1 {
 				y := step.Y*float32(row+1) + offset.Y
 
 				rl.DrawLineEx(
@@ -327,12 +334,6 @@ func main() {
 			)
 			groupBy = GroupBy(groupByIdx)
 
-			// Recalculate coordinates based on group by
-			if prevGroupBy != groupBy {
-				coords = cronsToCoords(crons)
-				gridCoords = coordToGrid(coords, grid)
-			}
-
 			// Draw option - DrawMode
 			rl.DrawText("Draw mode", int32(120 + offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
 			drawModeIdx := int32(drawMode)
@@ -344,21 +345,15 @@ func main() {
 			drawMode = DrawMode(drawModeIdx)
 
 			// Draw option - BucketMin
-			rl.DrawText("Minute bucket", int32(120 + offset.X), int32(grid.H+offset.Y*4+2), 12, rl.Black)
-			bucketMinIdx := int32(bucketMin)
-			bucketMinIdx = rg.ToggleGroup(
-				rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: 20, Height: 20},
-				"#113#;5;10;15;20;30",
-				bucketMinIdx,
-			)
-			bucketMin = BucketMin(bucketMinIdx)
-
-			if prevBucketMin != bucketMin {
-				coords = cronsToCoords(crons)
-				gridCoords = coordToGrid(coords, grid)
-
-				step.X = grid.W / cell.W
-				step.Y = grid.H / cell.H
+			if groupBy == GroupByHourMin {
+				rl.DrawText("Minute bucket", int32(120 + offset.X), int32(grid.H+offset.Y*4+2), 12, rl.Black)
+				bucketMinIdx := int32(bucketMin)
+				bucketMinIdx = rg.ToggleGroup(
+					rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: 20, Height: 20},
+					"#113#;5;10;15;20;30",
+					bucketMinIdx,
+				)
+				bucketMin = BucketMin(bucketMinIdx)
 			}
 
 			// Draw option - DrawCoords
@@ -367,6 +362,10 @@ func main() {
 				"Draw coordinates",
 				drawCoords,
 			)
+
+			if drawMode == DrawNone && !drawCoords {
+				drawCoords = true
+			}
 
 			// Draw coordinate information on mouse hover
 			for _, coord := range gridCoords {
@@ -408,6 +407,18 @@ func main() {
 				}
 			}
 		rl.EndDrawing()
+
+		// Recalculate coordinates based on bucket
+		if prevBucketMin != bucketMin {
+			coords = cronsToCoords(crons)
+			gridCoords = coordToGrid(coords, &grid)
+		}
+
+		// Recalculate coordinates based on group by
+		if prevGroupBy != groupBy {
+			coords = cronsToCoords(crons)
+			gridCoords = coordToGrid(coords, &grid)
+		}
 
 		prevScreenW = int32(screenW)
 		prevScreenH = int32(screenH)
