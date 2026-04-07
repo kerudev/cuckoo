@@ -1,22 +1,26 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"os"
+
 	"github.com/kerudev/cuckoo/cuckoo"
 )
 
 func main() {
-	sample := []string{
-		"0 1,16,20 * * *",
-		"0 1,16,20 * * *",
-		"25 1,16,20 * * *",
-		"25 1,16,20 * * *",
-		"25 1,16,20 * * *",
-		"24 6 * * *",
-		"24 7 * * *",
-		"24 7 * * *",
-		"44 1,12 * * *",
-		"46 1,12 * * *",
+	path := ""
+	flag.StringVar(&path, "path", "", "Path where the data is")
+
+	flag.Parse()
+
+	if path == "" {
+		fmt.Println("Please provide a path")
+		os.Exit(1)
 	}
+
+	sample := map[string]string{}
+	cuckoo.ReadPath(path, &sample)
 
 	cuckoo.DrawLoop(sample)
 }

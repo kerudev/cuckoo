@@ -123,7 +123,7 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 	return result
 }
 
-func DrawLoop(sample []string) {
+func DrawLoop(sample map[string]string) {
 	crons := stringsToCrons(sample)
 	coords := cronsToCoords(crons)
 

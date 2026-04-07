@@ -12,10 +12,10 @@ func calcBucket(value int, segment int) int {
 	return ((value - 1) / segment) * segment + (segment - 1)
 }
 
-func stringsToCrons(crons []string) []Cron {
+func stringsToCrons(crons map[string]string) []Cron {
 	result := []Cron{}
 
-	for i, cron := range crons {
+	for name, cron := range crons {
 		split := strings.Split(cron, " ")
 
 		for h := range strings.SplitSeq(split[1], ",") {
@@ -27,7 +27,7 @@ func stringsToCrons(crons []string) []Cron {
 				result = append(result, Cron{
 					Hour: hour,
 					Min:  min,
-					Name: "process_" + strconv.Itoa(i),
+					Name: name,
 				})
 			}
 		}
