@@ -84,6 +84,7 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 	result := []GridCoord{}
 
 	nRows = 10
+	nCols = 24
 
 	for _, coord := range coords {
 		found := false
@@ -108,7 +109,12 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 		}
 	}
 
+	if groupBy == GroupByHour {
+		nCols -= 1
+	}
+
 	grid.Cell.H = float32(nRows)
+	grid.Cell.W = float32(nCols)
 
 	step.X = grid.W / grid.Cell.W
 	step.Y = grid.H / grid.Cell.H
@@ -155,8 +161,6 @@ func DrawLoop(sample map[string]string) {
 		screenW := float32(rl.GetScreenWidth())
 		screenH := float32(rl.GetScreenHeight())
 
-		cell := grid.Cell
-
 		// Recalculate grid and coordinates only when screen changes size
 		if screenH != float32(prevScreenH) && screenW != float32(prevScreenW) {
 			grid.W = screenW - 40
@@ -169,7 +173,7 @@ func DrawLoop(sample map[string]string) {
 		rl.ClearBackground(rl.RayWhite)
 
 		// Draw lines vertically
-		for col := range int(cell.W) - 1 {
+		for col := range nCols {
 			x := step.X*float32(col+1) + offset.X
 
 			rl.DrawLineEx(
@@ -181,7 +185,7 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		// Draw lines horizontally
-		for row := range int(nRows) - 1 {
+		for row := range nRows {
 			y := step.Y*float32(row+1) + offset.Y
 
 			rl.DrawLineEx(
@@ -200,7 +204,12 @@ func DrawLoop(sample map[string]string) {
 		)
 
 		// Draw text on X axis
-		for i := range nCols {
+		cols := nCols
+		if groupBy == GroupByHour {
+			cols += 1
+		}
+
+		for i := range cols {
 			text := strconv.Itoa(i)
 
 			textW := rl.MeasureTextEx(font, text, fontSize, 1).X
