@@ -20,15 +20,11 @@ type Coord struct {
 	Y    float32
 }
 
-type Cell struct {
-	W float32
-	H float32
-}
-
 type Grid struct {
 	W    float32
 	H    float32
-	Cell Cell
+	Rows int
+	Cols int
 }
 
 type GridCoord struct {
@@ -64,17 +60,17 @@ const (
 	BucketMin30
 )
 
+const INITIAL_ROWS = 10
+const INITIAL_COLS = 24
+
 var offset = rl.Vector2{X: 20, Y: 20}
 var step = rl.Vector2{X: 0, Y: 0}
-var grid = Grid{Cell: Cell{W: float32(nCols), H: float32(nRows)}}
+var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 
 var drawCoords = true
 var drawMode = DrawLines
 var bucketMin = BucketMin1
 var groupBy = GroupByHourMin
-
-var nCols = 24
-var nRows = 10
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
@@ -83,8 +79,8 @@ func coordToVec2(coord GridCoord) rl.Vector2 {
 func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 	result := []GridCoord{}
 
-	nRows = 10
-	nCols = 24
+	grid.Rows = INITIAL_ROWS
+	grid.Cols = INITIAL_COLS
 
 	for _, coord := range coords {
 		found := false
@@ -95,8 +91,8 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 				result[i].Names = append(result[i].Names, coord.Name)
 			}
 
-			if len(result[i].Names) >= nRows {
-				nRows = len(result[i].Names) + 2
+			if len(result[i].Names) >= grid.Rows {
+				grid.Rows = len(result[i].Names) + 2
 			}
 		}
 
@@ -110,20 +106,15 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 	}
 
 	if groupBy == GroupByHour {
-		nCols -= 1
+		grid.Cols -= 1
 	}
 
-	grid.Cell.H = float32(nRows)
-	grid.Cell.W = float32(nCols)
-
-	step.X = grid.W / grid.Cell.W
-	step.Y = grid.H / grid.Cell.H
-
-	cell := grid.Cell
+	step.X = grid.W / float32(grid.Cols)
+	step.Y = grid.H / float32(grid.Rows)
 
 	for i := range result {
-		result[i].X = result[i].X/cell.W*grid.W + offset.X
-		result[i].Y = grid.H + offset.Y - (grid.H / cell.H * float32(len(result[i].Names)))
+		result[i].X = result[i].X/float32(grid.Cols)*grid.W + offset.X
+		result[i].Y = grid.H + offset.Y - (grid.H / float32(grid.Rows) * float32(len(result[i].Names)))
 	}
 
 	return result
@@ -173,7 +164,7 @@ func DrawLoop(sample map[string]string) {
 		rl.ClearBackground(rl.RayWhite)
 
 		// Draw lines vertically
-		for col := range nCols {
+		for col := range grid.Cols {
 			x := step.X*float32(col+1) + offset.X
 
 			rl.DrawLineEx(
@@ -185,7 +176,7 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		// Draw lines horizontally
-		for row := range nRows {
+		for row := range grid.Rows {
 			y := step.Y*float32(row+1) + offset.Y
 
 			rl.DrawLineEx(
@@ -204,7 +195,7 @@ func DrawLoop(sample map[string]string) {
 		)
 
 		// Draw text on X axis
-		cols := nCols
+		cols := grid.Cols
 		if groupBy == GroupByHour {
 			cols += 1
 		}
@@ -219,7 +210,7 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		// Draw text on Y axis
-		for i := range nRows + 1 {
+		for i := range grid.Rows + 1 {
 			text := strconv.Itoa(i)
 			textY := -step.Y*float32(i) - textH/2 + offset.Y + grid.H
 
