@@ -3,13 +3,58 @@ package cuckoo
 import (
 	"strconv"
 	"strings"
+	"unicode"
 )
+
+// sortAlphabetically sorts alphabetically, including numbers.
+// It is meant to be used inside functions like `sort.Sort`.
+//
+// Regular sort: "1", "10", "2" (see https://stackoverflow.com/a/35087122).
+// This sort: 	 "1", "2", "10"
+func sortAlphabetically(a, b string) bool {
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
+		iChar, bChar := a[i], b[j]
+
+		// If both characters are a digit, sort by number
+		if unicode.IsDigit(rune(iChar)) && unicode.IsDigit(rune(bChar)) {
+			iStart, iEnd := extractNumber(a, i)
+			jStart, jEnd := extractNumber(b, j)
+
+			// Compare numbers as integers
+			if iStart != jStart {
+				return iStart < jStart
+			}
+			i, j = iEnd, jEnd
+			continue
+		}
+
+		// Regular character comparison
+		if iChar != bChar {
+			return iChar < bChar
+		}
+		i++
+		j++
+	}
+
+	// Shorter strings come first
+	return len(a) < len(b)
+}
+
+func extractNumber(s string, start int) (int, int) {
+	end := start
+	for end < len(s) && unicode.IsDigit(rune(s[end])) {
+		end++
+	}
+	n, _ := strconv.Atoi(s[start:end])
+	return n, end
+}
 
 func calcBucket(value int, segment int) int {
 	if value == 0 {
 		return 0
 	}
-	return ((value - 1) / segment) * segment + (segment - 1)
+	return ((value-1)/segment)*segment + (segment - 1)
 }
 
 func stringsToCrons(crons map[string]string) []Cron {
@@ -61,7 +106,7 @@ func cronsToCoords(crons []Cron) []Coord {
 
 		if groupBy == GroupByHourMin {
 			bucket := calcBucket(cron.Min, int(minuteSegment))
-			x += float32(bucket)/60
+			x += float32(bucket) / 60
 		}
 
 		result = append(result, Coord{Name: cron.Name, X: x, Y: 1})

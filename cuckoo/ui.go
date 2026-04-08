@@ -322,6 +322,10 @@ func DrawLoop(sample map[string]string) {
 				rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
 				rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
 
+				sort.Slice(coord.Names, func(i, j int) bool {
+					return sortAlphabetically(coord.Names[i], coord.Names[j])
+				})
+
 				for i, name := range coord.Names {
 					spacingY := float32(i) * fontSize
 
