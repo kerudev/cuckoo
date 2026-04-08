@@ -146,7 +146,6 @@ func DrawLoop(sample map[string]string) {
 
 	fontSize := float32(12)
 	font := rl.GetFontDefault()
-	textH := rl.MeasureTextEx(font, "0", fontSize, 1).Y
 
 	for !rl.WindowShouldClose() {
 		screenW := float32(rl.GetScreenWidth())
@@ -210,11 +209,20 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		// Draw text on Y axis
+		textRect := rl.MeasureTextEx(font, strconv.Itoa(cols), fontSize, 1)
+
 		for i := range grid.Rows + 1 {
 			text := strconv.Itoa(i)
-			textY := -step.Y*float32(i) - textH/2 + offset.Y + grid.H
+			textSize := rl.MeasureTextEx(font, strconv.Itoa(i), fontSize, 1)
 
-			rl.DrawText(text, int32(offset.X/2), int32(textY), int32(fontSize), rl.Black)
+			textPos := rl.Vector2{
+				X: textRect.X + rl.Lerp(0.0, textRect.X-textSize.X, 1),
+				Y: textRect.Y + rl.Lerp(0.0, textRect.Y-textSize.Y, 0.5),
+			}
+
+			textY := -step.Y*float32(i) - textPos.Y/2 + offset.Y + grid.H
+
+			rl.DrawText(text, int32(textPos.X-offset.X/2), int32(textY), int32(fontSize), rl.Black)
 		}
 
 		if drawMode != DrawNone {
