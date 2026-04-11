@@ -21,10 +21,11 @@ type Coord struct {
 }
 
 type Grid struct {
-	W    float32
-	H    float32
-	Rows int
-	Cols int
+	W        float32
+	H        float32
+	Rows     int
+	Cols     int
+	HighestY int
 }
 
 type GridCoord struct {
@@ -44,8 +45,8 @@ const (
 type GroupBy int32
 
 const (
-	GroupByHourMin GroupBy = iota
-	GroupByHour
+	GroupByHour GroupBy = iota
+	GroupByHourMin
 	// GroupByMin
 )
 
@@ -62,6 +63,7 @@ const (
 
 const INITIAL_ROWS = 10
 const INITIAL_COLS = 24
+const ROWS_CAP = 30
 
 var offset = rl.Vector2{X: 20, Y: 20}
 var step = rl.Vector2{X: 0, Y: 0}
@@ -70,7 +72,7 @@ var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 var drawCoords = true
 var drawMode = DrawLines
 var bucketMin = BucketMin1
-var groupBy = GroupByHourMin
+var groupBy = GroupByHour
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
@@ -105,8 +107,15 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 		}
 	}
 
+	grid.HighestY = grid.Rows
+
+	// Remove the last column, as it makes no sense when grouping by hour
 	if groupBy == GroupByHour {
 		grid.Cols -= 1
+	}
+
+	if grid.HighestY > ROWS_CAP {
+		grid.Rows = INITIAL_ROWS
 	}
 
 	step.X = grid.W / float32(grid.Cols)
@@ -114,7 +123,7 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 
 	for i := range result {
 		result[i].X = result[i].X/float32(grid.Cols)*grid.W + offset.X
-		result[i].Y = grid.H + offset.Y - (grid.H / float32(grid.Rows) * float32(len(result[i].Names)))
+		result[i].Y = grid.H + offset.Y - (grid.H / float32(grid.HighestY) * float32(len(result[i].Names)))
 	}
 
 	return result
@@ -211,7 +220,20 @@ func DrawLoop(sample map[string]string) {
 		// Draw text on Y axis
 		textRect := rl.MeasureTextEx(font, strconv.Itoa(cols), fontSize, 1)
 
-		for i := range grid.Rows + 1 {
+		nRow := 0
+		isCapped := false
+		last := (grid.HighestY / (grid.HighestY / grid.Rows)) * (grid.HighestY / grid.Rows)
+
+		for i := range grid.HighestY + 1 {
+			if grid.HighestY > ROWS_CAP && i%(grid.HighestY/grid.Rows) != 0 {
+				isCapped = true
+				continue
+			}
+
+			if isCapped && i == last {
+				i = grid.HighestY
+			}
+
 			text := strconv.Itoa(i)
 			textSize := rl.MeasureTextEx(font, strconv.Itoa(i), fontSize, 1)
 
@@ -220,7 +242,8 @@ func DrawLoop(sample map[string]string) {
 				Y: textRect.Y + rl.Lerp(0.0, textRect.Y-textSize.Y, 0.5),
 			}
 
-			textY := -step.Y*float32(i) - textPos.Y/2 + offset.Y + grid.H
+			textY := -step.Y*float32(nRow) - textPos.Y/2 + offset.Y + grid.H
+			nRow++
 
 			rl.DrawText(text, int32(textPos.X-offset.X/2), int32(textY), int32(fontSize), rl.Black)
 		}
@@ -257,7 +280,7 @@ func DrawLoop(sample map[string]string) {
 		groupByIdx := int32(groupBy)
 		groupByIdx = rg.ListView(
 			rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 63},
-			"Hour+Minute;Hour",
+			"Hour;Hour+Minute",
 			&groupByScroll,
 			groupByIdx,
 		)
@@ -314,9 +337,9 @@ func DrawLoop(sample map[string]string) {
 
 				rec := rl.Rectangle{
 					X:      coord.X + 8,
-					Y:      coord.Y,
+					Y:      coord.Y - 8,
 					Width:  maxW + 16,
-					Height: fontSize * float32(len(coord.Names)),
+					Height: fontSize*float32(len(coord.Names)) + 16,
 				}
 
 				rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
