@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kerudev/cuckoo/cuckoo"
+	"github.com/kerudev/cuckoo/internal"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	flag.Parse()
 
 	if path == "" {
-		fmt.Println("Please provide a path")
+		fmt.Println("-path: provide a path to loads crons")
 		os.Exit(1)
 	}
 
