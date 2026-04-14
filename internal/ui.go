@@ -1,6 +1,7 @@
 package cuckoo
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 
@@ -148,7 +149,7 @@ func DrawLoop(sample map[string]string) {
 	prevGroupBy := groupBy
 	prevBucketMin := bucketMin
 
-	rl.SetConfigFlags(rl.FlagWindowResizable)
+	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 
 	rl.InitWindow(800, 600, "Cuckoo")
 	rl.SetWindowMinSize(800, 600)
@@ -159,6 +160,27 @@ func DrawLoop(sample map[string]string) {
 	for !rl.WindowShouldClose() {
 		screenW := float32(rl.GetScreenWidth())
 		screenH := float32(rl.GetScreenHeight())
+
+		// Check if a file was dropped and reload coords
+
+		// TODO this sometimes crashes when the file is being dragged over the
+		// window. This may be a problem of Go's bindings
+		if rl.IsFileDropped() {
+			droppedFiles := rl.LoadDroppedFiles()
+
+			sample = map[string]string{}
+			err := ReadPath(droppedFiles[0], &sample)
+
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				crons = stringsToCrons(sample)
+				coords = cronsToCoords(crons)
+				gridCoords = coordToGrid(coords, &grid)
+			}
+
+			// rl.UnloadDroppedFiles();
+		}
 
 		// Recalculate grid and coordinates only when screen changes size
 		if screenH != float32(prevScreenH) && screenW != float32(prevScreenW) {

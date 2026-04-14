@@ -6,16 +6,16 @@ import (
 	"os"
 )
 
-func ReadPath(path string, payload any) {
+func ReadPath(path string, payload any) (error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Printf("Error while reading %s\n", path)
-		os.Exit(1)
+		return fmt.Errorf("Error while reading %s", path)
 	}
 
 	err = json.Unmarshal(content, payload)
 	if err != nil {
-		fmt.Printf("Error while unmarshaling data from %s\n", path)
-		os.Exit(1)
+		return fmt.Errorf("Error while unmarshaling data from %s", path)
 	}
+
+	return nil
 }
