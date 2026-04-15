@@ -61,19 +61,25 @@ func stringsToCrons(crons map[string]string) []Cron {
 	result := []Cron{}
 
 	for name, cron := range crons {
+		// "A B C D E" => "Min Hour Day Month Weekday"
 		split := strings.Split(cron, " ")
 
-		for h := range strings.SplitSeq(split[1], ",") {
-			hour, _ := strconv.Atoi(h)
+		for wd := range strings.SplitSeq(split[4], ",") {
+			weekday, _ := strconv.Atoi(wd)
 
-			for m := range strings.SplitSeq(split[0], ",") {
-				min, _ := strconv.Atoi(m)
+			for h := range strings.SplitSeq(split[1], ",") {
+				hour, _ := strconv.Atoi(h)
 
-				result = append(result, Cron{
-					Hour: hour,
-					Min:  min,
-					Name: name,
-				})
+				for m := range strings.SplitSeq(split[0], ",") {
+					min, _ := strconv.Atoi(m)
+
+					result = append(result, Cron{
+						Name:       name,
+						Min:        min,
+						Hour:       hour,
+						Weekday:    weekday,
+					})
+				}
 			}
 		}
 	}
@@ -81,8 +87,8 @@ func stringsToCrons(crons map[string]string) []Cron {
 	return result
 }
 
-func cronsToCoords(crons []Cron) []Coord {
-	result := []Coord{}
+func cronsToCoords(crons []Cron) [][]Coord {
+	result := make([][]Coord, 7)
 
 	minuteSegment := float32(0)
 
@@ -109,7 +115,7 @@ func cronsToCoords(crons []Cron) []Coord {
 			x += float32(bucket) / 60
 		}
 
-		result = append(result, Coord{Name: cron.Name, X: x, Y: 1})
+		result[cron.Weekday] = append(result[cron.Weekday], Coord{Name: cron.Name, X: x, Y: 1})
 	}
 
 	return result

@@ -10,9 +10,12 @@ import (
 )
 
 type Cron struct {
-	Name string
-	Hour int
-	Min  int
+	Name    string
+	Min     int // 0-59
+	Hour    int // 0-23
+	Day     int // 1-31
+	Month   int // 1-12
+	Weekday int // 0-6
 }
 
 type Coord struct {
@@ -21,18 +24,18 @@ type Coord struct {
 	Y    float32
 }
 
+type GridCoord struct {
+	Names []string
+	X     float32
+	Y     float32
+}
+
 type Grid struct {
 	W        float32
 	H        float32
 	Rows     int
 	Cols     int
 	HighestY int
-}
-
-type GridCoord struct {
-	Names []string
-	X     float32
-	Y     float32
 }
 
 type DrawMode int32
@@ -70,6 +73,16 @@ var offset = rl.Vector2{X: 20, Y: 20}
 var step = rl.Vector2{X: 0, Y: 0}
 var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 
+var colors = []rl.Color{
+	rl.Red,
+	rl.Green,
+	rl.Blue,
+	rl.Purple,
+	rl.Beige,
+	rl.Pink,
+	rl.Orange,
+}
+
 var drawCoords = true
 var drawMode = DrawLines
 var bucketMin = BucketMin1
@@ -79,32 +92,34 @@ func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
 }
 
-func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
-	result := []GridCoord{}
+func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
+	result := make([][]GridCoord, 7)
 
 	grid.Rows = INITIAL_ROWS
 	grid.Cols = INITIAL_COLS
 
-	for _, coord := range coords {
-		found := false
+	for day, coordDay := range coords {
+		for _, coord := range coordDay {
+			found := false
 
-		for i := range result {
-			if coord.X == result[i].X {
-				found = true
-				result[i].Names = append(result[i].Names, coord.Name)
+			for i := range result[day] {
+				if coord.X == result[day][i].X {
+					found = true
+					result[day][i].Names = append(result[day][i].Names, coord.Name)
+				}
+
+				if len(result[day][i].Names) >= grid.Rows {
+					grid.Rows = len(result[day][i].Names) + 2
+				}
 			}
 
-			if len(result[i].Names) >= grid.Rows {
-				grid.Rows = len(result[i].Names) + 2
+			if !found {
+				result[day] = append(result[day], GridCoord{
+					Names: []string{coord.Name},
+					X:     coord.X,
+					Y:     coord.Y,
+				})
 			}
-		}
-
-		if !found {
-			result = append(result, GridCoord{
-				Names: []string{coord.Name},
-				X:     coord.X,
-				Y:     coord.Y,
-			})
 		}
 	}
 
@@ -122,9 +137,11 @@ func coordToGrid(coords []Coord, grid *Grid) []GridCoord {
 	step.X = grid.W / float32(grid.Cols)
 	step.Y = grid.H / float32(grid.Rows)
 
-	for i := range result {
-		result[i].X = result[i].X/float32(grid.Cols)*grid.W + offset.X
-		result[i].Y = grid.H + offset.Y - (grid.H / float32(grid.HighestY) * float32(len(result[i].Names)))
+	for day := range 7 {
+		for i := range result[day] {
+			result[day][i].X = result[day][i].X/float32(grid.Cols)*grid.W + offset.X
+			result[day][i].Y = grid.H + offset.Y - (grid.H / float32(grid.HighestY) * float32(len(result[day][i].Names)))
+		}
 	}
 
 	return result
@@ -134,7 +151,7 @@ func DrawLoop(sample map[string]string) {
 	crons := stringsToCrons(sample)
 	coords := cronsToCoords(crons)
 
-	gridCoords := []GridCoord{}
+	gridCoords := [][]GridCoord{}
 
 	boxRoundness := float32(0.2)
 	boxSegments := int32(8)
@@ -230,11 +247,11 @@ func DrawLoop(sample map[string]string) {
 			cols += 1
 		}
 
-		for i := range cols {
-			text := strconv.Itoa(i)
+		for col := range cols {
+			text := strconv.Itoa(col)
 
 			textW := rl.MeasureTextEx(font, text, fontSize, 1).X
-			textX := step.X*float32(i) - textW/2 + offset.X
+			textX := step.X*float32(col) - textW/2 + offset.X
 
 			rl.DrawText(text, int32(textX), int32(grid.H+offset.Y+2), int32(fontSize), rl.Black)
 		}
@@ -246,18 +263,18 @@ func DrawLoop(sample map[string]string) {
 		isCapped := false
 		last := (grid.HighestY / (grid.HighestY / grid.Rows)) * (grid.HighestY / grid.Rows)
 
-		for i := range grid.HighestY + 1 {
-			if grid.HighestY > ROWS_CAP && i%(grid.HighestY/grid.Rows) != 0 {
+		for row := range grid.HighestY + 1 {
+			if grid.HighestY > ROWS_CAP && row%(grid.HighestY/grid.Rows) != 0 {
 				isCapped = true
 				continue
 			}
 
-			if isCapped && i == last {
-				i = grid.HighestY
+			if isCapped && row == last {
+				row = grid.HighestY
 			}
 
-			text := strconv.Itoa(i)
-			textSize := rl.MeasureTextEx(font, strconv.Itoa(i), fontSize, 1)
+			text := strconv.Itoa(row)
+			textSize := rl.MeasureTextEx(font, strconv.Itoa(row), fontSize, 1)
 
 			textPos := rl.Vector2{
 				X: textRect.X + rl.Lerp(0.0, textRect.X-textSize.X, 1),
@@ -270,30 +287,32 @@ func DrawLoop(sample map[string]string) {
 			rl.DrawText(text, int32(textPos.X-offset.X/2), int32(textY), int32(fontSize), rl.Black)
 		}
 
-		if drawMode != DrawNone {
-			// Sort coordinates to draw line in order
-			sort.Slice(gridCoords, func(i, j int) bool {
-				return gridCoords[i].X < gridCoords[j].X
-			})
+		for day, dayCoords := range gridCoords {
+			if drawMode != DrawNone {
+				// Sort coordinates to draw line in order
+				sort.Slice(dayCoords, func(i, j int) bool {
+					return dayCoords[i].X < dayCoords[j].X
+				})
 
-			// Draw lines that connect coordinates
-			for i := 0; i < len(gridCoords)-1; i++ {
-				start := coordToVec2(gridCoords[i])
-				end := coordToVec2(gridCoords[i+1])
+				// Draw lines that connect coordinates
+				for k := 0; k < len(dayCoords)-1; k++ {
+					start := coordToVec2(dayCoords[k])
+					end := coordToVec2(dayCoords[k+1])
 
-				switch drawMode {
-				case DrawLines:
-					rl.DrawLineEx(start, end, 2, rl.Red)
-				case DrawBezier:
-					rl.DrawLineBezier(start, end, 2, rl.Red)
+					switch drawMode {
+					case DrawLines:
+						rl.DrawLineEx(start, end, 2, colors[day])
+					case DrawBezier:
+						rl.DrawLineBezier(start, end, 2, colors[day])
+					}
 				}
 			}
-		}
 
-		// Draw coordinates
-		if drawCoords {
-			for _, coord := range gridCoords {
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, rl.Red)
+			// Draw coordinates
+			if drawCoords {
+				for _, coord := range dayCoords {
+					rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, colors[day])
+				}
 			}
 		}
 
@@ -342,45 +361,47 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		// Draw coordinate information on mouse hover
-		for _, coord := range gridCoords {
-			mouseOverCoord := rl.CheckCollisionPointCircle(rl.GetMousePosition(), coordToVec2(coord), 4)
+		for _, coordDay := range gridCoords {
+			for _, coord := range coordDay {
+				mouseOverCoord := rl.CheckCollisionPointCircle(rl.GetMousePosition(), coordToVec2(coord), 4)
 
-			if mouseOverCoord {
-				maxW := float32(0)
+				if mouseOverCoord {
+					maxW := float32(0)
 
-				// Calculate max text size
-				for _, name := range coord.Names {
-					textW := float32(rl.MeasureText(name, int32(fontSize)))
+					// Calculate max text size
+					for _, name := range coord.Names {
+						textW := float32(rl.MeasureText(name, int32(fontSize)))
 
-					if textW > maxW {
-						maxW = textW
+						if textW > maxW {
+							maxW = textW
+						}
 					}
-				}
 
-				rec := rl.Rectangle{
-					X:      coord.X + 8,
-					Y:      coord.Y - 8,
-					Width:  maxW + 16,
-					Height: fontSize*float32(len(coord.Names)) + 16,
-				}
+					rec := rl.Rectangle{
+						X:      coord.X + 8,
+						Y:      coord.Y - 8,
+						Width:  maxW + 16,
+						Height: fontSize*float32(len(coord.Names)) + 16,
+					}
 
-				rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
-				rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
+					rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
+					rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
 
-				sort.Slice(coord.Names, func(i, j int) bool {
-					return sortAlphabetically(coord.Names[i], coord.Names[j])
-				})
+					sort.Slice(coord.Names, func(i, j int) bool {
+						return sortAlphabetically(coord.Names[i], coord.Names[j])
+					})
 
-				for i, name := range coord.Names {
-					spacingY := float32(i) * fontSize
+					for i, name := range coord.Names {
+						spacingY := float32(i) * fontSize
 
-					rl.DrawText(
-						name,
-						int32(coord.X+boxPadX),
-						int32(coord.Y+spacingY),
-						int32(fontSize),
-						rl.Black,
-					)
+						rl.DrawText(
+							name,
+							int32(coord.X+boxPadX),
+							int32(coord.Y+spacingY),
+							int32(fontSize),
+							rl.Black,
+						)
+					}
 				}
 			}
 		}
