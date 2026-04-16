@@ -1,6 +1,7 @@
 package cuckoo
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -57,9 +58,17 @@ func calcBucket(value int, segment int) int {
 	return ((value-1)/segment)*segment + (segment - 1)
 }
 
-func parseCronField(field string) []int {
+func parseCronField(field string, min int, max int) []int {
 	list := []int{}
 	for value := range strings.SplitSeq(field, ",") {
+		// Parse wildcard ("*") values
+		if value == "*" {
+			for i := min; i <= max; i++ {
+				list = append(list, i)
+			}
+			continue
+		}
+
 		v, err := strconv.Atoi(value)
 
 		// If v is not a literal (n), it will fail parsing
@@ -68,10 +77,20 @@ func parseCronField(field string) []int {
 			continue
 		}
 
+		// Ignore step (n/m) for now
+		if strings.Contains(value, "/") {
+			continue
+		}
+
 		// Loop over range (n-m) values
 		rng := strings.Split(value, "-")
-		rng0, _ := strconv.Atoi(rng[0])
-		rng1, _ := strconv.Atoi(rng[1])
+		fmt.Println("RANGE:", rng)
+		rng0, err0 := strconv.Atoi(rng[0])
+		rng1, err1 := strconv.Atoi(rng[1])
+
+		if err0 != nil || err1 != nil {
+			continue
+		}
 
 		for i := rng0; i <= rng1; i++ {
 			list = append(list, i)
@@ -87,9 +106,9 @@ func stringsToCrons(crons map[string]string) []Cron {
 		// "A B C D E" => "Min Hour Day Month Weekday"
 		split := strings.Split(cron, " ")
 
-		weekdays := parseCronField(split[4])
-		hours := parseCronField(split[1])
-		mins := parseCronField(split[0])
+		weekdays := parseCronField(split[4], 0, 6)
+		hours := parseCronField(split[1], 0, 23)
+		mins := parseCronField(split[0], 0, 59)
 
 		for _, wd := range weekdays {
 			for _, h := range hours {
