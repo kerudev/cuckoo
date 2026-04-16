@@ -57,6 +57,29 @@ func calcBucket(value int, segment int) int {
 	return ((value-1)/segment)*segment + (segment - 1)
 }
 
+func parseCronField(field string) []int {
+	list := []int{}
+	for value := range strings.SplitSeq(field, ",") {
+		v, err := strconv.Atoi(value)
+
+		// If v is not a literal (n), it will fail parsing
+		if err == nil {
+			list = append(list, v)
+			continue
+		}
+
+		// Loop over range (n-m) values
+		rng := strings.Split(value, "-")
+		rng0, _ := strconv.Atoi(rng[0])
+		rng1, _ := strconv.Atoi(rng[1])
+
+		for i := rng0; i <= rng1; i++ {
+			list = append(list, i)
+		}
+	}
+	return list
+}
+
 func stringsToCrons(crons map[string]string) []Cron {
 	result := []Cron{}
 
@@ -64,20 +87,18 @@ func stringsToCrons(crons map[string]string) []Cron {
 		// "A B C D E" => "Min Hour Day Month Weekday"
 		split := strings.Split(cron, " ")
 
-		for wd := range strings.SplitSeq(split[4], ",") {
-			weekday, _ := strconv.Atoi(wd)
+		weekdays := parseCronField(split[4])
+		hours := parseCronField(split[1])
+		mins := parseCronField(split[0])
 
-			for h := range strings.SplitSeq(split[1], ",") {
-				hour, _ := strconv.Atoi(h)
-
-				for m := range strings.SplitSeq(split[0], ",") {
-					min, _ := strconv.Atoi(m)
-
+		for _, wd := range weekdays {
+			for _, h := range hours {
+				for _, m := range mins {
 					result = append(result, Cron{
-						Name:       name,
-						Min:        min,
-						Hour:       hour,
-						Weekday:    weekday,
+						Name:    name,
+						Min:     m,
+						Hour:    h,
+						Weekday: wd,
 					})
 				}
 			}
