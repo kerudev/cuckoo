@@ -1,7 +1,6 @@
 package cuckoo
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -60,8 +59,9 @@ func calcBucket(value int, segment int) int {
 
 func parseCronField(field string, min int, max int) []int {
 	list := []int{}
+
 	for value := range strings.SplitSeq(field, ",") {
-		// Parse wildcard ("*") values
+		// wildcard ("*")
 		if value == "*" {
 			for i := min; i <= max; i++ {
 				list = append(list, i)
@@ -69,31 +69,47 @@ func parseCronField(field string, min int, max int) []int {
 			continue
 		}
 
-		v, err := strconv.Atoi(value)
+		// step (x/y)
+		if parts := strings.Split(value, "/"); len(parts) == 2 {
+			start := min
+			if parts[0] != "*" {
+				if v, err := strconv.Atoi(parts[0]); err == nil {
+					start = v
+				} else {
+					continue
+				}
+			}
 
-		// If v is not a literal (n), it will fail parsing
+			end, err1 := strconv.Atoi(parts[1])
+			if err1 != nil {
+				continue
+			}
+
+			for i := start; i <= max; i += end {
+				list = append(list, i)
+			}
+			continue
+		}
+
+		// range (x-y)
+		if parts := strings.Split(value, "-"); len(parts) == 2 {
+			start, err0 := strconv.Atoi(parts[0])
+			end, err1 := strconv.Atoi(parts[1])
+
+			if err0 != nil || err1 != nil {
+				continue
+			}
+
+			for i := start; i <= end; i++ {
+				list = append(list, i)
+			}
+			continue
+		}
+
+		// literal (x)
+		v, err := strconv.Atoi(value)
 		if err == nil {
 			list = append(list, v)
-			continue
-		}
-
-		// Ignore step (n/m) for now
-		if strings.Contains(value, "/") {
-			continue
-		}
-
-		// Loop over range (n-m) values
-		rng := strings.Split(value, "-")
-		fmt.Println("RANGE:", rng)
-		rng0, err0 := strconv.Atoi(rng[0])
-		rng1, err1 := strconv.Atoi(rng[1])
-
-		if err0 != nil || err1 != nil {
-			continue
-		}
-
-		for i := rng0; i <= rng1; i++ {
-			list = append(list, i)
 		}
 	}
 	return list

@@ -86,7 +86,7 @@ var colors = []rl.Color{
 var drawCoords = true
 var drawMode = DrawLines
 var bucketMin = BucketMin1
-var groupBy = GroupByHour
+var groupBy = GroupByHourMin
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
