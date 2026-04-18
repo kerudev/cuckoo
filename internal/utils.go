@@ -4,6 +4,9 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	rg "github.com/gen2brain/raylib-go/raygui"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 // sortAlphabetically sorts alphabetically, including numbers.
@@ -166,7 +169,7 @@ func cronsToCoords(crons []Cron) [][]Coord {
 	for _, cron := range crons {
 		x := float32(cron.Hour)
 
-		if groupBy == GroupByHourMin {
+		if groupBy == GroupByWdHourMin {
 			bucket := calcBucket(cron.Min, int(minuteSegment))
 			x += float32(bucket) / 60
 		}
@@ -175,4 +178,43 @@ func cronsToCoords(crons []Cron) [][]Coord {
 	}
 
 	return result
+}
+
+// f <  0.5  -> darken color
+// f == 0.5 -> same color
+// f >  0.5  -> brighten color
+func LerpRGB(r uint8, g uint8, b uint8, a uint8, f float32) (uint8, uint8, uint8, uint8) {
+	f = max(0.0, min(1.0, f))
+
+	r2 := uint8(0)
+	g2 := uint8(0)
+	b2 := uint8(0)
+	a2 := uint8(0)
+
+	if f < 0.5 {
+		// Darken color
+		factor := f / 0.5
+		r2 = uint8(float32(r) * factor)
+		g2 = uint8(float32(g) * factor)
+		b2 = uint8(float32(b) * factor)
+		a2 = uint8(float32(a) * factor)
+	} else {
+		// Brighten color
+		factor := (f - 0.5) / 0.5
+		r2 = uint8(float32(r) + (255-float32(r))*factor)
+		g2 = uint8(float32(g) + (255-float32(g))*factor)
+		b2 = uint8(float32(b) + (255-float32(b))*factor)
+		a2 = uint8(float32(a) + (255-float32(a))*factor)
+	}
+
+	return r2, g2, b2, a2
+}
+
+func LerpColor(color rl.Color, f float32) rl.Color {
+	r, g, b, a := LerpRGB(color.R, color.G, color.B, color.A, f)
+	return rl.NewColor(r, g, b, a)
+}
+
+func LerpColorToHex(color rl.Color, f float32) rg.PropertyValue {
+	return rg.NewColorPropertyValue(LerpColor(color, f))
 }

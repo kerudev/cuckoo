@@ -49,8 +49,8 @@ const (
 type GroupBy int32
 
 const (
-	GroupByHour GroupBy = iota
-	GroupByHourMin
+	GroupByWdHour GroupBy = iota
+	GroupByWdHourMin
 	// GroupByMin
 )
 
@@ -84,19 +84,29 @@ var boxPadX = float32(16)
 
 var colors = []rl.Color{
 	rl.Red,
+	rl.Orange,
+	rl.Gold,
 	rl.Green,
 	rl.Blue,
 	rl.Purple,
-	rl.Beige,
 	rl.Pink,
-	rl.Orange,
 }
 
 // User options
 var drawCoords = true
 var drawMode = DrawLines
 var bucketMin = BucketMin1
-var groupBy = GroupByHourMin
+var groupBy = GroupByWdHourMin
+
+var weekdaysToggle = []bool{
+	true, // rl.Red
+	true, // rl.Orange
+	true, // rl.Gold
+	true, // rl.Blue
+	true, // rl.Green
+	true, // rl.Purple
+	true, // rl.Pink
+}
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
 	return rl.Vector2{X: coord.X, Y: coord.Y}
@@ -136,7 +146,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	grid.HighestY = grid.Rows
 
 	// Remove the last column, as it makes no sense when grouping by hour
-	if groupBy == GroupByHour {
+	if groupBy == GroupByWdHour {
 		grid.Cols -= 1
 	}
 
@@ -191,7 +201,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 	// Draw text on X axis
 	cols := grid.Cols
-	if groupBy == GroupByHour {
+	if groupBy == GroupByWdHour {
 		cols += 1
 	}
 
@@ -236,6 +246,10 @@ func drawGrid(gridCoords [][]GridCoord) {
 	}
 
 	for day, dayCoords := range gridCoords {
+		if !weekdaysToggle[day] {
+			continue
+		}
+
 		if drawMode != DrawNone {
 			// Sort coordinates to draw line in order
 			sort.Slice(dayCoords, func(i, j int) bool {
@@ -266,33 +280,77 @@ func drawGrid(gridCoords [][]GridCoord) {
 }
 
 func drawOptions(groupByScroll *int32) {
-	// Draw option - GroupBy
-	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
-	groupByIdx := int32(groupBy)
-	groupByIdx = rg.ListView(
-		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 63},
-		"Hour;Hour+Min",
-		groupByScroll,
-		groupByIdx,
-	)
-	groupBy = GroupBy(groupByIdx)
-
 	// Draw option - DrawMode
-	rl.DrawText("Draw mode", int32(120+offset.X), int32(grid.H+offset.Y*2+2), 12, rl.Black)
+	rl.DrawText("Draw mode", int32(offset.X), int32(grid.H+offset.Y*2+6), 12, rl.Black)
 	drawModeIdx := int32(drawMode)
 	drawModeIdx = rg.ToggleGroup(
-		rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
+		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
 		"#113#;#127#;#125#",
 		drawModeIdx,
 	)
 	drawMode = DrawMode(drawModeIdx)
 
+	// Draw option - GroupBy
+	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
+	groupByIdx := int32(groupBy)
+	groupByIdx = rg.ListView(
+		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*5, Width: 100, Height: 31*2 + 1},
+		"Wd+Hour;Wd+Hour+Min",
+		groupByScroll,
+		groupByIdx,
+	)
+	groupBy = GroupBy(groupByIdx)
+
+	if groupBy == GroupByWdHourMin {
+		// Check the implementation of GuiLoadStyleDefault for additional keys
+		// https://github.com/raysan5/raygui/blob/master/src/raygui.h
+
+		rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
+
+		def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
+
+		def_BORDER_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
+		def_BASE_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
+		def_BORDER_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
+		def_BASE_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED)
+
+		rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
+
+		for i := range weekdaysToggle {
+			color := colors[i]
+			hexColor := rg.NewColorPropertyValue(color)
+
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, LerpColorToHex(color, 0.8))
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, LerpColorToHex(color, 0.7))
+
+			rec := rl.Rectangle{
+				X:      120 + offset.X + float32(22*i),
+				Y:      grid.H + offset.Y*5,
+				Width:  20,
+				Height: 20,
+			}
+
+			active := rg.Toggle(rec, strconv.Itoa(i), weekdaysToggle[i])
+			weekdaysToggle[i] = active
+		}
+
+		// Reset style to defaults
+		rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, def_BORDER_WIDTH)
+
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_FOCUSED)
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, def_BASE_COLOR_FOCUSED)
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_PRESSED)
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, def_BASE_COLOR_PRESSED)
+	}
+
 	// Draw option - BucketMin
-	if groupBy == GroupByHourMin {
-		rl.DrawText("Minute bucket", int32(120+offset.X), int32(grid.H+offset.Y*4+2), 12, rl.Black)
+	if groupBy == GroupByWdHourMin {
+		rl.DrawText("Group of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+6), 12, rl.Black)
 		bucketMinIdx := int32(bucketMin)
 		bucketMinIdx = rg.ToggleGroup(
-			rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: 20, Height: 20},
+			rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: 20, Height: 20},
 			"#113#;5;10;15;20;30",
 			bucketMinIdx,
 		)
@@ -301,7 +359,7 @@ func drawOptions(groupByScroll *int32) {
 
 	// Draw option - DrawCoords
 	drawCoords = rg.CheckBox(
-		rl.Rectangle{X: 220 + offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
+		rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
 		"Draw coordinates",
 		drawCoords,
 	)
@@ -376,8 +434,8 @@ func DrawLoop(sample map[string]string) {
 
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 
-	rl.InitWindow(800, 600, "Cuckoo")
-	rl.SetWindowMinSize(800, 600)
+	rl.InitWindow(800, 700, "Cuckoo")
+	rl.SetWindowMinSize(800, 700)
 
 	font = rl.GetFontDefault()
 
@@ -409,7 +467,7 @@ func DrawLoop(sample map[string]string) {
 		// Recalculate grid and coordinates only when screen changes size
 		if screenH != float32(prevScreenH) || screenW != float32(prevScreenW) {
 			grid.W = screenW - 40
-			grid.H = screenH - 140
+			grid.H = screenH - 240
 
 			gridCoords = coordToGrid(coords, &grid)
 		}
