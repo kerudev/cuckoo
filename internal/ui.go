@@ -9,67 +9,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Cron struct {
-	Name    string
-	Min     int // 0-59
-	Hour    int // 0-23
-	Day     int // 1-31
-	Month   int // 1-12
-	Weekday int // 0-6
-}
-
-type Coord struct {
-	Name string
-	X    float32
-	Y    float32
-}
-
-type GridCoord struct {
-	Names []string
-	X     float32
-	Y     float32
-}
-
-type Cell struct {
-	W float32
-	H float32
-}
-
-type Grid struct {
-	W        float32
-	H        float32
-	Rows     int
-	Cols     int
-	HighestY int
-}
-
-type DrawMode int32
-
-const (
-	DrawNone DrawMode = iota
-	DrawLines
-	DrawBezier
-)
-
-type GroupBy int32
-
-const (
-	GroupByWdHour GroupBy = iota
-	GroupByWdHourMin
-	// GroupByMin
-)
-
-type StepMin int32
-
-const (
-	StepMin1 StepMin = iota
-	StepMin5
-	StepMin10
-	StepMin15
-	StepMin20
-	StepMin30
-)
-
 // Constants
 const INITIAL_ROWS = 10
 const INITIAL_COLS = 24
@@ -111,65 +50,6 @@ var weekdaysToggle = []bool{
 	true, // rl.Beige
 	true, // rl.Pink
 	true, // rl.Orange
-}
-
-func coordToVec2(coord GridCoord) rl.Vector2 {
-	return rl.Vector2{X: coord.X, Y: coord.Y}
-}
-
-func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
-	result := make([][]GridCoord, 7)
-
-	grid.Rows = INITIAL_ROWS
-	grid.Cols = INITIAL_COLS
-
-	for day, coordDay := range coords {
-		for _, coord := range coordDay {
-			found := false
-
-			for i := range result[day] {
-				if coord.X == result[day][i].X {
-					found = true
-					result[day][i].Names = append(result[day][i].Names, coord.Name)
-				}
-
-				if len(result[day][i].Names) >= grid.Rows {
-					grid.Rows = len(result[day][i].Names) + 2
-				}
-			}
-
-			if !found {
-				result[day] = append(result[day], GridCoord{
-					Names: []string{coord.Name},
-					X:     coord.X,
-					Y:     coord.Y,
-				})
-			}
-		}
-	}
-
-	grid.HighestY = grid.Rows
-
-	// Remove the last column, as it makes no sense when grouping by hour
-	if groupBy == GroupByWdHour {
-		grid.Cols -= 1
-	}
-
-	if grid.HighestY > ROWS_CAP {
-		grid.Rows = INITIAL_ROWS
-	}
-
-	cell.W = grid.W / float32(grid.Cols)
-	cell.H = grid.H / float32(grid.Rows)
-
-	for day := range 7 {
-		for i := range result[day] {
-			result[day][i].X = result[day][i].X/float32(grid.Cols)*grid.W + offset.X
-			result[day][i].Y = grid.H + offset.Y - (grid.H / float32(grid.HighestY) * float32(len(result[day][i].Names)))
-		}
-	}
-
-	return result
 }
 
 func drawGrid(gridCoords [][]GridCoord) {
@@ -326,9 +206,9 @@ func drawOptions(groupByScroll *int32) {
 			hexColor := rg.NewColorPropertyValue(color)
 
 			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, LerpColorToHex(color, 0.8))
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpColorToHex(color, 0.8))
 			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, LerpColorToHex(color, 0.7))
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpColorToHex(color, 0.7))
 
 			rec := rl.Rectangle{
 				X:      120 + offset.X + float32(22*i),

@@ -9,6 +9,10 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+func coordToVec2(coord GridCoord) rl.Vector2 {
+	return rl.Vector2{X: coord.X, Y: coord.Y}
+}
+
 // sortAlphabetically sorts alphabetically, including numbers.
 // It is meant to be used inside functions like `sort.Sort`.
 //
@@ -180,10 +184,65 @@ func cronsToCoords(crons []Cron) [][]Coord {
 	return result
 }
 
+func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
+	result := make([][]GridCoord, 7)
+
+	grid.Rows = INITIAL_ROWS
+	grid.Cols = INITIAL_COLS
+
+	for day, coordDay := range coords {
+		for _, coord := range coordDay {
+			found := false
+
+			for i := range result[day] {
+				if coord.X == result[day][i].X {
+					found = true
+					result[day][i].Names = append(result[day][i].Names, coord.Name)
+				}
+
+				if len(result[day][i].Names) >= grid.Rows {
+					grid.Rows = len(result[day][i].Names) + 2
+				}
+			}
+
+			if !found {
+				result[day] = append(result[day], GridCoord{
+					Names: []string{coord.Name},
+					X:     coord.X,
+					Y:     coord.Y,
+				})
+			}
+		}
+	}
+
+	grid.HighestY = grid.Rows
+
+	// Remove the last column, as it makes no sense when grouping by hour
+	if groupBy == GroupByWdHour {
+		grid.Cols -= 1
+	}
+
+	if grid.HighestY > ROWS_CAP {
+		grid.Rows = INITIAL_ROWS
+	}
+
+	cell.W = grid.W / float32(grid.Cols)
+	cell.H = grid.H / float32(grid.Rows)
+
+	for day := range 7 {
+		for i := range result[day] {
+			result[day][i].X = result[day][i].X/float32(grid.Cols)*grid.W + offset.X
+			result[day][i].Y = grid.H + offset.Y - (grid.H / float32(grid.HighestY) * float32(len(result[day][i].Names)))
+		}
+	}
+
+	return result
+}
+
 // f <  0.5  -> darken color
 // f == 0.5 -> same color
 // f >  0.5  -> brighten color
-func LerpRGB(r uint8, g uint8, b uint8, a uint8, f float32) (uint8, uint8, uint8, uint8) {
+func lerpRGB(r uint8, g uint8, b uint8, a uint8, f float32) (uint8, uint8, uint8, uint8) {
 	f = max(0.0, min(1.0, f))
 
 	r2 := uint8(0)
@@ -210,11 +269,11 @@ func LerpRGB(r uint8, g uint8, b uint8, a uint8, f float32) (uint8, uint8, uint8
 	return r2, g2, b2, a2
 }
 
-func LerpColor(color rl.Color, f float32) rl.Color {
-	r, g, b, a := LerpRGB(color.R, color.G, color.B, color.A, f)
+func lerpColor(color rl.Color, f float32) rl.Color {
+	r, g, b, a := lerpRGB(color.R, color.G, color.B, color.A, f)
 	return rl.NewColor(r, g, b, a)
 }
 
-func LerpColorToHex(color rl.Color, f float32) rg.PropertyValue {
-	return rg.NewColorPropertyValue(LerpColor(color, f))
+func lerpColorToHex(color rl.Color, f float32) rg.PropertyValue {
+	return rg.NewColorPropertyValue(lerpColor(color, f))
 }
