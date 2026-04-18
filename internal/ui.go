@@ -30,6 +30,11 @@ type GridCoord struct {
 	Y     float32
 }
 
+type Cell struct {
+	W float32
+	H float32
+}
+
 type Grid struct {
 	W        float32
 	H        float32
@@ -54,15 +59,15 @@ const (
 	// GroupByMin
 )
 
-type BucketMin int32
+type StepMin int32
 
 const (
-	BucketMin1 BucketMin = iota
-	BucketMin5
-	BucketMin10
-	BucketMin15
-	BucketMin20
-	BucketMin30
+	StepMin1 StepMin = iota
+	StepMin5
+	StepMin10
+	StepMin15
+	StepMin20
+	StepMin30
 )
 
 // Constants
@@ -72,7 +77,7 @@ const ROWS_CAP = 30
 
 // Internal
 var offset = rl.Vector2{X: 20, Y: 20}
-var step = rl.Vector2{X: 0, Y: 0}
+var cell = Cell{W: 0, H: 0}
 var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 
 var fontSize = float32(12)
@@ -84,28 +89,28 @@ var boxPadX = float32(16)
 
 var colors = []rl.Color{
 	rl.Red,
-	rl.Orange,
-	rl.Gold,
 	rl.Green,
 	rl.Blue,
 	rl.Purple,
+	rl.Beige,
 	rl.Pink,
+	rl.Orange,
 }
 
 // User options
 var drawCoords = true
 var drawMode = DrawLines
-var bucketMin = BucketMin1
+var stepMin = StepMin1
 var groupBy = GroupByWdHourMin
 
 var weekdaysToggle = []bool{
 	true, // rl.Red
-	true, // rl.Orange
-	true, // rl.Gold
-	true, // rl.Blue
 	true, // rl.Green
+	true, // rl.Blue
 	true, // rl.Purple
+	true, // rl.Beige
 	true, // rl.Pink
+	true, // rl.Orange
 }
 
 func coordToVec2(coord GridCoord) rl.Vector2 {
@@ -154,8 +159,8 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 		grid.Rows = INITIAL_ROWS
 	}
 
-	step.X = grid.W / float32(grid.Cols)
-	step.Y = grid.H / float32(grid.Rows)
+	cell.W = grid.W / float32(grid.Cols)
+	cell.H = grid.H / float32(grid.Rows)
 
 	for day := range 7 {
 		for i := range result[day] {
@@ -170,7 +175,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 func drawGrid(gridCoords [][]GridCoord) {
 	// Draw lines vertically
 	for col := range grid.Cols {
-		x := step.X*float32(col+1) + offset.X
+		x := cell.W*float32(col+1) + offset.X
 
 		rl.DrawLineEx(
 			rl.Vector2{X: x, Y: offset.Y},
@@ -182,7 +187,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 	// Draw lines horizontally
 	for row := range grid.Rows {
-		y := step.Y*float32(row+1) + offset.Y
+		y := cell.H*float32(row+1) + offset.Y
 
 		rl.DrawLineEx(
 			rl.Vector2{X: offset.X, Y: y},
@@ -209,7 +214,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		text := strconv.Itoa(col)
 
 		textW := rl.MeasureTextEx(font, text, fontSize, 1).X
-		textX := step.X*float32(col) - textW/2 + offset.X
+		textX := cell.W*float32(col) - textW/2 + offset.X
 
 		rl.DrawText(text, int32(textX), int32(grid.H+offset.Y+2), int32(fontSize), rl.Black)
 	}
@@ -239,7 +244,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 			Y: textRect.Y + rl.Lerp(0.0, textRect.Y-textSize.Y, 0.5),
 		}
 
-		textY := -step.Y*float32(nRow) - textPos.Y/2 + offset.Y + grid.H
+		textY := -cell.H*float32(nRow) - textPos.Y/2 + offset.Y + grid.H
 		nRow++
 
 		rl.DrawText(text, int32(textPos.X-offset.X/2), int32(textY), int32(fontSize), rl.Black)
@@ -345,16 +350,16 @@ func drawOptions(groupByScroll *int32) {
 		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, def_BASE_COLOR_PRESSED)
 	}
 
-	// Draw option - BucketMin
+	// Draw option - StepMin
 	if groupBy == GroupByWdHourMin {
-		rl.DrawText("Group of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+6), 12, rl.Black)
-		bucketMinIdx := int32(bucketMin)
-		bucketMinIdx = rg.ToggleGroup(
+		rl.DrawText("Step of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+6), 12, rl.Black)
+		stepMinIdx := int32(stepMin)
+		stepMinIdx = rg.ToggleGroup(
 			rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: 20, Height: 20},
 			"#113#;5;10;15;20;30",
-			bucketMinIdx,
+			stepMinIdx,
 		)
-		bucketMin = BucketMin(bucketMinIdx)
+		stepMin = StepMin(stepMinIdx)
 	}
 
 	// Draw option - DrawCoords
@@ -430,7 +435,7 @@ func DrawLoop(sample map[string]string) {
 	prevScreenH := int32(0)
 
 	prevGroupBy := groupBy
-	prevBucketMin := bucketMin
+	prevStepMin := stepMin
 
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 
@@ -482,7 +487,7 @@ func DrawLoop(sample map[string]string) {
 		rl.EndDrawing()
 
 		// Recalculate coordinates based on bucket
-		if prevBucketMin != bucketMin {
+		if prevStepMin != stepMin {
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
@@ -497,7 +502,7 @@ func DrawLoop(sample map[string]string) {
 		prevScreenH = int32(screenH)
 
 		prevGroupBy = groupBy
-		prevBucketMin = bucketMin
+		prevStepMin = stepMin
 	}
 
 	rl.CloseWindow()

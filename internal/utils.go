@@ -151,18 +151,18 @@ func cronsToCoords(crons []Cron) [][]Coord {
 
 	minuteSegment := float32(0)
 
-	switch bucketMin {
-	case BucketMin1:
+	switch stepMin {
+	case StepMin1:
 		minuteSegment = 1
-	case BucketMin5:
+	case StepMin5:
 		minuteSegment = 5
-	case BucketMin10:
+	case StepMin10:
 		minuteSegment = 10
-	case BucketMin15:
+	case StepMin15:
 		minuteSegment = 15
-	case BucketMin20:
+	case StepMin20:
 		minuteSegment = 20
-	case BucketMin30:
+	case StepMin30:
 		minuteSegment = 30
 	}
 
