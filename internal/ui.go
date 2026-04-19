@@ -28,12 +28,12 @@ var boxPadX = float32(16)
 
 var colors = []rl.Color{
 	rl.Red,
+	rl.Orange,
+	rl.Gold,
 	rl.Green,
 	rl.Blue,
 	rl.Purple,
-	rl.Beige,
 	rl.Pink,
-	rl.Orange,
 }
 
 // User options
@@ -44,12 +44,12 @@ var groupBy = GroupByWdHourMin
 
 var weekdaysToggle = []bool{
 	true, // rl.Red
+	true, // rl.Orange
+	true, // rl.Gold
 	true, // rl.Green
 	true, // rl.Blue
 	true, // rl.Purple
-	true, // rl.Beige
 	true, // rl.Pink
-	true, // rl.Orange
 }
 
 func drawGrid(gridCoords [][]GridCoord) {
@@ -184,41 +184,48 @@ func drawOptions(groupByScroll *int32) {
 		groupByScroll,
 		groupByIdx,
 	)
-	groupBy = GroupBy(groupByIdx)
 
-	if groupBy == GroupByWdHourMin {
-		// Check the implementation of GuiLoadStyleDefault for additional keys
-		// https://github.com/raysan5/raygui/blob/master/src/raygui.h
+	if groupByIdx >= 0 {
+		groupBy = GroupBy(groupByIdx)
+	}
 
-		rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
+	// Draw option - Weekdays
 
-		def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
+	// Check the implementation of GuiLoadStyleDefault for additional keys
+	// https://github.com/raysan5/raygui/blob/master/src/raygui.h
 
-		def_BORDER_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
-		def_BASE_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
-		def_BORDER_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
-		def_BASE_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED)
+	rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
 
-		rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
+	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
-		for i := range weekdaysToggle {
-			color := colors[i]
-			hexColor := rg.NewColorPropertyValue(color)
+	def_BORDER_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
+	def_BASE_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
+	def_BORDER_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
+	def_BASE_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED)
 
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpColorToHex(color, 0.8))
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpColorToHex(color, 0.7))
+	rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
 
-			rec := rl.Rectangle{
-				X:      120 + offset.X + float32(22*i),
-				Y:      grid.H + offset.Y*5,
-				Width:  20,
-				Height: 20,
-			}
+	for i := range weekdaysToggle {
+		color := colors[i]
+		hexColor := rg.NewColorPropertyValue(color)
 
-			active := rg.Toggle(rec, strconv.Itoa(i), weekdaysToggle[i])
-			weekdaysToggle[i] = active
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpColorToHex(color, 0.8))
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpColorToHex(color, 0.7))
+
+		rec := rl.Rectangle{
+			X:      120 + offset.X + float32(22*i),
+			Y:      grid.H + offset.Y*5,
+			Width:  20,
+			Height: 20,
+		}
+
+		active := rg.Toggle(rec, strconv.Itoa(i), weekdaysToggle[i])
+		weekdaysToggle[i] = active
+
+		if !active && all(weekdaysToggle, false) {
+			weekdaysToggle[i] = true
 		}
 
 		// Reset style to defaults

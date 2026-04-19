@@ -64,6 +64,16 @@ func calcBucket(value int, segment int) int {
 	return ((value-1)/segment)*segment + (segment - 1)
 }
 
+func all[T comparable](arr []T, v T) bool {
+	for _, el := range arr {
+		if el == v {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 func parseCronField(field string, min int, max int) []int {
 	list := []int{}
 
