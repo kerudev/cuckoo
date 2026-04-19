@@ -60,3 +60,22 @@ const (
 	StepMin20
 	StepMin30
 )
+
+type Status int32
+
+const (
+	StatusDisabled Status = iota - 1
+	StatusOff
+	StatusOn
+)
+
+func (s Status) Bool() bool {
+	return s == StatusOn
+}
+
+func StatusFromBool(b bool) Status {
+	if b {
+		return StatusOn
+	}
+	return StatusOff
+}

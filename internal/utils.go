@@ -191,6 +191,14 @@ func cronsToCoords(crons []Cron) [][]Coord {
 		result[cron.Weekday] = append(result[cron.Weekday], Coord{Name: cron.Name, X: x, Y: 1})
 	}
 
+	for wd, weekdays := range result {
+		if len(weekdays) > 0 {
+			weekdaysToggle[wd] = StatusOn
+		} else {
+			weekdaysToggle[wd] = StatusDisabled
+		}
+	}
+
 	return result
 }
 

@@ -42,14 +42,14 @@ var drawMode = DrawLines
 var stepMin = StepMin1
 var groupBy = GroupByWdHourMin
 
-var weekdaysToggle = []bool{
-	true, // rl.Red
-	true, // rl.Orange
-	true, // rl.Gold
-	true, // rl.Green
-	true, // rl.Blue
-	true, // rl.Purple
-	true, // rl.Pink
+var weekdaysToggle = []Status{
+	StatusOn, // rl.Red
+	StatusOn, // rl.Orange
+	StatusOn, // rl.Gold
+	StatusOn, // rl.Green
+	StatusOn, // rl.Blue
+	StatusOn, // rl.Purple
+	StatusOn, // rl.Pink
 }
 
 func drawGrid(gridCoords [][]GridCoord) {
@@ -131,7 +131,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 	}
 
 	for day, dayCoords := range gridCoords {
-		if !weekdaysToggle[day] {
+		if weekdaysToggle[day] != StatusOn {
 			continue
 		}
 
@@ -198,6 +198,8 @@ func drawOptions(groupByScroll *int32) {
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
+	def_BASE_COLOR_NORMAL := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL)
+
 	def_BORDER_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
 	def_BASE_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
 	def_BORDER_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
@@ -205,14 +207,21 @@ func drawOptions(groupByScroll *int32) {
 
 	rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
 
-	for i := range weekdaysToggle {
+	for i, status := range weekdaysToggle {
 		color := colors[i]
 		hexColor := rg.NewColorPropertyValue(color)
 
-		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
-		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpColorToHex(color, 0.8))
-		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
-		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpColorToHex(color, 0.7))
+		if status == StatusDisabled {
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_FOCUSED)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, def_BASE_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_PRESSED)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, def_BASE_COLOR_NORMAL)
+		} else {
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpColorToHex(color, 0.8))
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpColorToHex(color, 0.7))
+		}
 
 		rec := rl.Rectangle{
 			X:      120 + offset.X + float32(22*i),
@@ -221,11 +230,14 @@ func drawOptions(groupByScroll *int32) {
 			Height: 20,
 		}
 
-		active := rg.Toggle(rec, strconv.Itoa(i), weekdaysToggle[i])
-		weekdaysToggle[i] = active
+		active := rg.Toggle(rec, strconv.Itoa(i), status.Bool())
 
-		if !active && all(weekdaysToggle, false) {
-			weekdaysToggle[i] = true
+		if status != StatusDisabled {
+			weekdaysToggle[i] = StatusFromBool(active)
+
+			if !active && all(weekdaysToggle, StatusOff) {
+				weekdaysToggle[i] = StatusOn
+			}
 		}
 
 		// Reset style to defaults
