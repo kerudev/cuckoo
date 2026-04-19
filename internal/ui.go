@@ -175,6 +175,24 @@ func drawOptions(groupByScroll *int32) {
 	)
 	drawMode = DrawMode(drawModeIdx)
 
+	// Draw option - DrawCoords
+	drawCoordsIcon := ""
+	if drawCoords {
+		drawCoordsIcon = "#212#"
+	} else {
+		drawCoordsIcon = "#213#"
+	}
+
+	drawCoords = rg.Toggle(
+		rl.Rectangle{X: offset.X + 22*3, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
+		drawCoordsIcon,
+		drawCoords,
+	)
+
+	if drawMode == DrawNone && !drawCoords {
+		drawCoords = true
+	}
+
 	// Draw option - GroupBy
 	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
 	groupByIdx := int32(groupBy)
@@ -259,17 +277,6 @@ func drawOptions(groupByScroll *int32) {
 			stepMinIdx,
 		)
 		stepMin = StepMin(stepMinIdx)
-	}
-
-	// Draw option - DrawCoords
-	drawCoords = rg.CheckBox(
-		rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
-		"Draw coordinates",
-		drawCoords,
-	)
-
-	if drawMode == DrawNone && !drawCoords {
-		drawCoords = true
 	}
 }
 
