@@ -143,8 +143,8 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 			// Draw lines that connect coordinates
 			for k := 0; k < len(dayCoords)-1; k++ {
-				start := coordToVec2(dayCoords[k])
-				end := coordToVec2(dayCoords[k+1])
+				start := dayCoords[k].Vec2()
+				end := dayCoords[k+1].Vec2()
 
 				switch drawMode {
 				case DrawLines:
@@ -277,7 +277,7 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 	// Draw coordinate information on mouse hover
 	for _, coordDay := range gridCoords {
 		for _, coord := range coordDay {
-			mouseOverCoord := rl.CheckCollisionPointCircle(rl.GetMousePosition(), coordToVec2(coord), 4)
+			mouseOverCoord := rl.CheckCollisionPointCircle(rl.GetMousePosition(), coord.Vec2(), 4)
 
 			if mouseOverCoord {
 				maxW := float32(0)
@@ -323,7 +323,8 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 
 func DrawLoop(sample map[string]string) {
 	crons := stringsToCrons(sample)
-	coords := cronsToCoords(crons)
+	jobs := cronsToJobs(crons)
+	coords := jobsToCoords(jobs)
 
 	gridCoords := [][]GridCoord{}
 
@@ -361,6 +362,7 @@ func DrawLoop(sample map[string]string) {
 				fmt.Println(err)
 			} else {
 				crons = stringsToCrons(sample)
+				jobs = cronsToJobs(crons)
 				coords = cronsToCoords(crons)
 				gridCoords = coordToGrid(coords, &grid)
 			}

@@ -2,16 +2,11 @@ package cuckoo
 
 import (
 	"strconv"
-	"strings"
 	"unicode"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
-
-func coordToVec2(coord GridCoord) rl.Vector2 {
-	return rl.Vector2{X: coord.X, Y: coord.Y}
-}
 
 // sortAlphabetically sorts alphabetically, including numbers.
 // It is meant to be used inside functions like `sort.Sort`.
@@ -74,132 +69,48 @@ func all[T comparable](arr []T, v T) bool {
 	return true
 }
 
-func parseCronField(field string, min int, max int) []int {
-	list := []int{}
-
-	for value := range strings.SplitSeq(field, ",") {
-		// wildcard ("*")
-		if value == "*" {
-			for i := min; i <= max; i++ {
-				list = append(list, i)
-			}
-			continue
-		}
-
-		// step (x/y)
-		if parts := strings.Split(value, "/"); len(parts) == 2 {
-			start := min
-			if parts[0] != "*" {
-				if v, err := strconv.Atoi(parts[0]); err == nil {
-					start = v
-				} else {
-					continue
-				}
-			}
-
-			end, err1 := strconv.Atoi(parts[1])
-			if err1 != nil {
-				continue
-			}
-
-			for i := start; i <= max; i += end {
-				list = append(list, i)
-			}
-			continue
-		}
-
-		// range (x-y)
-		if parts := strings.Split(value, "-"); len(parts) == 2 {
-			start, err0 := strconv.Atoi(parts[0])
-			end, err1 := strconv.Atoi(parts[1])
-
-			if err0 != nil || err1 != nil {
-				continue
-			}
-
-			for i := start; i <= end; i++ {
-				list = append(list, i)
-			}
-			continue
-		}
-
-		// literal (x)
-		v, err := strconv.Atoi(value)
-		if err == nil {
-			list = append(list, v)
-		}
-	}
-	return list
-}
-
-func stringsToCrons(crons map[string]string) []Cron {
+func stringsToCrons(sample map[string]string) []Cron {
 	result := []Cron{}
 
-	for name, cron := range crons {
-		// "A B C D E" => "Min Hour Day Month Weekday"
-		split := strings.Split(cron, " ")
+	for name, cron := range sample {
+		result = append(result, NewCron(name, cron))
+	}
 
-		weekdays := parseCronField(split[4], 0, 6)
-		hours := parseCronField(split[1], 0, 23)
-		mins := parseCronField(split[0], 0, 59)
+	return result
+}
 
-		for _, wd := range weekdays {
-			for _, h := range hours {
-				for _, m := range mins {
-					result = append(result, Cron{
-						Name:    name,
-						Min:     m,
-						Hour:    h,
-						Weekday: wd,
-					})
-				}
-			}
+func cronsToJobs(crons []Cron) []Job {
+	result := []Job{}
+
+	for _, cron := range crons {
+		result = append(result, cron.Jobs()...)
+	}
+
+	return result
+}
+
+func jobsToCoords(jobs []Job) [][]Coord {
+	result := make([][]Coord, 7)
+
+	minuteSegment := float32(stepMin.Int())
+
+	for _, job := range jobs {
+		x := float32(job.Hour)
+
+		if groupBy == GroupByWdHourMin {
+			bucket := calcBucket(job.Min, int(minuteSegment))
+			x += float32(bucket) / 60
 		}
+
+		result[job.Weekday] = append(result[job.Weekday], Coord{Name: job.Name, X: x, Y: 1})
 	}
 
 	return result
 }
 
 func cronsToCoords(crons []Cron) [][]Coord {
-	result := make([][]Coord, 7)
-
-	minuteSegment := float32(0)
-
-	switch stepMin {
-	case StepMin1:
-		minuteSegment = 1
-	case StepMin5:
-		minuteSegment = 5
-	case StepMin10:
-		minuteSegment = 10
-	case StepMin15:
-		minuteSegment = 15
-	case StepMin20:
-		minuteSegment = 20
-	case StepMin30:
-		minuteSegment = 30
-	}
-
-	for _, cron := range crons {
-		x := float32(cron.Hour)
-
-		if groupBy == GroupByWdHourMin {
-			bucket := calcBucket(cron.Min, int(minuteSegment))
-			x += float32(bucket) / 60
-		}
-
-		result[cron.Weekday] = append(result[cron.Weekday], Coord{Name: cron.Name, X: x, Y: 1})
-	}
-
-	for wd, weekdays := range result {
-		if len(weekdays) > 0 {
-			weekdaysToggle[wd] = StatusOn
-		} else {
-			weekdaysToggle[wd] = StatusDisabled
-		}
-	}
-
-	return result
+	jobs := cronsToJobs(crons)
+	return jobsToCoords(jobs)
 }
 
 func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
@@ -224,11 +135,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 			}
 
 			if !found {
-				result[day] = append(result[day], GridCoord{
-					Names: []string{coord.Name},
-					X:     coord.X,
-					Y:     coord.Y,
-				})
+				result[day] = append(result[day], coord.GridCoord())
 			}
 		}
 	}
