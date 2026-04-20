@@ -26,6 +26,8 @@ var boxRoundness = float32(0.2)
 var boxSegments = int32(8)
 var boxPadX = float32(16)
 
+var zoom = ZoomNone
+
 var colors = []rl.Color{
 	rl.Red,
 	rl.Orange,
@@ -53,28 +55,47 @@ var weekdaysToggle = []Status{
 }
 
 func drawGrid(gridCoords [][]GridCoord) {
-	// Draw lines vertically
-	for col := range grid.Cols {
-		x := cell.W*float32(col+1) + offset.X
+	cols := grid.Cols
+	if groupBy == GroupByWdHour {
+		cols += 1
+	}
 
+	// Draw lines vertically
+	colX := offset.X
+	for range grid.Cols {
+		colX += cell.W
 		rl.DrawLineEx(
-			rl.Vector2{X: x, Y: offset.Y},
-			rl.Vector2{X: x, Y: grid.H + offset.Y},
+			rl.Vector2{X: colX, Y: offset.Y},
+			rl.Vector2{X: colX, Y: grid.H + offset.Y},
 			2,
 			rl.LightGray,
 		)
 	}
 
 	// Draw lines horizontally
-	for row := range grid.Rows {
-		y := cell.H*float32(row+1) + offset.Y
-
+	rowY := offset.Y
+	for range grid.Rows {
+		rowY += cell.H
 		rl.DrawLineEx(
-			rl.Vector2{X: offset.X, Y: y},
-			rl.Vector2{X: grid.W + offset.Y, Y: y},
+			rl.Vector2{X: offset.X, Y: rowY},
+			rl.Vector2{X: grid.W + offset.Y, Y: rowY},
 			2,
 			rl.LightGray,
 		)
+	}
+
+	// Draw background line
+	mouse := float32(rl.GetMouseX())
+	bg := rl.NewColor(200, 230, 250, 80)
+	bgX := offset.X
+
+	for range cols {
+		bgX += cell.W
+
+		if bgX < mouse && mouse <= bgX+cell.W {
+			rec := rl.Rectangle{X: bgX + 1, Y: offset.Y, Width: cell.W - 2, Height: grid.H}
+			rl.DrawRectangleRec(rec, bg)
+		}
 	}
 
 	// Draw grid container
@@ -84,12 +105,20 @@ func drawGrid(gridCoords [][]GridCoord) {
 		rl.Black,
 	)
 
-	// Draw text on X axis
-	cols := grid.Cols
-	if groupBy == GroupByWdHour {
-		cols += 1
+	// Draw zoom slider
+	if zoom != ZoomNone {
+		rg.Slider(
+			rl.Rectangle{X: offset.X + 2, Y: grid.H + 6, Width: grid.W - 4, Height: 12},
+			"",
+			"",
+			0,
+			0,
+			grid.W - 4,
+		)
+
 	}
 
+	// Draw text on X axis
 	for col := range cols {
 		text := strconv.Itoa(col)
 
@@ -103,16 +132,15 @@ func drawGrid(gridCoords [][]GridCoord) {
 	textRect := rl.MeasureTextEx(font, strconv.Itoa(cols), fontSize, 1)
 
 	nRow := 0
-	isCapped := false
-	last := (grid.HighestY / (grid.HighestY / grid.Rows)) * (grid.HighestY / grid.Rows)
+	step := grid.HighestY / grid.Rows
+	last := (grid.HighestY / step) * step
 
 	for row := range grid.HighestY + 1 {
-		if grid.HighestY > ROWS_CAP && row%(grid.HighestY/grid.Rows) != 0 {
-			isCapped = true
+		if grid.HighestY > ROWS_CAP && row%step != 0 {
 			continue
 		}
 
-		if isCapped && row == last {
+		if row == last {
 			row = grid.HighestY
 		}
 
@@ -166,7 +194,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 func drawOptions(groupByScroll *int32) {
 	// Draw option - DrawMode
-	rl.DrawText("Draw mode", int32(offset.X), int32(grid.H+offset.Y*2+6), 12, rl.Black)
+	rl.DrawText("Draw mode", int32(offset.X), int32(grid.H+offset.Y*2+8), 12, rl.Black)
 	drawModeIdx := int32(drawMode)
 	drawModeIdx = rg.ToggleGroup(
 		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
@@ -194,7 +222,7 @@ func drawOptions(groupByScroll *int32) {
 	}
 
 	// Draw option - GroupBy
-	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
+	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*4+8), 12, rl.Black)
 	groupByIdx := int32(groupBy)
 	groupByIdx = rg.ListView(
 		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*5, Width: 100, Height: 31*2 + 1},
@@ -212,7 +240,7 @@ func drawOptions(groupByScroll *int32) {
 	// Check the implementation of GuiLoadStyleDefault for additional keys
 	// https://github.com/raysan5/raygui/blob/master/src/raygui.h
 
-	rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+6), 12, rl.Black)
+	rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+8), 12, rl.Black)
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
@@ -269,7 +297,7 @@ func drawOptions(groupByScroll *int32) {
 
 	// Draw option - StepMin
 	if groupBy == GroupByWdHourMin {
-		rl.DrawText("Step of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+6), 12, rl.Black)
+		rl.DrawText("Step of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+8), 12, rl.Black)
 		stepMinIdx := int32(stepMin)
 		stepMinIdx = rg.ToggleGroup(
 			rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: 20, Height: 20},
@@ -328,6 +356,23 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 	}
 }
 
+func drawFooter() {
+	screenW := int32(rl.GetScreenWidth())
+
+	footerW := int32(120)
+	footerH := int32(100)
+	footerX := int32(screenW-int32(offset.X)) - footerW
+	footerY := int32(grid.H + offset.Y*2 + 8)
+
+	textPad := int32(8)
+
+	rl.DrawRectangleLines(footerX, footerY, footerW, footerH, rl.Black)
+	rl.DrawText("Zoom: "+zoom.String(), footerX+textPad, footerY+textPad, 16, rl.Black)
+
+	scroll := rl.GetMouseWheelMove()
+	zoom = Zoom(rl.Clamp(float32(zoom)+scroll, float32(ZoomNone), float32(ZoomFull)))
+}
+
 func DrawLoop(sample map[string]string) {
 	crons := stringsToCrons(sample)
 	jobs := cronsToJobs(crons)
@@ -373,8 +418,6 @@ func DrawLoop(sample map[string]string) {
 				coords = cronsToCoords(crons)
 				gridCoords = coordToGrid(coords, &grid)
 			}
-
-			// rl.UnloadDroppedFiles();
 		}
 
 		// Recalculate grid and coordinates only when screen changes size
@@ -390,6 +433,7 @@ func DrawLoop(sample map[string]string) {
 
 		drawGrid(gridCoords)
 		drawOptions(&groupByScroll)
+		drawFooter()
 		drawMouseOver(gridCoords)
 
 		rl.EndDrawing()

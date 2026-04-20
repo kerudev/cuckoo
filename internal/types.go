@@ -232,3 +232,39 @@ func StatusFromBool(b bool) Status {
 	}
 	return StatusOff
 }
+
+type Zoom int32
+
+const (
+	ZoomNone Zoom = iota
+	ZoomX5
+	ZoomX10
+	ZoomX15
+	ZoomX20
+	ZoomX30
+	ZoomX60
+	ZoomFull
+)
+
+func (z Zoom) String() string {
+	switch z {
+	case ZoomNone:
+		return "None"
+	case ZoomX5:
+		return "x5"
+	case ZoomX10:
+		return "x10"
+	case ZoomX15:
+		return "x15"
+	case ZoomX20:
+		return "x20"
+	case ZoomX30:
+		return "x30"
+	case ZoomX60:
+		return "x60"
+	case ZoomFull:
+		return "Full"
+	}
+
+	return "0"
+}
