@@ -346,7 +346,7 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 				// Calculate max text size
 				names := countDuplicates(coord.Names)
 				fmtNames := []string{}
-				
+
 				for name, count := range names {
 					fmtNames = append(fmtNames, fmt.Sprintf("%s (%d)", name, count))
 				}
@@ -400,15 +400,14 @@ func drawFooter() {
 	textPad := int32(8)
 
 	rl.DrawRectangleLines(footerX, footerY, footerW, footerH, rl.Black)
-	// rl.DrawText("Zoom  : "+zoom.String(), footerX+textPad, footerY+textPad, 16, rl.Black)
-	rl.DrawText(fmt.Sprint("Cell.W: ", cell.W), footerX+textPad, footerY+textPad*2+16, 16, rl.Black)
-	rl.DrawText(fmt.Sprint("Cell.H: ", cell.H), footerX+textPad, footerY+textPad*4+16, 16, rl.Black)
+	rl.DrawText(fmt.Sprint("Zoom  : ", zoom), footerX+textPad, footerY+textPad, 16, rl.Black)
+	rl.DrawText(fmt.Sprintf("Cell.W: %.2f", cell.W), footerX+textPad, footerY+textPad+16*2, 16, rl.Black)
+	rl.DrawText(fmt.Sprint("Cell.H: ", cell.H), footerX+textPad, footerY+textPad+16*4, 16, rl.Black)
 }
 
 func DrawLoop(sample map[string]string) {
 	crons := stringsToCrons(sample)
-	jobs := cronsToJobs(crons)
-	coords := jobsToCoords(jobs)
+	coords := cronsToCoords(crons)
 
 	gridCoords := [][]GridCoord{}
 
@@ -439,7 +438,6 @@ func DrawLoop(sample map[string]string) {
 				fmt.Println(err)
 			} else {
 				crons = stringsToCrons(sample)
-				jobs = cronsToJobs(crons)
 				coords = cronsToCoords(crons)
 				gridCoords = coordToGrid(coords, &grid)
 			}

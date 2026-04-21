@@ -56,7 +56,7 @@ func calcBucket(value int, segment int) int {
 	if value == 0 {
 		return 0
 	}
-	return ((value-1)/segment)*segment + (segment - 1)
+	return (value/segment)*segment + (segment - 1)
 }
 
 func countDuplicates[T comparable](arr []T) map[T]int {
@@ -107,13 +107,13 @@ func cronsToJobs(crons []Cron) []Job {
 func jobsToCoords(jobs []Job) [][]Coord {
 	result := make([][]Coord, 7)
 
-	minuteSegment := float32(stepMin.Int())
+	minuteSegment := stepMin.Int()
 
 	for _, job := range jobs {
 		x := float32(job.Hour)
 
 		if groupBy == GroupByWdHourMin {
-			bucket := calcBucket(job.Min, int(minuteSegment))
+			bucket := calcBucket(job.Min, minuteSegment)
 			x += float32(bucket) / 60
 		}
 
