@@ -2,6 +2,7 @@ package cuckoo
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 
@@ -26,7 +27,8 @@ var boxRoundness = float32(0.2)
 var boxSegments = int32(8)
 var boxPadX = float32(16)
 
-var zoom = ZoomNone
+var zoom = float32(0)
+var zoomSliderVal = float32(0)
 
 var colors = []rl.Color{
 	rl.Red,
@@ -53,6 +55,15 @@ var weekdaysToggle = []Status{
 	StatusOn, // rl.Purple
 	StatusOn, // rl.Pink
 }
+
+// Previous state
+var prevScreenW = int32(0)
+var prevScreenH = int32(0)
+
+var prevGroupBy = groupBy
+var prevStepMin = stepMin
+
+var prevZoom = zoom
 
 func drawGrid(gridCoords [][]GridCoord) {
 	cols := grid.Cols
@@ -84,17 +95,24 @@ func drawGrid(gridCoords [][]GridCoord) {
 		)
 	}
 
-	// Draw background line
-	mouse := float32(rl.GetMouseX())
+	// Draw background line on mouse over
+	mouse := rl.GetMousePosition()
 	bg := rl.NewColor(200, 230, 250, 80)
 	bgX := offset.X
 
 	for range cols {
-		bgX += cell.W
+		mouseInX := bgX < mouse.X && mouse.X <= bgX+cell.W
+		mouseInY := offset.Y < mouse.Y && mouse.Y <= grid.H
 
-		if bgX < mouse && mouse <= bgX+cell.W {
+		if mouseInX && mouseInY {
 			rec := rl.Rectangle{X: bgX + 1, Y: offset.Y, Width: cell.W - 2, Height: grid.H}
 			rl.DrawRectangleRec(rec, bg)
+		}
+
+		bgX += cell.W
+
+		if zoom == 0 {
+			zoomSliderVal = rl.Clamp(mouse.X-cell.W, 0, grid.W-4)
 		}
 	}
 
@@ -106,16 +124,24 @@ func drawGrid(gridCoords [][]GridCoord) {
 	)
 
 	// Draw zoom slider
-	if zoom != ZoomNone {
-		rg.Slider(
+	scroll := rl.GetMouseWheelMove()
+	zoom = rl.Clamp(zoom+scroll, 0, 8)
+
+	t := zoom / 8.0
+	base := grid.W / float32(grid.Cols)
+
+	factor := float32(math.Pow(float64(grid.W/base), float64(t)))
+	cell.W = base * factor
+
+	if zoom != 0 {
+		zoomSliderVal = rg.Slider(
 			rl.Rectangle{X: offset.X + 2, Y: grid.H + 6, Width: grid.W - 4, Height: 12},
 			"",
 			"",
+			zoomSliderVal,
 			0,
-			0,
-			grid.W - 4,
+			grid.W-4,
 		)
-
 	}
 
 	// Draw text on X axis
@@ -186,7 +212,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		// Draw coordinates
 		if drawCoords {
 			for _, coord := range dayCoords {
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, colors[day])
+				rl.DrawCircle(int32(coord.X*(zoom+1)), int32(coord.Y), 4, colors[day])
 			}
 		}
 	}
@@ -318,7 +344,14 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 				maxW := float32(0)
 
 				// Calculate max text size
-				for _, name := range coord.Names {
+				names := countDuplicates(coord.Names)
+				fmtNames := []string{}
+				
+				for name, count := range names {
+					fmtNames = append(fmtNames, fmt.Sprintf("%s (%d)", name, count))
+				}
+
+				for _, name := range fmtNames {
 					textW := float32(rl.MeasureText(name, int32(fontSize)))
 
 					if textW > maxW {
@@ -330,17 +363,17 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 					X:      coord.X + 8,
 					Y:      coord.Y - 8,
 					Width:  maxW + 16,
-					Height: fontSize*float32(len(coord.Names)) + 16,
+					Height: fontSize*float32(len(fmtNames)) + 16,
 				}
 
 				rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
 				rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
 
-				sort.Slice(coord.Names, func(i, j int) bool {
-					return sortAlphabetically(coord.Names[i], coord.Names[j])
+				sort.Slice(fmtNames, func(i, j int) bool {
+					return sortAlphabetically(fmtNames[i], fmtNames[j])
 				})
 
-				for i, name := range coord.Names {
+				for i, name := range fmtNames {
 					spacingY := float32(i) * fontSize
 
 					rl.DrawText(
@@ -367,10 +400,9 @@ func drawFooter() {
 	textPad := int32(8)
 
 	rl.DrawRectangleLines(footerX, footerY, footerW, footerH, rl.Black)
-	rl.DrawText("Zoom: "+zoom.String(), footerX+textPad, footerY+textPad, 16, rl.Black)
-
-	scroll := rl.GetMouseWheelMove()
-	zoom = Zoom(rl.Clamp(float32(zoom)+scroll, float32(ZoomNone), float32(ZoomFull)))
+	// rl.DrawText("Zoom  : "+zoom.String(), footerX+textPad, footerY+textPad, 16, rl.Black)
+	rl.DrawText(fmt.Sprint("Cell.W: ", cell.W), footerX+textPad, footerY+textPad*2+16, 16, rl.Black)
+	rl.DrawText(fmt.Sprint("Cell.H: ", cell.H), footerX+textPad, footerY+textPad*4+16, 16, rl.Black)
 }
 
 func DrawLoop(sample map[string]string) {
@@ -381,13 +413,6 @@ func DrawLoop(sample map[string]string) {
 	gridCoords := [][]GridCoord{}
 
 	groupByScroll := int32(0)
-
-	// Previous state
-	prevScreenW := int32(0)
-	prevScreenH := int32(0)
-
-	prevGroupBy := groupBy
-	prevStepMin := stepMin
 
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 
@@ -439,13 +464,13 @@ func DrawLoop(sample map[string]string) {
 		rl.EndDrawing()
 
 		// Recalculate coordinates based on bucket
-		if prevStepMin != stepMin {
+		if stepMin != prevStepMin {
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
 		// Recalculate coordinates based on group by
-		if prevGroupBy != groupBy {
+		if groupBy != prevGroupBy {
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
@@ -455,6 +480,8 @@ func DrawLoop(sample map[string]string) {
 
 		prevGroupBy = groupBy
 		prevStepMin = stepMin
+
+		prevZoom = zoom
 	}
 
 	rl.CloseWindow()
