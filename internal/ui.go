@@ -87,12 +87,22 @@ func drawGrid(gridCoords [][]GridCoord) {
 	cell.W = base * scale
 
 	// Draw lines vertically
-	colX := offset.X
+	colX := offset.X - zoomOffset
+
 	for range grid.Cols {
 		colX += cell.W
+
+		if colX < offset.X {
+			continue
+		}
+
+		if colX > grid.W+offset.X {
+			break
+		}
+
 		rl.DrawLineEx(
-			rl.Vector2{X: colX - zoomOffset, Y: offset.Y},
-			rl.Vector2{X: colX - zoomOffset, Y: grid.H + offset.Y},
+			rl.Vector2{X: colX, Y: offset.Y},
+			rl.Vector2{X: colX, Y: grid.H + offset.Y},
 			2,
 			rl.LightGray,
 		)
@@ -159,6 +169,19 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		textW := rl.MeasureTextEx(font, text, fontSize, 1).X
 		textX := cell.W*float32(col) - textW/2 + offset.X - zoomOffset
+
+		// Clamp number to the left side
+		if textX < offset.X {
+			if textX + cell.W > offset.X + 16 {
+				textX = offset.X
+			} else {
+				continue
+			}
+		}
+
+		if textX > grid.W+offset.X {
+			break
+		}
 
 		rl.DrawText(text, int32(textX), int32(grid.H+offset.Y+2), int32(fontSize), rl.Black)
 	}
@@ -408,16 +431,31 @@ func drawFooter() {
 	screenW := int32(rl.GetScreenWidth())
 
 	footerW := int32(120)
-	footerH := int32(100)
 	footerX := int32(screenW-int32(offset.X)) - footerW
-	footerY := int32(grid.H + offset.Y*2 + 8)
+	footerY := int32(grid.H + offset.Y*2 + 24)
+
+	footerFontSize := int32(16)
 
 	textPad := int32(8)
+	padX := footerX + textPad
 
-	rl.DrawRectangleLines(footerX, footerY, footerW, footerH, rl.Black)
-	rl.DrawText(fmt.Sprint("Zoom  : ", zoom), footerX+textPad, footerY+textPad, 16, rl.Black)
-	rl.DrawText(fmt.Sprintf("Cell.W: %.2f", cell.W), footerX+textPad, footerY+textPad+16*2, 16, rl.Black)
-	rl.DrawText(fmt.Sprint("Cell.H: ", cell.H), footerX+textPad, footerY+textPad+16*4, 16, rl.Black)
+	text := "Drop file to change sample"
+	textW := rl.MeasureText(text, footerFontSize)
+
+	rl.DrawText(text, screenW-textW-int32(offset.X), int32(grid.H+offset.Y*2), footerFontSize, rl.Black)
+
+	texts := []string{
+		fmt.Sprintf("Scale: x%.2f", scale),
+		fmt.Sprintf("Cell.W: %.2f", cell.W),
+		fmt.Sprint("Cell.H: ", cell.H),
+	}
+
+	for i, t := range texts {
+		padY := footerY + textPad + int32(float32(footerFontSize)*1.5*float32(i))
+		rl.DrawText(t, padX, padY, footerFontSize, rl.Black)
+	}
+
+	rl.DrawRectangleLines(footerX, footerY, footerW, int32(len(texts)+1)*footerFontSize+textPad*2, rl.Black)
 }
 
 func DrawLoop(sample map[string]string) {
