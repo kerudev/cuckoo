@@ -169,10 +169,14 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	cell.W = grid.W / float32(grid.Cols)
 	cell.H = grid.H / float32(grid.Rows)
 
+	scaledW := grid.W * scale
+	zoomOffset := zoomSlider * (scale - 1)
+	highestYPos := grid.H / float32(grid.HighestY)
+
 	for day := range 7 {
 		for i := range result[day] {
-			result[day][i].X = result[day][i].X/float32(grid.Cols)*grid.W + offset.X
-			result[day][i].Y = grid.H + offset.Y - (grid.H / float32(grid.HighestY) * float32(len(result[day][i].Names)))
+			result[day][i].X = (result[day][i].X/float32(grid.Cols))*scaledW + offset.X - zoomOffset
+			result[day][i].Y = grid.H + offset.Y - (highestYPos * float32(len(result[day][i].Names)))
 		}
 	}
 

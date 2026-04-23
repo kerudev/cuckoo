@@ -20,15 +20,16 @@ var offset = rl.Vector2{X: 20, Y: 20}
 var cell = Cell{W: 0, H: 0}
 var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 
+var zoom = float32(1)
+var zoomSlider = float32(0)
+var scale = float32(1)
+
 var fontSize = float32(12)
 var font = rl.Font{}
 
 var boxRoundness = float32(0.2)
 var boxSegments = int32(8)
 var boxPadX = float32(16)
-
-var zoom = float32(0)
-var zoomSliderVal = float32(0)
 
 var colors = []rl.Color{
 	rl.Red,
@@ -64,12 +65,22 @@ var prevGroupBy = groupBy
 var prevStepMin = stepMin
 
 var prevZoom = zoom
+var prevZoomSlider = zoomSlider
 
 func drawGrid(gridCoords [][]GridCoord) {
 	cols := grid.Cols
 	if groupBy == GroupByWdHour {
 		cols += 1
 	}
+
+	scroll := rl.GetMouseWheelMove()
+	zoom = rl.Clamp(zoom+scroll, 1, 9)
+
+	factor := (zoom - 1) / 8.0
+	base := grid.W / float32(grid.Cols)
+
+	scale = float32(math.Pow(float64(grid.W/base), float64(factor)))
+	cell.W = base * scale
 
 	// Draw lines vertically
 	colX := offset.X
@@ -111,8 +122,8 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		bgX += cell.W
 
-		if zoom == 0 {
-			zoomSliderVal = rl.Clamp(mouse.X-cell.W, 0, grid.W-4)
+		if zoom == 1 {
+			zoomSlider = rl.Clamp(mouse.X-cell.W, 0, grid.W-4)
 		}
 	}
 
@@ -124,23 +135,17 @@ func drawGrid(gridCoords [][]GridCoord) {
 	)
 
 	// Draw zoom slider
-	scroll := rl.GetMouseWheelMove()
-	zoom = rl.Clamp(zoom+scroll, 0, 8)
+	if zoom > 1 {
+		scrollW := grid.W - 4
+		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(scrollW/scale))
 
-	t := zoom / 8.0
-	base := grid.W / float32(grid.Cols)
-
-	factor := float32(math.Pow(float64(grid.W/base), float64(t)))
-	cell.W = base * factor
-
-	if zoom != 0 {
-		zoomSliderVal = rg.Slider(
+		zoomSlider = rg.Slider(
 			rl.Rectangle{X: offset.X + 2, Y: grid.H + 6, Width: grid.W - 4, Height: 12},
 			"",
 			"",
-			zoomSliderVal,
+			zoomSlider,
 			0,
-			grid.W-4,
+			grid.W,
 		)
 	}
 
@@ -184,6 +189,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		rl.DrawText(text, int32(textPos.X-offset.X/2), int32(textY), int32(fontSize), rl.Black)
 	}
 
+	// Draw coordinates in layers by weekday
 	for day, dayCoords := range gridCoords {
 		if weekdaysToggle[day] != StatusOn {
 			continue
@@ -210,10 +216,17 @@ func drawGrid(gridCoords [][]GridCoord) {
 		}
 
 		// Draw coordinates
-		if drawCoords {
-			for _, coord := range dayCoords {
-				rl.DrawCircle(int32(coord.X*(zoom+1)), int32(coord.Y), 4, colors[day])
-			}
+		if !drawCoords {
+			continue
+		}
+
+		fmt.Println("zoomSlider:", zoomSlider)
+
+		for _, coord := range dayCoords {
+			// if coord.X > grid.W {
+			// 	break
+			// }
+			rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, colors[day])
 		}
 	}
 }
@@ -469,6 +482,11 @@ func DrawLoop(sample map[string]string) {
 
 		// Recalculate coordinates based on group by
 		if groupBy != prevGroupBy {
+			coords = cronsToCoords(crons)
+			gridCoords = coordToGrid(coords, &grid)
+		}
+
+		if zoom != prevZoom || zoomSlider != prevZoomSlider {
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
