@@ -170,7 +170,6 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	cell.H = grid.H / float32(grid.Rows)
 
 	scaledW := grid.W * scale
-	zoomOffset := zoomSlider * (scale - 1)
 	highestYPos := grid.H / float32(grid.HighestY)
 
 	for day := range 7 {

@@ -22,6 +22,7 @@ var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 
 var zoom = float32(1)
 var zoomSlider = float32(0)
+var zoomOffset = float32(0)
 var scale = float32(1)
 
 var fontSize = float32(12)
@@ -68,6 +69,7 @@ var prevZoom = zoom
 var prevZoomSlider = zoomSlider
 
 func drawGrid(gridCoords [][]GridCoord) {
+	// Set all values that depend on the previous frame
 	cols := grid.Cols
 	if groupBy == GroupByWdHour {
 		cols += 1
@@ -80,7 +82,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 	base := grid.W / float32(grid.Cols)
 
 	scale = float32(math.Pow(float64(grid.W/base), float64(factor)))
-	zoomOffset := zoomSlider * (scale - 1)
+	zoomOffset = zoomSlider * (scale - 1)
 
 	cell.W = base * scale
 
@@ -111,7 +113,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 	// Draw background line on mouse over
 	mouse := rl.GetMousePosition()
 	bg := rl.NewColor(200, 230, 250, 80)
-	bgX := offset.X
+	bgX := offset.X - zoomOffset
 
 	for range cols {
 		mouseInX := bgX < mouse.X && mouse.X <= bgX+cell.W
@@ -124,9 +126,9 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		bgX += cell.W
 
-		// if zoom == 1 {
-		// 	zoomSlider = rl.Clamp(mouse.X-cell.W, 0, grid.W)
-		// }
+		if zoom == 1 {
+			zoomSlider = rl.Clamp(mouse.X-cell.W, 0, grid.W)
+		}
 	}
 
 	// Draw grid container
@@ -142,7 +144,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(scrollW/scale))
 
 		zoomSlider = rg.Slider(
-			rl.Rectangle{X: offset.X + 2, Y: grid.H + 6, Width: grid.W - 4, Height: 12},
+			rl.Rectangle{X: offset.X + 2, Y: grid.H + 6, Width: scrollW, Height: 12},
 			"",
 			"",
 			zoomSlider,
@@ -486,11 +488,14 @@ func DrawLoop(sample map[string]string) {
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
-		if zoom != prevZoom || zoomSlider != prevZoomSlider {
+		if zoom != prevZoom || zoomSlider != prevZoomSlider && zoom > 1 {
+			zoomOffset = zoomSlider * (scale - 1)
+
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
+		// Save state for next frame
 		prevScreenW = int32(screenW)
 		prevScreenH = int32(screenH)
 
@@ -498,6 +503,7 @@ func DrawLoop(sample map[string]string) {
 		prevStepMin = stepMin
 
 		prevZoom = zoom
+		prevZoomSlider = zoomSlider
 	}
 
 	rl.CloseWindow()
