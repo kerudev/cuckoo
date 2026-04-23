@@ -80,6 +80,8 @@ func drawGrid(gridCoords [][]GridCoord) {
 	base := grid.W / float32(grid.Cols)
 
 	scale = float32(math.Pow(float64(grid.W/base), float64(factor)))
+	zoomOffset := zoomSlider * (scale - 1)
+
 	cell.W = base * scale
 
 	// Draw lines vertically
@@ -87,8 +89,8 @@ func drawGrid(gridCoords [][]GridCoord) {
 	for range grid.Cols {
 		colX += cell.W
 		rl.DrawLineEx(
-			rl.Vector2{X: colX, Y: offset.Y},
-			rl.Vector2{X: colX, Y: grid.H + offset.Y},
+			rl.Vector2{X: colX - zoomOffset, Y: offset.Y},
+			rl.Vector2{X: colX - zoomOffset, Y: grid.H + offset.Y},
 			2,
 			rl.LightGray,
 		)
@@ -122,9 +124,9 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		bgX += cell.W
 
-		if zoom == 1 {
-			zoomSlider = rl.Clamp(mouse.X-cell.W, 0, grid.W-4)
-		}
+		// if zoom == 1 {
+		// 	zoomSlider = rl.Clamp(mouse.X-cell.W, 0, grid.W)
+		// }
 	}
 
 	// Draw grid container
@@ -154,7 +156,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		text := strconv.Itoa(col)
 
 		textW := rl.MeasureTextEx(font, text, fontSize, 1).X
-		textX := cell.W*float32(col) - textW/2 + offset.X
+		textX := cell.W*float32(col) - textW/2 + offset.X - zoomOffset
 
 		rl.DrawText(text, int32(textX), int32(grid.H+offset.Y+2), int32(fontSize), rl.Black)
 	}
@@ -219,8 +221,6 @@ func drawGrid(gridCoords [][]GridCoord) {
 		if !drawCoords {
 			continue
 		}
-
-		fmt.Println("zoomSlider:", zoomSlider)
 
 		for _, coord := range dayCoords {
 			// if coord.X > grid.W {
