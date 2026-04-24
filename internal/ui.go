@@ -142,13 +142,6 @@ func drawGrid(gridCoords [][]GridCoord) {
 		}
 	}
 
-	// Draw grid container
-	rl.DrawRectangleLinesEx(
-		rl.Rectangle{X: offset.X, Y: offset.Y, Width: grid.W, Height: grid.H},
-		2,
-		rl.Black,
-	)
-
 	// Draw zoom slider
 	if zoom > 1 {
 		scrollW := grid.W - 4
@@ -163,6 +156,55 @@ func drawGrid(gridCoords [][]GridCoord) {
 			grid.W,
 		)
 	}
+
+	// Draw coordinates in layers by weekday
+	for day, dayCoords := range gridCoords {
+		if weekdaysToggle[day] != StatusOn {
+			continue
+		}
+
+		if drawMode != DrawNone {
+			// Sort coordinates to draw line in order
+			sort.Slice(dayCoords, func(i, j int) bool {
+				return dayCoords[i].X < dayCoords[j].X
+			})
+
+			// Draw lines that connect coordinates
+			for k := 0; k < len(dayCoords)-1; k++ {
+				start := dayCoords[k].Vec2()
+				end := dayCoords[k+1].Vec2()
+
+				switch drawMode {
+				case DrawLines:
+					rl.DrawLineEx(start, end, 2, colors[day])
+				case DrawBezier:
+					rl.DrawLineBezier(start, end, 2, colors[day])
+				}
+			}
+		}
+
+		// Draw coordinates
+		if !drawCoords {
+			continue
+		}
+
+		for _, coord := range dayCoords {
+			if coord.X < offset.X {
+				continue
+			}
+
+			if coord.X > grid.W + offset.X {
+				break
+			}
+
+			rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, colors[day])
+		}
+	}
+
+	// Draw rectangles on left and right so lines are hidden
+	// TODO optimize so this is not needed
+	rl.DrawRectangle(0, int32(offset.Y), int32(offset.X), int32(grid.H), rl.RayWhite)
+	rl.DrawRectangle(int32(grid.W + offset.X), int32(offset.Y), int32(offset.X), int32(grid.H), rl.RayWhite)
 
 	// Draw text on X axis
 	for col := range cols {
@@ -217,44 +259,12 @@ func drawGrid(gridCoords [][]GridCoord) {
 		rl.DrawText(text, int32(textPos.X-offset.X/2), int32(textY), int32(fontSize), rl.Black)
 	}
 
-	// Draw coordinates in layers by weekday
-	for day, dayCoords := range gridCoords {
-		if weekdaysToggle[day] != StatusOn {
-			continue
-		}
-
-		if drawMode != DrawNone {
-			// Sort coordinates to draw line in order
-			sort.Slice(dayCoords, func(i, j int) bool {
-				return dayCoords[i].X < dayCoords[j].X
-			})
-
-			// Draw lines that connect coordinates
-			for k := 0; k < len(dayCoords)-1; k++ {
-				start := dayCoords[k].Vec2()
-				end := dayCoords[k+1].Vec2()
-
-				switch drawMode {
-				case DrawLines:
-					rl.DrawLineEx(start, end, 2, colors[day])
-				case DrawBezier:
-					rl.DrawLineBezier(start, end, 2, colors[day])
-				}
-			}
-		}
-
-		// Draw coordinates
-		if !drawCoords {
-			continue
-		}
-
-		for _, coord := range dayCoords {
-			// if coord.X > grid.W {
-			// 	break
-			// }
-			rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, colors[day])
-		}
-	}
+	// Draw grid container
+	rl.DrawRectangleLinesEx(
+		rl.Rectangle{X: offset.X, Y: offset.Y, Width: grid.W, Height: grid.H},
+		2,
+		rl.Black,
+	)
 }
 
 func drawOptions(groupByScroll *int32) {
