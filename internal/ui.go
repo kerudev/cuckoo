@@ -30,7 +30,8 @@ var font = rl.Font{}
 
 var boxRoundness = float32(0.2)
 var boxSegments = int32(8)
-var boxPadX = float32(16)
+
+var showingMessage = false
 
 var colors = []rl.Color{
 	rl.Red,
@@ -172,7 +173,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		// Clamp number to the left side
 		if textX < offset.X {
-			if textX + cell.W > offset.X + 16 {
+			if textX+cell.W > offset.X+16 {
 				textX = offset.X
 			} else {
 				continue
@@ -373,57 +374,75 @@ func drawOptions(groupByScroll *int32) {
 }
 
 func drawMouseOver(gridCoords [][]GridCoord) {
-	// Draw coordinate information on mouse hover
-	for _, coordDay := range gridCoords {
-		for _, coord := range coordDay {
-			mouseOverCoord := rl.CheckCollisionPointCircle(rl.GetMousePosition(), coord.Vec2(), 4)
+	mouseOver := []GridCoord{}
+	mouse := rl.GetMousePosition()
 
-			if mouseOverCoord {
-				maxW := float32(0)
+	// Get coords where mouse is over
+	for day, dayCoords := range gridCoords {
+		for _, coord := range dayCoords {
+			if weekdaysToggle[day] != StatusOn {
+				continue
+			}
 
-				// Calculate max text size
-				names := countDuplicates(coord.Names)
-				fmtNames := []string{}
-
-				for name, count := range names {
-					fmtNames = append(fmtNames, fmt.Sprintf("%s (%d)", name, count))
-				}
-
-				for _, name := range fmtNames {
-					textW := float32(rl.MeasureText(name, int32(fontSize)))
-
-					if textW > maxW {
-						maxW = textW
-					}
-				}
-
-				rec := rl.Rectangle{
-					X:      coord.X + 8,
-					Y:      coord.Y - 8,
-					Width:  maxW + 16,
-					Height: fontSize*float32(len(fmtNames)) + 16,
-				}
-
-				rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
-				rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
-
-				sort.Slice(fmtNames, func(i, j int) bool {
-					return sortAlphabetically(fmtNames[i], fmtNames[j])
-				})
-
-				for i, name := range fmtNames {
-					spacingY := float32(i) * fontSize
-
-					rl.DrawText(
-						name,
-						int32(coord.X+boxPadX),
-						int32(coord.Y+spacingY),
-						int32(fontSize),
-						rl.Black,
-					)
-				}
+			if rl.CheckCollisionPointCircle(mouse, coord.Vec2(), 4) {
+				mouseOver = append(mouseOver, coord)
 			}
 		}
+	}
+
+	if len(mouseOver) == 0 {
+		showingMessage = false
+		return
+	}
+	showingMessage = true
+
+	names := []string{}
+	for _, coord := range mouseOver {
+		for _, job := range coord.Jobs {
+			names = append(names, job.Name)
+		}
+	}
+
+	duplicates := countDuplicates(names)
+
+	finalNames := []string{}
+	maxW := float32(0)
+
+	for name, count := range duplicates {
+		s := fmt.Sprintf("%s (%d)", name, count)
+		finalNames = append(finalNames, s)
+
+		if w := float32(rl.MeasureText(s, int32(fontSize))); w > maxW {
+			maxW = w
+		}
+	}
+
+	sort.Slice(finalNames, func(i, j int) bool {
+		return sortAlphabetically(finalNames[i], finalNames[j])
+	})
+
+	// Draw tooltip
+	base := mouseOver[0]
+
+	rec := rl.Rectangle{
+		X:      base.X + 8,
+		Y:      base.Y - 8,
+		Width:  maxW + 16,
+		Height: fontSize*float32(len(finalNames)) + 16,
+	}
+
+	rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
+
+	// Draw text on tooltip
+	for i, name := range finalNames {
+		rl.DrawText(
+			name,
+			int32(rec.X+8),
+			int32(rec.Y+8+float32(i)*fontSize),
+			int32(fontSize),
+			rl.Black,
+		)
 	}
 }
 

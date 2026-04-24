@@ -136,19 +136,19 @@ type Job struct {
 }
 
 type Coord struct {
-	Name string
-	X    float32
-	Y    float32
+	Job Job
+	X   float32
+	Y   float32
 }
 
 func (c Coord) GridCoord() GridCoord {
-	return GridCoord{Names: []string{c.Name}, X: c.X, Y: c.Y}
+	return GridCoord{Jobs: []Job{c.Job}, X: c.X, Y: c.Y}
 }
 
 type GridCoord struct {
-	Names []string
-	X     float32
-	Y     float32
+	Jobs []Job
+	X    float32
+	Y    float32
 }
 
 func (c GridCoord) Vec2() rl.Vector2 {

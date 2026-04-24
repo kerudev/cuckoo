@@ -117,7 +117,7 @@ func jobsToCoords(jobs []Job) [][]Coord {
 			x += float32(bucket) / 60
 		}
 
-		result[job.Weekday] = append(result[job.Weekday], Coord{Name: job.Name, X: x, Y: 1})
+		result[job.Weekday] = append(result[job.Weekday], Coord{Job: job, X: x, Y: 1})
 	}
 
 	return result
@@ -141,11 +141,11 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 			for i := range result[day] {
 				if coord.X == result[day][i].X {
 					found = true
-					result[day][i].Names = append(result[day][i].Names, coord.Name)
+					result[day][i].Jobs = append(result[day][i].Jobs, coord.Job)
 				}
 
-				if len(result[day][i].Names) >= grid.Rows {
-					grid.Rows = len(result[day][i].Names) + 2
+				if len(result[day][i].Jobs) >= grid.Rows {
+					grid.Rows = len(result[day][i].Jobs) + 2
 				}
 			}
 
@@ -175,7 +175,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	for day := range 7 {
 		for i := range result[day] {
 			result[day][i].X = (result[day][i].X/float32(grid.Cols))*scaledW + offset.X - zoomOffset
-			result[day][i].Y = grid.H + offset.Y - (highestYPos * float32(len(result[day][i].Names)))
+			result[day][i].Y = grid.H + offset.Y - (highestYPos * float32(len(result[day][i].Jobs)))
 		}
 	}
 
