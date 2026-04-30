@@ -15,23 +15,18 @@ const INITIAL_ROWS = 10
 const INITIAL_COLS = 24
 const ROWS_CAP = 30
 
-// Internal
-var offset = rl.Vector2{X: 20, Y: 20}
-var cell = Cell{W: 0, H: 0}
-var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
-
-var zoom = float32(1)
-var zoomSlider = float32(0)
-var zoomOffset = float32(0)
-var scale = float32(1)
-
+// UI
 var fontSize = float32(12)
 var font = rl.Font{}
+var textPad = float32(8.0)
 
 var boxRoundness = float32(0.2)
 var boxSegments = int32(8)
+var boxSize = float32(20.0)
+var boxBorder = int32(1)
+var boxPadW = boxSize + float32(boxBorder) * 2
 
-var showingMessage = false
+var recBorder = int32(2)
 
 var colors = []rl.Color{
 	rl.Red,
@@ -42,6 +37,16 @@ var colors = []rl.Color{
 	rl.Purple,
 	rl.Pink,
 }
+
+// Internal
+var offset = rl.Vector2{X: 20, Y: 20}
+var cell = Cell{W: 0, H: 0}
+var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
+
+var zoom = float32(1)
+var zoomSlider = float32(0)
+var zoomOffset = float32(0)
+var scale = float32(1)
 
 // User options
 var drawCoords = true
@@ -131,7 +136,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		mouseInY := offset.Y < mouse.Y && mouse.Y <= grid.H
 
 		if mouseInX && mouseInY {
-			rec := rl.Rectangle{X: bgX + 1, Y: offset.Y, Width: cell.W - 2, Height: grid.H}
+			rec := rl.Rectangle{X: bgX + float32(boxBorder), Y: offset.Y, Width: cell.W - float32(boxBorder*2), Height: grid.H}
 			rl.DrawRectangleRec(rec, bg)
 		}
 
@@ -144,11 +149,11 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 	// Draw zoom slider
 	if zoom > 1 {
-		scrollW := grid.W - 4
+		scrollW := grid.W - float32(recBorder) * 2
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(scrollW/scale))
 
 		zoomSlider = rg.Slider(
-			rl.Rectangle{X: offset.X + 2, Y: grid.H + 6, Width: scrollW, Height: 12},
+			rl.Rectangle{X: offset.X + float32(recBorder), Y: grid.H + textPad - float32(recBorder), Width: scrollW, Height: 12},
 			"",
 			"",
 			zoomSlider,
@@ -176,9 +181,9 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 				switch drawMode {
 				case DrawLines:
-					rl.DrawLineEx(start, end, 2, colors[day])
+					rl.DrawLineEx(start, end, float32(recBorder), colors[day])
 				case DrawBezier:
-					rl.DrawLineBezier(start, end, 2, colors[day])
+					rl.DrawLineBezier(start, end, float32(recBorder), colors[day])
 				}
 			}
 		}
@@ -193,7 +198,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 				continue
 			}
 
-			if coord.X > grid.W + offset.X {
+			if coord.X > grid.W+offset.X {
 				break
 			}
 
@@ -204,7 +209,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 	// Draw rectangles on left and right so lines are hidden
 	// TODO optimize so this is not needed
 	rl.DrawRectangle(0, int32(offset.Y), int32(offset.X), int32(grid.H), rl.RayWhite)
-	rl.DrawRectangle(int32(grid.W + offset.X), int32(offset.Y), int32(offset.X), int32(grid.H), rl.RayWhite)
+	rl.DrawRectangle(int32(grid.W+offset.X), int32(offset.Y), int32(offset.X), int32(grid.H), rl.RayWhite)
 
 	// Draw text on X axis
 	for col := range cols {
@@ -269,10 +274,10 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 func drawOptions(groupByScroll *int32) {
 	// Draw option - DrawMode
-	rl.DrawText("Draw mode", int32(offset.X), int32(grid.H+offset.Y*2+8), 12, rl.Black)
+	rl.DrawText("Draw mode", int32(offset.X), int32(grid.H+offset.Y*2+float32(textPad)), int32(fontSize), rl.Black)
 	drawModeIdx := int32(drawMode)
 	drawModeIdx = rg.ToggleGroup(
-		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
+		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*3, Width: boxSize, Height: boxSize},
 		"#113#;#127#;#125#",
 		drawModeIdx,
 	)
@@ -287,7 +292,7 @@ func drawOptions(groupByScroll *int32) {
 	}
 
 	drawCoords = rg.Toggle(
-		rl.Rectangle{X: offset.X + 22*3, Y: grid.H + offset.Y*3, Width: 20, Height: 20},
+		rl.Rectangle{X: offset.X + boxPadW*3, Y: grid.H + offset.Y*3, Width: boxSize, Height: boxSize},
 		drawCoordsIcon,
 		drawCoords,
 	)
@@ -297,7 +302,7 @@ func drawOptions(groupByScroll *int32) {
 	}
 
 	// Draw option - GroupBy
-	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*4+8), 12, rl.Black)
+	rl.DrawText("Group by", int32(offset.X), int32(grid.H+offset.Y*4+textPad), int32(fontSize), rl.Black)
 	groupByIdx := int32(groupBy)
 	groupByIdx = rg.ListView(
 		rl.Rectangle{X: offset.X, Y: grid.H + offset.Y*5, Width: 100, Height: 31*2 + 1},
@@ -315,7 +320,7 @@ func drawOptions(groupByScroll *int32) {
 	// Check the implementation of GuiLoadStyleDefault for additional keys
 	// https://github.com/raysan5/raygui/blob/master/src/raygui.h
 
-	rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+8), 12, rl.Black)
+	rl.DrawText("Weekdays", int32(120+offset.X), int32(grid.H+offset.Y*4+textPad), int32(fontSize), rl.Black)
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
@@ -345,10 +350,10 @@ func drawOptions(groupByScroll *int32) {
 		}
 
 		rec := rl.Rectangle{
-			X:      120 + offset.X + float32(22*i),
+			X:      120 + offset.X + float32(int(boxPadW)*i),
 			Y:      grid.H + offset.Y*5,
-			Width:  20,
-			Height: 20,
+			Width:  boxSize,
+			Height: boxSize,
 		}
 
 		active := rg.Toggle(rec, strconv.Itoa(i), status.Bool())
@@ -372,10 +377,10 @@ func drawOptions(groupByScroll *int32) {
 
 	// Draw option - StepMin
 	if groupBy == GroupByWdHourMin {
-		rl.DrawText("Step of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+8), 12, rl.Black)
+		rl.DrawText("Step of x minutes", int32(120+offset.X), int32(grid.H+offset.Y*6+textPad), int32(fontSize), rl.Black)
 		stepMinIdx := int32(stepMin)
 		stepMinIdx = rg.ToggleGroup(
-			rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: 20, Height: 20},
+			rl.Rectangle{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: boxSize, Height: boxSize},
 			"#113#;5;10;15;20;30",
 			stepMinIdx,
 		)
@@ -401,10 +406,8 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 	}
 
 	if len(mouseOver) == 0 {
-		showingMessage = false
 		return
 	}
-	showingMessage = true
 
 	names := []string{}
 	for _, coord := range mouseOver {
@@ -435,10 +438,10 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 	base := mouseOver[0]
 
 	rec := rl.Rectangle{
-		X:      base.X + 8,
-		Y:      base.Y - 8,
-		Width:  maxW + 16,
-		Height: fontSize*float32(len(finalNames)) + 16,
+		X:      base.X + textPad,
+		Y:      base.Y - textPad,
+		Width:  maxW + textPad*2,
+		Height: fontSize*float32(len(finalNames)) + textPad*2,
 	}
 
 	rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
@@ -448,8 +451,8 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 	for i, name := range finalNames {
 		rl.DrawText(
 			name,
-			int32(rec.X+8),
-			int32(rec.Y+8+float32(i)*fontSize),
+			int32(rec.X+textPad),
+			int32(rec.Y+textPad+float32(i)*fontSize),
 			int32(fontSize),
 			rl.Black,
 		)
@@ -461,12 +464,11 @@ func drawFooter() {
 
 	footerW := int32(120)
 	footerX := int32(screenW-int32(offset.X)) - footerW
-	footerY := int32(grid.H + offset.Y*2 + 24)
+	footerY := int32(grid.H + offset.Y*2 + fontSize * 2)
 
 	footerFontSize := int32(16)
 
-	textPad := int32(8)
-	padX := footerX + textPad
+	padX := footerX + int32(textPad)
 
 	text := "Drop file to change sample"
 	textW := rl.MeasureText(text, footerFontSize)
@@ -480,11 +482,11 @@ func drawFooter() {
 	}
 
 	for i, t := range texts {
-		padY := footerY + textPad + int32(float32(footerFontSize)*1.5*float32(i))
+		padY := footerY + int32(textPad) + int32(float32(footerFontSize)*1.5*float32(i))
 		rl.DrawText(t, padX, padY, footerFontSize, rl.Black)
 	}
 
-	rl.DrawRectangleLines(footerX, footerY, footerW, int32(len(texts)+1)*footerFontSize+textPad*2, rl.Black)
+	rl.DrawRectangleLines(footerX, footerY, footerW, int32(len(texts)+1)*footerFontSize+int32(textPad)*2, rl.Black)
 }
 
 func DrawLoop(sample map[string]string) {
