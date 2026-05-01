@@ -219,15 +219,20 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		// Clamp number to the left side
 		if textX < float32(offset.X) {
-			if textX+cell.W > float32(offset.X+16) {
+			if textX+cell.W > float32(offset.X+textPad) {
 				textX = float32(offset.X)
 			} else {
 				continue
 			}
 		}
 
-		if textX > float32(grid.W+offset.X) {
-			break
+		// Clamp number to the right side
+		if textX > float32(grid.W+offset.X) - textW/2 {
+			if textX-cell.W < float32(grid.W+offset.X-textPad*3) {
+				textX = float32(grid.W + offset.X)- textW/2
+			} else {
+				continue
+			}
 		}
 
 		rl.DrawText(text, int32(textX), grid.H+offset.Y+2, fontSize, rl.Black)
