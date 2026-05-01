@@ -107,7 +107,7 @@ func cronsToJobs(crons []Cron) []Job {
 func jobsToCoords(jobs []Job) [][]Coord {
 	result := make([][]Coord, 7)
 
-	minuteSegment := stepMin.Int()
+	minuteSegment := stepMin.Factor()
 
 	for _, job := range jobs {
 		x := float32(job.Hour)
@@ -166,16 +166,16 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 		grid.Rows = INITIAL_ROWS
 	}
 
-	cell.W = grid.W / float32(grid.Cols)
-	cell.H = grid.H / float32(grid.Rows)
+	cell.W = float32(grid.W) / float32(grid.Cols)
+	cell.H = float32(grid.H) / float32(grid.Rows)
 
-	scaledW := grid.W * scale
-	highestYPos := grid.H / float32(grid.HighestY)
+	scaledW := float32(grid.W) * scale
+	highestYPos := float32(grid.H) / float32(grid.HighestY)
 
 	for day := range 7 {
 		for i := range result[day] {
-			result[day][i].X = (result[day][i].X/float32(grid.Cols))*scaledW + offset.X - zoomOffset
-			result[day][i].Y = grid.H + offset.Y - (highestYPos * float32(len(result[day][i].Jobs)))
+			result[day][i].X = (result[day][i].X/float32(grid.Cols))*scaledW + float32(offset.X) - zoomOffset
+			result[day][i].Y = float32(grid.H+offset.Y) - highestYPos*float32(len(result[day][i].Jobs))
 		}
 	}
 
@@ -188,6 +188,11 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 func lerpRGB(r uint8, g uint8, b uint8, a uint8, f float32) (uint8, uint8, uint8, uint8) {
 	f = max(0.0, min(1.0, f))
 
+	rf := float32(r)
+	gf := float32(g)
+	bf := float32(b)
+	af := float32(a)
+
 	r2 := uint8(0)
 	g2 := uint8(0)
 	b2 := uint8(0)
@@ -196,25 +201,24 @@ func lerpRGB(r uint8, g uint8, b uint8, a uint8, f float32) (uint8, uint8, uint8
 	if f < 0.5 {
 		// Darken color
 		factor := f / 0.5
-		r2 = uint8(float32(r) * factor)
-		g2 = uint8(float32(g) * factor)
-		b2 = uint8(float32(b) * factor)
-		a2 = uint8(float32(a) * factor)
+		r2 = uint8(rf * factor)
+		g2 = uint8(gf * factor)
+		b2 = uint8(bf * factor)
+		a2 = uint8(af * factor)
 	} else {
 		// Brighten color
 		factor := (f - 0.5) / 0.5
-		r2 = uint8(float32(r) + (255-float32(r))*factor)
-		g2 = uint8(float32(g) + (255-float32(g))*factor)
-		b2 = uint8(float32(b) + (255-float32(b))*factor)
-		a2 = uint8(float32(a) + (255-float32(a))*factor)
+		r2 = uint8(rf + (255-rf)*factor)
+		g2 = uint8(gf + (255-gf)*factor)
+		b2 = uint8(bf + (255-bf)*factor)
+		a2 = uint8(af + (255-af)*factor)
 	}
 
 	return r2, g2, b2, a2
 }
 
 func lerpColor(color rl.Color, f float32) rl.Color {
-	r, g, b, a := lerpRGB(color.R, color.G, color.B, color.A, f)
-	return rl.NewColor(r, g, b, a)
+	return rl.NewColor(lerpRGB(color.R, color.G, color.B, color.A, f))
 }
 
 func lerpColorToHex(color rl.Color, f float32) rg.PropertyValue {

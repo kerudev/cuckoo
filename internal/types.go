@@ -7,6 +7,11 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type Vector2Int32 struct {
+	X int32
+	Y int32
+}
+
 type Cron struct {
 	Name    string
 	Min     string
@@ -151,8 +156,13 @@ type GridCoord struct {
 	Y    float32
 }
 
-func (c GridCoord) Vec2() rl.Vector2 {
+func (c GridCoord) Vector2() rl.Vector2 {
 	return rl.Vector2{X: c.X, Y: c.Y}
+}
+
+type Screen struct {
+	W int32
+	H int32
 }
 
 type Cell struct {
@@ -161,8 +171,8 @@ type Cell struct {
 }
 
 type Grid struct {
-	W        float32
-	H        float32
+	W        int32
+	H        int32
 	Rows     int
 	Cols     int
 	HighestY int
@@ -195,7 +205,7 @@ const (
 	StepMin30
 )
 
-func (s StepMin) Int() int {
+func (s StepMin) Factor() int {
 	switch s {
 	case StepMin1:
 		return 1
