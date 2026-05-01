@@ -120,6 +120,14 @@ func jobsToCoords(jobs []Job) [][]Coord {
 		result[job.Weekday] = append(result[job.Weekday], Coord{Job: job, X: x, Y: 1})
 	}
 
+	for wd, weekdays := range result {
+		if len(weekdays) > 0 {
+			weekdaysToggle[wd] = StatusOn
+		} else {
+			weekdaysToggle[wd] = StatusDisabled
+		}
+	}
+
 	return result
 }
 
