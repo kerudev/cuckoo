@@ -4,3 +4,7 @@
 # build artifacts
 cuckoo
 tmp
+
+# WASM
+Raylib-Go-Wasm
+server
