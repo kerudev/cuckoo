@@ -7,21 +7,24 @@ A crontab visualizer made in Go with Raylib bindings.
 
 Made for learning purposes.
 
-# Motivation
+## Motivation
 
 Imagine a process orchestrator (Airflow, Celery, etc.) that coordinates over
 200 processes. Each process has a [cron](https://en.wikipedia.org/wiki/Cron)
 that defines when it will be executed.
 
-Now, think about how you would decide the cron for your new process. It's hard
-to know if can't visualize that data right? That's where cuckoo comes in.
+Now, think about how you would decide the cron for your new process. This is
+important so your new cron doesn't collide with heavy processes or workload
+peaks, which would create overhead that could be better distributed.
 
-cuckoo lets you visualize crons as coordinates on a grid to:
+It's hard if can't visualize the data, right? That's where `cuckoo` comes in.
+
+`cuckoo` lets you visualize crons as coordinates on a grid to:
 - Get insights about your crons with just a glance.
 - Know the next free spot where you can place a new cron.
 - Identify periods where there is a work overload.
 
-# Install & use
+## Install & use
 
 To install cuckoo:
 
@@ -33,7 +36,7 @@ cuckoo takes a simple JSON file whit the following structure:
 
 ```json
 {
-    [CRON_NAME]: [CRON_VALUE],
+    "CRON_NAME": "CRON_VALUE",
     ...
 }
 ```
@@ -44,10 +47,20 @@ To run cuckoo:
 cuckoo -path path/to/data
 ```
 
-# Dependencies
+## Dependencies
 
 cuckoo's dependencies:
 - [raylib-go](https://github.com/gen2brain/raylib-go): Go bindings for raylib.
 
 dev dependencies:
 - [air](https://github.com/air-verse/air): hot module reloading for Go.
+
+## About WASM
+
+This project is currently being developed just for desktop. A WASM port is in
+the works but not ready yet, as the project that ports raylib to WASM doesn't
+support raygui yet.
+
+Some links:
+- Compiling to WASM guide: https://github.com/BrownNPC/Raylib-Go-Wasm/blob/master/README.md
+- Active development on raygui: https://github.com/BrownNPC/Raylib-Go-Wasm/pull/10
