@@ -84,6 +84,14 @@ func all[T comparable](arr []T, v T) bool {
 	return true
 }
 
+// minF32 returns the smaller of x or y.
+func minF32(x, y float32) float32 {
+	if x > y {
+		return y
+	}
+	return x
+}
+
 func stringsToCrons(sample map[string]string) []Cron {
 	result := []Cron{}
 

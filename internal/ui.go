@@ -21,7 +21,7 @@ var font = rl.Font{}
 var fontSize = int32(12)
 var textPad = int32(8)
 
-var boxRoundness = float32(0.2)
+var boxRadius = float32(8)
 var boxSegments = int32(8)
 var boxSize = int32(20)
 var boxBorder = int32(1)
@@ -435,6 +435,14 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 	}
 
 	tooltipRec := tooltip.ToFloat32()
+
+	// Raylib computes the radius using the formula:
+	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+	//
+	// The radius depends on the "roundness", which must be known beforehand so
+	// the radius is always the same.
+	boxRoundness := 2 * boxRadius / minF32(tooltipRec.Height, tooltipRec.Width)
+
 	rl.DrawRectangleRounded(tooltipRec, boxRoundness, boxSegments, rl.White)
 	rl.DrawRectangleRoundedLinesEx(tooltipRec, boxRoundness, boxSegments, 2, rl.Black)
 
