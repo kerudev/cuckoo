@@ -227,9 +227,9 @@ func drawGrid(gridCoords [][]GridCoord) {
 		}
 
 		// Clamp number to the right side
-		if textX > float32(grid.W+offset.X) - textW/2 {
+		if textX > float32(grid.W+offset.X)-textW/2 {
 			if textX-cell.W < float32(grid.W+offset.X-textPad*3) {
-				textX = float32(grid.W + offset.X)- textW/2
+				textX = float32(grid.W+offset.X) - textW/2
 			} else {
 				continue
 			}
@@ -366,9 +366,9 @@ func drawOptions(groupByScroll *int32) {
 
 	// Draw option - StepMin
 	if groupBy == GroupByWdHourMin {
-		button := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: boxSize, Height: boxSize}
 		rl.DrawText("Step of x minutes", 120+offset.X, grid.H+offset.Y*6+textPad, fontSize, rl.Black)
-		stepMinIdx := rg.ToggleGroup(button.ToFloat32(), "#113#;5;10;15;20;30", int32(stepMin))
+		stepMinRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: boxSize, Height: boxSize}
+		stepMinIdx := rg.ToggleGroup(stepMinRec.ToFloat32(), "#113#;5;10;15;20;30", int32(stepMin))
 		stepMin = StepMin(stepMinIdx)
 	}
 }
@@ -419,7 +419,7 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 		return sortAlphabetically(finalNames[i], finalNames[j])
 	})
 
-	// Draw tooltip
+	// Prepare tooltip
 	base := mouseOver[0]
 
 	tooltip := rl.RectangleInt32{
@@ -429,8 +429,14 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 		Height: fontSize*int32(len(finalNames)) + textPad*2,
 	}
 
-	rl.DrawRectangleRounded(tooltip.ToFloat32(), boxRoundness, boxSegments, rl.White)
-	rl.DrawRectangleRoundedLinesEx(tooltip.ToFloat32(), boxRoundness, boxSegments, 2, rl.Black)
+	// Move tooltip to the left when it renders out of the grid
+	if tooltip.X+tooltip.Width > offset.X+grid.W {
+		tooltip.X = int32(base.X) - textPad - tooltip.Width
+	}
+
+	tooltipRec := tooltip.ToFloat32()
+	rl.DrawRectangleRounded(tooltipRec, boxRoundness, boxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(tooltipRec, boxRoundness, boxSegments, 2, rl.Black)
 
 	// Draw text on tooltip
 	for i, name := range finalNames {
@@ -472,7 +478,6 @@ func DrawLoop(sample map[string]string) {
 	groupByScroll := int32(0)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
-
 	rl.InitWindow(800, 700, "Cuckoo")
 	rl.SetWindowMinSize(800, 700)
 

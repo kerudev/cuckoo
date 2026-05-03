@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kerudev/cuckoo/internal"
+	cuckoo "github.com/kerudev/cuckoo/internal"
 )
 
 func main() {
