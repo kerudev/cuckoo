@@ -2,7 +2,9 @@ package cuckoo
 
 import (
 	"fmt"
+	"maps"
 	"math"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,6 +21,7 @@ const ROWS_CAP = 30
 // UI
 var font = rl.Font{}
 var fontSize = int32(12)
+var fontRadius = fontSize / 2
 var textPad = int32(8)
 
 var boxRadius = float32(8)
@@ -26,6 +29,7 @@ var boxSegments = int32(8)
 var boxSize = int32(20)
 var boxBorder = int32(1)
 var boxPadW = boxSize + boxBorder*2
+var coordRadius = 4
 
 var gridBorder = int32(2)
 
@@ -201,7 +205,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 				break
 			}
 
-			rl.DrawCircle(int32(coord.X), int32(coord.Y), 4, colors[day])
+			rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), colors[day])
 		}
 	}
 
@@ -373,8 +377,9 @@ func drawOptions(groupByScroll *int32) {
 	}
 }
 
-func drawMouseOver(gridCoords [][]GridCoord) {
+func drawMouseOverUngrouped(gridCoords [][]GridCoord) {
 	mouseOver := []GridCoord{}
+
 	mouse := rl.GetMousePosition()
 
 	// Get coords where mouse is over
@@ -401,12 +406,10 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 		}
 	}
 
-	duplicates := countDuplicates(names)
-
 	finalNames := []string{}
 	maxW := int32(0)
 
-	for name, count := range duplicates {
+	for name, count := range countDuplicates(names) {
 		s := fmt.Sprintf("%s (%d)", name, count)
 		finalNames = append(finalNames, s)
 
@@ -455,6 +458,147 @@ func drawMouseOver(gridCoords [][]GridCoord) {
 			fontSize,
 			rl.Black,
 		)
+	}
+}
+
+func drawMouseOverGrouped(gridCoords [][]GridCoord) {
+	mouseOver := make([][]GridCoord, 7)
+
+	mouse := rl.GetMousePosition()
+
+	// Get coords where mouse is over
+	for day, dayCoords := range gridCoords {
+		for _, coord := range dayCoords {
+			if weekdaysToggle[day] != StatusOn {
+				continue
+			}
+
+			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), 4) {
+				mouseOver[day] = append(mouseOver[day], coord)
+			}
+		}
+	}
+
+	maxCronW := int32(0)
+	maxNameW := int32(0)
+	maxRow := 0
+
+	crons := map[string][]string{}
+	for _, coords := range mouseOver {
+		for _, coord := range coords {
+			for _, job := range coord.Jobs {
+				crons[job.Cron] = append(crons[job.Cron], job.Name)
+			}
+		}
+	}
+
+	result := map[string][]string{}
+	for cron, names := range crons {
+		if w := rl.MeasureText(cron, fontSize) + textPad + fontRadius; w > maxCronW {
+			maxCronW = w
+		}
+
+		counts := countDuplicates(names)
+
+		for name, count := range counts {
+			s := fmt.Sprintf("%s (%d)", name, count)
+			result[cron] = append(result[cron], s)
+
+			if w := rl.MeasureText(s, fontSize); w > maxNameW {
+				maxNameW = w
+			}
+		}
+
+		maxRow += len(counts) + 1 + 1
+	}
+
+	maxW := max(maxCronW, maxNameW)
+
+	keys := slices.Collect(maps.Keys(result))
+	sort.Slice(keys, func(i, j int) bool {
+		return sortAlphabetically(keys[i], keys[j])
+	})
+
+	tooltip := rl.RectangleInt32{
+		X:      offset.X*2,
+		Y:      offset.X*2,
+		Width:  maxW + textPad*2,
+		Height: fontSize * int32(maxRow),
+	}
+
+	tooltipRec := tooltip.ToFloat32()
+
+	// Raylib computes the radius using the formula:
+	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+	//
+	// The radius depends on the "roundness", which must be known beforehand so
+	// the radius is always the same.
+	boxRoundness := 2 * boxRadius / minF32(tooltipRec.Height, tooltipRec.Width)
+
+	rl.DrawRectangleRounded(tooltipRec, boxRoundness, boxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(tooltipRec, boxRoundness, boxSegments, 2, rl.Black)
+
+	// Draw text on tooltip
+	row := int32(0)
+
+	for _, cron := range keys {
+		wds := parseCronField(strings.Split(cron, " ")[4], 0, 6)
+
+		segments := float32(len(wds))
+		for _, wd := range wds {
+			if weekdaysToggle[wd] != StatusOn {
+				segments--
+			}
+		}
+
+		angleFactor := float32(360) / segments
+		angle := float32(0)
+
+		for _, wd := range wds {
+			if weekdaysToggle[wd] != StatusOn {
+				continue
+			}
+
+			rl.DrawCircleSector(
+				rl.Vector2{
+					X: float32(tooltip.X + textPad + fontRadius),
+					Y: float32(tooltip.Y + textPad + fontSize*row + fontRadius),
+				},
+				float32(fontRadius),
+				angle,
+				angle+angleFactor,
+				8,
+				colors[wd],
+			)
+
+			angle += angleFactor
+		}
+
+		rl.DrawText(
+			cron,
+			tooltip.X+textPad+4*4,
+			tooltip.Y+textPad+fontSize*row,
+			fontSize,
+			rl.Black,
+		)
+
+		sort.Slice(result[cron], func(i, j int) bool {
+			return sortAlphabetically(result[cron][i], result[cron][j])
+		})
+
+		row++
+
+		for i, name := range result[cron] {
+			rl.DrawText(
+				name,
+				tooltip.X+textPad,
+				tooltip.Y+textPad+fontSize*(int32(i)+row),
+				fontSize,
+				rl.Black,
+			)
+		}
+
+		row += int32(len(result[cron])) + 1
 	}
 }
 
@@ -528,7 +672,8 @@ func DrawLoop(sample map[string]string) {
 		drawGrid(gridCoords)
 		drawOptions(&groupByScroll)
 		drawFooter()
-		drawMouseOver(gridCoords)
+		drawMouseOverUngrouped(gridCoords)
+		// drawMouseOverGrouped(gridCoords)
 
 		rl.EndDrawing()
 
