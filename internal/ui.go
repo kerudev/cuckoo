@@ -62,6 +62,7 @@ var drawCoords = true
 var drawMode = DrawLines
 var stepMin = StepMin1
 var groupBy = GroupByWdHourMin
+var position = PositionGrid
 
 var weekdaysToggle = []Status{
 	StatusOn, // rl.Red
@@ -277,31 +278,10 @@ func drawGrid(gridCoords [][]GridCoord) {
 	rl.DrawRectangleLinesEx(gridRec.ToFloat32(), 2, rl.Black)
 }
 
-func drawOptions(groupByScroll *int32) {
-	// Draw option - DrawMode
-	rl.DrawText("Draw mode", offset.X, grid.H+offset.Y*2+textPad, fontSize, rl.Black)
-	drawModeRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*3, Width: boxSize, Height: boxSize}
-	drawModeIdx := rg.ToggleGroup(drawModeRec.ToFloat32(), "#113#;#127#;#125#", int32(drawMode))
-	drawMode = DrawMode(drawModeIdx)
-
-	// Draw option - DrawCoords
-	drawCoordsIcon := ""
-	if drawCoords {
-		drawCoordsIcon = "#212#"
-	} else {
-		drawCoordsIcon = "#213#"
-	}
-
-	drawCoordsRec := rl.RectangleInt32{X: offset.X + boxPadW*3, Y: grid.H + offset.Y*3, Width: boxSize, Height: boxSize}
-	drawCoords = rg.Toggle(drawCoordsRec.ToFloat32(), drawCoordsIcon, drawCoords)
-
-	if drawMode == DrawNone && !drawCoords {
-		drawCoords = true
-	}
-
+func drawUIOptions(groupByScroll *int32) {
 	// Draw option - GroupBy
-	rl.DrawText("Group by", offset.X, grid.H+offset.Y*4+textPad, fontSize, rl.Black)
-	groupByRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*5, Width: 100, Height: 31*2 + 1}
+	rl.DrawText("Group by", offset.X, grid.H+offset.Y*2+textPad, fontSize, rl.Black)
+	groupByRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 31*2 + 1}
 	groupByIdx := rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", groupByScroll, int32(groupBy))
 
 	if groupByIdx >= 0 {
@@ -313,7 +293,7 @@ func drawOptions(groupByScroll *int32) {
 	// Check the implementation of GuiLoadStyleDefault for additional keys
 	// https://github.com/raysan5/raygui/blob/master/src/raygui.h
 
-	rl.DrawText("Weekdays", 120+offset.X, grid.H+offset.Y*4+textPad, fontSize, rl.Black)
+	rl.DrawText("Weekdays", 120+offset.X, grid.H+offset.Y*2+textPad, fontSize, rl.Black)
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
@@ -344,7 +324,7 @@ func drawOptions(groupByScroll *int32) {
 
 		button := rl.RectangleInt32{
 			X:      120 + offset.X + boxPadW*int32(i),
-			Y:      grid.H + offset.Y*5,
+			Y:      grid.H + offset.Y*3,
 			Width:  boxSize,
 			Height: boxSize,
 		}
@@ -370,14 +350,48 @@ func drawOptions(groupByScroll *int32) {
 
 	// Draw option - StepMin
 	if groupBy == GroupByWdHourMin {
-		rl.DrawText("Step of x minutes", 120+offset.X, grid.H+offset.Y*6+textPad, fontSize, rl.Black)
-		stepMinRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*7, Width: boxSize, Height: boxSize}
+		rl.DrawText("Step of x minutes", 120+offset.X, grid.H+offset.Y*4+textPad, fontSize, rl.Black)
+		stepMinRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: boxSize, Height: boxSize}
 		stepMinIdx := rg.ToggleGroup(stepMinRec.ToFloat32(), "#113#;5;10;15;20;30", int32(stepMin))
 		stepMin = StepMin(stepMinIdx)
 	}
 }
 
-func drawMouseOverUngrouped(gridCoords [][]GridCoord) {
+func drawUserOptions(positionScroll *int32) {
+	// User option - TooltipPosition
+	rl.DrawText("Tooltip position", offset.X, grid.H+offset.Y*7+textPad, fontSize, rl.Black)
+	positionRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*8, Width: 100, Height: 31*2 + 1}
+	positionIdx := rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", positionScroll, int32(position))
+
+	if positionIdx >= 0 {
+		position = TooltipPosition(positionIdx)
+	}
+
+	// User option - DrawMode
+	rl.DrawText("Draw mode", 120+offset.X, grid.H+offset.Y*7+textPad, fontSize, rl.Black)
+	drawModeRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*8, Width: boxSize, Height: boxSize}
+	drawModeIdx := rg.ToggleGroup(drawModeRec.ToFloat32(), "#113#;#127#;#125#", int32(drawMode))
+	drawMode = DrawMode(drawModeIdx)
+
+	// User option - DrawCoords
+	drawCoordsIcon := ""
+	if drawCoords {
+		drawCoordsIcon = "#212#"
+	} else {
+		drawCoordsIcon = "#213#"
+	}
+
+	drawCoordsRec := rl.RectangleInt32{X: 120 + offset.X + boxPadW*3, Y: grid.H + offset.Y*8, Width: boxSize, Height: boxSize}
+	drawCoords = rg.Toggle(drawCoordsRec.ToFloat32(), drawCoordsIcon, drawCoords)
+
+	if drawMode == DrawNone && !drawCoords {
+		drawCoords = true
+	}
+
+	// User option - TooltipPosition
+}
+
+func drawMouseOverCoord(gridCoords [][]GridCoord) {
 	mouseOver := []GridCoord{}
 
 	mouse := rl.GetMousePosition()
@@ -461,7 +475,7 @@ func drawMouseOverUngrouped(gridCoords [][]GridCoord) {
 	}
 }
 
-func drawMouseOverGrouped(gridCoords [][]GridCoord) {
+func drawMouseOverGrid(gridCoords [][]GridCoord) {
 	mouseOver := make([][]GridCoord, 7)
 
 	mouse := rl.GetMousePosition()
@@ -520,8 +534,8 @@ func drawMouseOverGrouped(gridCoords [][]GridCoord) {
 	})
 
 	tooltip := rl.RectangleInt32{
-		X:      offset.X*2,
-		Y:      offset.X*2,
+		X:      offset.X * 2,
+		Y:      offset.X * 2,
 		Width:  maxW + textPad*2,
 		Height: fontSize * int32(maxRow),
 	}
@@ -628,6 +642,7 @@ func DrawLoop(sample map[string]string) {
 	gridCoords := [][]GridCoord{}
 
 	groupByScroll := int32(0)
+	positionScroll := int32(0)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 	rl.InitWindow(800, 700, "Cuckoo")
@@ -670,10 +685,27 @@ func DrawLoop(sample map[string]string) {
 		rl.ClearBackground(rl.RayWhite)
 
 		drawGrid(gridCoords)
-		drawOptions(&groupByScroll)
+
+		drawUIOptions(&groupByScroll)
+
+		// Vertical line
+		lineY := grid.H + offset.Y*7 - textPad/2
+		rl.DrawLine(offset.X, lineY, 300, lineY, rl.LightGray)
+
+		drawUserOptions(&positionScroll)
+		
+		// Horizontal line
+		lineX := 150 + offset.X + boxPadW*7
+		rl.DrawLine(lineX, grid.H+offset.Y*2+textPad, lineX, screen.H-offset.Y, rl.Gray)
+
 		drawFooter()
-		drawMouseOverUngrouped(gridCoords)
-		// drawMouseOverGrouped(gridCoords)
+
+		switch position {
+		case PositionCoord:
+			drawMouseOverCoord(gridCoords)
+		case PositionGrid:
+			drawMouseOverGrid(gridCoords)
+		}
 
 		rl.EndDrawing()
 

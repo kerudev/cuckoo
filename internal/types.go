@@ -186,6 +186,14 @@ const (
 	DrawBezier
 )
 
+type TooltipPosition int32
+
+const (
+	PositionGrid TooltipPosition = iota
+	PositionCoord
+	// PositionFooter
+)
+
 type GroupBy int32
 
 const (
