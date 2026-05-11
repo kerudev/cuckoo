@@ -55,7 +55,9 @@ var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 var zoom = float32(1.0)
 var zoomSlider = float32(0.0)
 var zoomOffset = float32(0.0)
-var scale = float32(1.0)
+var zoomBase = float32(0.0)
+var zoomFactor = float32(1.0)
+var zoomScale = float32(1.0)
 
 // User options
 var drawCoords = true
@@ -91,15 +93,28 @@ func drawGrid(gridCoords [][]GridCoord) {
 	}
 
 	scroll := rl.GetMouseWheelMove()
-	zoom = rl.Clamp(zoom+scroll, 1, 9)
 
-	factor := float64(zoom-1) / 8.0
-	base := float32(grid.W) / float32(grid.Cols)
+	if rl.IsKeyDown(rl.KeyLeftShift) {
+		// Horizontal scroll
+		calc := float32(cell.W) / (zoomScale * zoomFactor * 2)
 
-	scale = float32(math.Pow(float64(grid.W)/float64(base), factor))
-	zoomOffset = zoomSlider * (scale - 1)
+		if scroll > 0 {
+			zoomSlider += calc
+		} else if scroll < 0 {
+			zoomSlider -= calc
+		}
+	} else {
+		// Vertical scroll
+		zoom = rl.Clamp(zoom+scroll, 1, 9)
+		zoomBase = float32(grid.W) / float32(grid.Cols)
 
-	cell.W = base * scale
+		zoomFactor = (zoom - 1) / 8.0
+		zoomScale = float32(math.Pow(float64(grid.W)/float64(zoomBase), float64(zoomFactor)))
+
+		zoomOffset = zoomSlider * (zoomScale - 1)
+	}
+
+	cell.W = zoomBase * zoomScale
 
 	// Draw lines vertically
 	colX := float32(offset.X) - zoomOffset
@@ -160,7 +175,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 	// Draw zoom slider
 	if zoom > 1 {
 		scrollW := grid.W - gridBorder*2
-		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/scale))
+		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/zoomScale))
 
 		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad - gridBorder, Width: scrollW, Height: 12}
 		zoomSlider = rg.Slider(zoomSliderRec.ToFloat32(), "", "", zoomSlider, 0, float32(grid.W))
@@ -387,8 +402,18 @@ func drawUserOptions(positionScroll *int32) {
 	if drawMode == DrawNone && !drawCoords {
 		drawCoords = true
 	}
+}
 
-	// User option - TooltipPosition
+func drawTooltip(rec rl.Rectangle) {
+	// Raylib computes the radius using the formula:
+	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+	//
+	// The radius depends on the "roundness", which must be known beforehand so
+	// the radius is always the same.
+	boxRoundness := 2 * boxRadius / minF32(rec.Height, rec.Width)
+
+	rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
 }
 
 func drawMouseOverCoord(gridCoords [][]GridCoord) {
@@ -451,17 +476,7 @@ func drawMouseOverCoord(gridCoords [][]GridCoord) {
 		tooltip.X = int32(base.X) - textPad - tooltip.Width
 	}
 
-	tooltipRec := tooltip.ToFloat32()
-
-	// Raylib computes the radius using the formula:
-	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
-	//
-	// The radius depends on the "roundness", which must be known beforehand so
-	// the radius is always the same.
-	boxRoundness := 2 * boxRadius / minF32(tooltipRec.Height, tooltipRec.Width)
-
-	rl.DrawRectangleRounded(tooltipRec, boxRoundness, boxSegments, rl.White)
-	rl.DrawRectangleRoundedLinesEx(tooltipRec, boxRoundness, boxSegments, 2, rl.Black)
+	drawTooltip(tooltip.ToFloat32())
 
 	// Draw text on tooltip
 	for i, name := range finalNames {
@@ -540,17 +555,7 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 		Height: fontSize * int32(maxRow),
 	}
 
-	tooltipRec := tooltip.ToFloat32()
-
-	// Raylib computes the radius using the formula:
-	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
-	//
-	// The radius depends on the "roundness", which must be known beforehand so
-	// the radius is always the same.
-	boxRoundness := 2 * boxRadius / minF32(tooltipRec.Height, tooltipRec.Width)
-
-	rl.DrawRectangleRounded(tooltipRec, boxRoundness, boxSegments, rl.White)
-	rl.DrawRectangleRoundedLinesEx(tooltipRec, boxRoundness, boxSegments, 2, rl.Black)
+	drawTooltip(tooltip.ToFloat32())
 
 	// Draw text on tooltip
 	row := int32(0)
@@ -626,7 +631,7 @@ func drawFooter() {
 	rl.DrawText(text, screen.W-textW-offset.X, grid.H+offset.Y*2, footerFontSize, rl.Black)
 
 	texts := []string{
-		fmt.Sprintf("Scale: x%.2f", scale),
+		fmt.Sprintf("Scale: x%.2f", zoomScale),
 		fmt.Sprintf("Cell.W: %.2f", cell.W),
 		fmt.Sprint("Cell.H: ", cell.H),
 	}
@@ -690,12 +695,12 @@ func DrawLoop(sample map[string]string) {
 
 		// Vertical line
 		lineY := grid.H + offset.Y*7 - textPad/2
-		rl.DrawLine(offset.X, lineY, 300, lineY, rl.LightGray)
+		rl.DrawLine(offset.X, lineY, 290, lineY, rl.Gray)
 
 		drawUserOptions(&positionScroll)
-		
+
 		// Horizontal line
-		lineX := 150 + offset.X + boxPadW*7
+		lineX := 150 + offset.X + boxPadW*6
 		rl.DrawLine(lineX, grid.H+offset.Y*2+textPad, lineX, screen.H-offset.Y, rl.Gray)
 
 		drawFooter()
@@ -722,7 +727,7 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		if zoom != prevZoom || zoomSlider != prevZoomSlider && zoom > 1 {
-			zoomOffset = zoomSlider * (scale - 1)
+			zoomOffset = zoomSlider * (zoomScale - 1)
 
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
