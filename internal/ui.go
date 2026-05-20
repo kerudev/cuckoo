@@ -178,7 +178,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/zoomScale))
 
 		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad - gridBorder, Width: scrollW, Height: 12}
-		zoomSlider = rg.Slider(zoomSliderRec.ToFloat32(), "", "", zoomSlider, 0, float32(grid.W))
+		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &zoomSlider, 0, float32(grid.W))
 	}
 
 	// Draw coordinates in layers by weekday
@@ -297,7 +297,8 @@ func drawUIOptions(groupByScroll *int32) {
 	// Draw option - GroupBy
 	rl.DrawText("Group by", offset.X, grid.H+offset.Y*2+textPad, fontSize, rl.Black)
 	groupByRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 31*2 + 1}
-	groupByIdx := rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", groupByScroll, int32(groupBy))
+	groupByIdx := int32(groupBy)
+	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", groupByScroll, &groupByIdx)
 
 	if groupByIdx >= 0 {
 		groupBy = GroupBy(groupByIdx)
@@ -344,7 +345,8 @@ func drawUIOptions(groupByScroll *int32) {
 			Height: boxSize,
 		}
 
-		active := rg.Toggle(button.ToFloat32(), strconv.Itoa(i), status.Bool())
+		active := status.Bool()
+		rg.Toggle(button.ToFloat32(), strconv.Itoa(i), &active)
 
 		if status != StatusDisabled {
 			weekdaysToggle[i] = StatusFromBool(active)
@@ -367,7 +369,9 @@ func drawUIOptions(groupByScroll *int32) {
 	if groupBy == GroupByWdHourMin {
 		rl.DrawText("Step of x minutes", 120+offset.X, grid.H+offset.Y*4+textPad, fontSize, rl.Black)
 		stepMinRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: boxSize, Height: boxSize}
-		stepMinIdx := rg.ToggleGroup(stepMinRec.ToFloat32(), "#113#;5;10;15;20;30", int32(stepMin))
+
+		stepMinIdx := int32(stepMin)
+		rg.ToggleGroup(stepMinRec.ToFloat32(), "#113#;5;10;15;20;30", &stepMinIdx)
 		stepMin = StepMin(stepMinIdx)
 	}
 }
@@ -376,7 +380,9 @@ func drawUserOptions(positionScroll *int32) {
 	// User option - TooltipPosition
 	rl.DrawText("Tooltip position", offset.X, grid.H+offset.Y*7+textPad, fontSize, rl.Black)
 	positionRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*8, Width: 100, Height: 31*2 + 1}
-	positionIdx := rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", positionScroll, int32(position))
+
+	positionIdx := int32(position)
+	rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", positionScroll, &positionIdx)
 
 	if positionIdx >= 0 {
 		position = TooltipPosition(positionIdx)
@@ -385,7 +391,9 @@ func drawUserOptions(positionScroll *int32) {
 	// User option - DrawMode
 	rl.DrawText("Draw mode", 120+offset.X, grid.H+offset.Y*7+textPad, fontSize, rl.Black)
 	drawModeRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*8, Width: boxSize, Height: boxSize}
-	drawModeIdx := rg.ToggleGroup(drawModeRec.ToFloat32(), "#113#;#127#;#125#", int32(drawMode))
+
+	drawModeIdx := int32(drawMode)
+	rg.ToggleGroup(drawModeRec.ToFloat32(), "#113#;#127#;#125#", &drawModeIdx)
 	drawMode = DrawMode(drawModeIdx)
 
 	// User option - DrawCoords
@@ -397,7 +405,7 @@ func drawUserOptions(positionScroll *int32) {
 	}
 
 	drawCoordsRec := rl.RectangleInt32{X: 120 + offset.X + boxPadW*3, Y: grid.H + offset.Y*8, Width: boxSize, Height: boxSize}
-	drawCoords = rg.Toggle(drawCoordsRec.ToFloat32(), drawCoordsIcon, drawCoords)
+	rg.Toggle(drawCoordsRec.ToFloat32(), drawCoordsIcon, &drawCoords)
 
 	if drawMode == DrawNone && !drawCoords {
 		drawCoords = true
