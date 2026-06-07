@@ -46,6 +46,16 @@ var colors = []rl.Color{
 	rl.Pink,
 }
 
+var faded = []rl.Color{
+	rl.Fade(rl.Red, 0),
+	rl.Fade(rl.Orange, 0),
+	rl.Fade(rl.Gold, 0),
+	rl.Fade(rl.Green, 0),
+	rl.Fade(rl.Blue, 0),
+	rl.Fade(rl.Purple, 0),
+	rl.Fade(rl.Pink, 0),
+}
+
 // Internal
 var screen = Screen{W: 0, H: 0}
 var offset = Vector2Int32{X: 20, Y: 20}
@@ -58,6 +68,8 @@ var zoomOffset = float32(0.0)
 var zoomBase = float32(0.0)
 var zoomFactor = float32(1.0)
 var zoomScale = float32(1.0)
+
+var gridHighestY = float32(0)
 
 // User options
 var drawCoords = true
@@ -207,12 +219,12 @@ func drawGrid(gridCoords [][]GridCoord) {
 			}
 		}
 
-		// Draw coordinates
 		if !drawCoords {
 			continue
 		}
 
-		for _, coord := range dayCoords {
+		// Draw coordinates
+		for i, coord := range dayCoords {
 			if coord.X < float32(offset.X) {
 				continue
 			}
@@ -222,6 +234,89 @@ func drawGrid(gridCoords [][]GridCoord) {
 			}
 
 			rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), colors[day])
+
+			// Skip drawing gradient after last coordinate
+			if i+1 >= len(dayCoords) {
+				continue
+			}
+
+			next := dayCoords[i+1]
+
+			mid := rl.Vector2{}
+
+			alpha0 := float32(255)
+			alpha1 := float32(255)
+			alpha2 := float32(255)
+
+			recX := int32(0)
+			recY := int32(0)
+			recAlpha := float32(0)
+
+			if coord.Y < next.Y {
+				/**
+				 * (0) x
+				 *     |\
+				 *     | \
+				 *     |  \
+				 * (1) x---x (2)
+				 *
+				 * - 0: coord
+				 * - 1: mid
+				 * - 2: next
+				 */
+
+				mid.X = coord.X
+				mid.Y = next.Y
+
+				alpha0 *= coord.OrigY / float32(gridHighestY)
+				alpha1 *= next.OrigY / float32(gridHighestY)
+				alpha2 *= next.OrigY / float32(gridHighestY)
+
+				recX = int32(mid.X)
+				recY = int32(mid.Y)
+				recAlpha = next.OrigY
+			} else {
+				/**
+				 *         x (2)
+				 *        /|
+				 *       / |
+				 *      /  |
+				 * (0) x---x (1)
+				 *
+				 * - 0: coord
+				 * - 1: mid
+				 * - 2: next
+				 */
+
+				mid.X = next.X
+				mid.Y = coord.Y
+
+				alpha0 *= coord.OrigY / float32(gridHighestY)
+				alpha1 *= coord.OrigY / float32(gridHighestY)
+				alpha2 *= next.OrigY / float32(gridHighestY)
+
+				recX = int32(coord.X)
+				recY = int32(coord.Y)
+				recAlpha = coord.OrigY
+			}
+
+			// Draw triangle with faded vertices
+			rl.Begin(rl.Triangles)
+			rl.Color4ub(colors[day].R, colors[day].G, colors[day].B, uint8(alpha0))
+			rl.Vertex2f(coord.X, coord.Y)
+			rl.Color4ub(colors[day].R, colors[day].G, colors[day].B, uint8(alpha1))
+			rl.Vertex2f(mid.X, mid.Y)
+			rl.Color4ub(colors[day].R, colors[day].G, colors[day].B, uint8(alpha2))
+			rl.Vertex2f(next.X, next.Y)
+			rl.End()
+
+			// Draw gradient below graph
+			w := int32(cell.W)
+			h := grid.H + offset.Y - int32(mid.Y)
+
+			color := rl.Fade(colors[day], recAlpha*cell.H/(float32(gridHighestY)*cell.H))
+
+			rl.DrawRectangleGradientV(recX, recY, w, h, color, faded[day])
 		}
 	}
 
@@ -262,16 +357,16 @@ func drawGrid(gridCoords [][]GridCoord) {
 	textRect := rl.MeasureTextEx(font, strconv.Itoa(cols), float32(fontSize), 1)
 
 	nRow := 0
-	step := grid.HighestY / grid.Rows
-	last := (grid.HighestY / step) * step
+	step := grid.HighestRow / grid.Rows
+	last := (grid.HighestRow / step) * step
 
-	for row := range grid.HighestY + 1 {
-		if grid.HighestY > ROWS_CAP && row%step != 0 {
+	for row := range grid.HighestRow + 1 {
+		if grid.HighestRow > ROWS_CAP && row%step != 0 {
 			continue
 		}
 
 		if row == last {
-			row = grid.HighestY
+			row = grid.HighestRow
 		}
 
 		text := strconv.Itoa(row)

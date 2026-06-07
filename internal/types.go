@@ -154,6 +154,8 @@ type GridCoord struct {
 	Jobs []Job
 	X    float32
 	Y    float32
+	// OrigX float32
+	OrigY float32
 }
 
 func (c GridCoord) Vector2() rl.Vector2 {
@@ -171,11 +173,11 @@ type Cell struct {
 }
 
 type Grid struct {
-	W        int32
-	H        int32
-	Rows     int
-	Cols     int
-	HighestY int
+	W          int32
+	H          int32
+	Rows       int
+	Cols       int
+	HighestRow int
 }
 
 type DrawMode int32

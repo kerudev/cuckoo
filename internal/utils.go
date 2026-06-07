@@ -150,6 +150,8 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	grid.Rows = INITIAL_ROWS
 	grid.Cols = INITIAL_COLS
 
+	gridHighestY = 0
+
 	for day, coordDay := range coords {
 		for _, coord := range coordDay {
 			found := false
@@ -166,19 +168,22 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 			}
 
 			if !found {
-				result[day] = append(result[day], coord.GridCoord())
+				cg := coord.GridCoord()
+				// cg.OrigX = coord.X
+
+				result[day] = append(result[day], cg)
 			}
 		}
 	}
 
-	grid.HighestY = grid.Rows
+	grid.HighestRow = grid.Rows
 
 	// Remove the last column, as it makes no sense when grouping by hour
 	if groupBy == GroupByWdHour {
 		grid.Cols -= 1
 	}
 
-	if grid.HighestY > ROWS_CAP {
+	if grid.HighestRow > ROWS_CAP {
 		grid.Rows = INITIAL_ROWS
 	}
 
@@ -186,12 +191,18 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	cell.H = float32(grid.H) / float32(grid.Rows)
 
 	scaledW := float32(grid.W) * zoomScale
-	highestYPos := float32(grid.H) / float32(grid.HighestY)
+	highestRowY := float32(grid.H) / float32(grid.HighestRow)
 
 	for day := range 7 {
 		for i := range result[day] {
+			result[day][i].OrigY = float32(len(result[day][i].Jobs))
+
+			if result[day][i].OrigY > gridHighestY {
+				gridHighestY = result[day][i].OrigY
+			}
+
 			result[day][i].X = (result[day][i].X/float32(grid.Cols))*scaledW + float32(offset.X) - zoomOffset
-			result[day][i].Y = float32(grid.H+offset.Y) - highestYPos*float32(len(result[day][i].Jobs))
+			result[day][i].Y = float32(grid.H+offset.Y) - highestRowY*result[day][i].OrigY
 		}
 	}
 
