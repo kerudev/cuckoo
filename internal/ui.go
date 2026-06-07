@@ -36,24 +36,14 @@ var gridBorder = int32(2)
 var footerW = int32(120)
 var footerFontSize = int32(16)
 
-var colors = []rl.Color{
-	rl.Red,
-	rl.Orange,
-	rl.Gold,
-	rl.Green,
-	rl.Blue,
-	rl.Purple,
-	rl.Pink,
-}
-
-var faded = []rl.Color{
-	rl.Fade(rl.Red, 0),
-	rl.Fade(rl.Orange, 0),
-	rl.Fade(rl.Gold, 0),
-	rl.Fade(rl.Green, 0),
-	rl.Fade(rl.Blue, 0),
-	rl.Fade(rl.Purple, 0),
-	rl.Fade(rl.Pink, 0),
+var weekdays = []Weekday{
+	NewWeekday(rl.Red),
+	NewWeekday(rl.Orange),
+	NewWeekday(rl.Gold),
+	NewWeekday(rl.Green),
+	NewWeekday(rl.Blue),
+	NewWeekday(rl.Purple),
+	NewWeekday(rl.Pink),
 }
 
 // Internal
@@ -77,16 +67,6 @@ var drawMode = DrawLines
 var stepMin = StepMin1
 var groupBy = GroupByWdHourMin
 var position = PositionGrid
-
-var weekdaysToggle = []Status{
-	StatusOn, // rl.Red
-	StatusOn, // rl.Orange
-	StatusOn, // rl.Gold
-	StatusOn, // rl.Green
-	StatusOn, // rl.Blue
-	StatusOn, // rl.Purple
-	StatusOn, // rl.Pink
-}
 
 // Previous state
 var prevScreen = screen
@@ -194,8 +174,8 @@ func drawGrid(gridCoords [][]GridCoord) {
 	}
 
 	// Draw coordinates in layers by weekday
-	for day, dayCoords := range gridCoords {
-		if weekdaysToggle[day] != StatusOn {
+	for wd, dayCoords := range gridCoords {
+		if weekdays[wd].status != StatusOn {
 			continue
 		}
 
@@ -212,9 +192,9 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 				switch drawMode {
 				case DrawLines:
-					rl.DrawLineEx(start, end, float32(gridBorder), colors[day])
+					rl.DrawLineEx(start, end, float32(gridBorder), weekdays[wd].color)
 				case DrawBezier:
-					rl.DrawLineBezier(start, end, float32(gridBorder), colors[day])
+					rl.DrawLineBezier(start, end, float32(gridBorder), weekdays[wd].color)
 				}
 			}
 		}
@@ -225,15 +205,19 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		// Draw coordinates
 		for i, coord := range dayCoords {
+			// Skip if coord is off the grid (left)
 			if coord.X < float32(offset.X) {
 				continue
 			}
 
+			// Stop if coord is off the grid (right)
 			if coord.X > float32(grid.W+offset.X) {
 				break
 			}
 
-			rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), colors[day])
+			color := weekdays[wd].color
+
+			rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), color)
 
 			// Skip drawing gradient after last coordinate
 			if i+1 >= len(dayCoords) {
@@ -302,11 +286,11 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 			// Draw triangle with faded vertices
 			rl.Begin(rl.Triangles)
-			rl.Color4ub(colors[day].R, colors[day].G, colors[day].B, uint8(alpha0))
+			rl.Color4ub(color.R, color.G, color.B, uint8(alpha0))
 			rl.Vertex2f(coord.X, coord.Y)
-			rl.Color4ub(colors[day].R, colors[day].G, colors[day].B, uint8(alpha1))
+			rl.Color4ub(color.R, color.G, color.B, uint8(alpha1))
 			rl.Vertex2f(mid.X, mid.Y)
-			rl.Color4ub(colors[day].R, colors[day].G, colors[day].B, uint8(alpha2))
+			rl.Color4ub(color.R, color.G, color.B, uint8(alpha2))
 			rl.Vertex2f(next.X, next.Y)
 			rl.End()
 
@@ -314,9 +298,9 @@ func drawGrid(gridCoords [][]GridCoord) {
 			w := int32(cell.W)
 			h := grid.H + offset.Y - int32(mid.Y)
 
-			color := rl.Fade(colors[day], recAlpha*cell.H/(float32(gridHighestY)*cell.H))
+			recColor := rl.Fade(color, recAlpha*cell.H/(float32(gridHighestY)*cell.H))
 
-			rl.DrawRectangleGradientV(recX, recY, w, h, color, faded[day])
+			rl.DrawRectangleGradientV(recX, recY, w, h, recColor, weekdays[wd].faded)
 		}
 	}
 
@@ -417,8 +401,9 @@ func drawUIOptions(groupByScroll *int32) {
 
 	rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
 
-	for i, status := range weekdaysToggle {
-		color := colors[i]
+	for wd := range weekdays {
+		status := weekdays[wd].status
+		color := weekdays[wd].color
 		hexColor := rg.NewColorPropertyValue(color)
 
 		if status == StatusDisabled {
@@ -434,20 +419,20 @@ func drawUIOptions(groupByScroll *int32) {
 		}
 
 		button := rl.RectangleInt32{
-			X:      120 + offset.X + boxPadW*int32(i),
+			X:      120 + offset.X + boxPadW*int32(wd),
 			Y:      grid.H + offset.Y*3,
 			Width:  boxSize,
 			Height: boxSize,
 		}
 
 		active := status.Bool()
-		rg.Toggle(button.ToFloat32(), strconv.Itoa(i), &active)
+		rg.Toggle(button.ToFloat32(), strconv.Itoa(wd), &active)
 
 		if status != StatusDisabled {
-			weekdaysToggle[i] = StatusFromBool(active)
+			weekdays[wd].status = StatusFromBool(active)
 
-			if !active && all(weekdaysToggle, StatusOff) {
-				weekdaysToggle[i] = StatusOn
+			if !active && all(weekdays, func(wd Weekday) bool { return wd.status == StatusOff }) {
+				weekdays[wd].status = StatusOn
 			}
 		}
 
@@ -527,7 +512,7 @@ func drawMouseOverCoord(gridCoords [][]GridCoord) {
 	// Get coords where mouse is over
 	for day, dayCoords := range gridCoords {
 		for _, coord := range dayCoords {
-			if weekdaysToggle[day] != StatusOn {
+			if weekdays[day].status != StatusOn {
 				continue
 			}
 
@@ -599,14 +584,14 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 	mouse := rl.GetMousePosition()
 
 	// Get coords where mouse is over
-	for day, dayCoords := range gridCoords {
+	for wd, dayCoords := range gridCoords {
 		for _, coord := range dayCoords {
-			if weekdaysToggle[day] != StatusOn {
+			if weekdays[wd].status != StatusOn {
 				continue
 			}
 
 			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), 4) {
-				mouseOver[day] = append(mouseOver[day], coord)
+				mouseOver[wd] = append(mouseOver[wd], coord)
 			}
 		}
 	}
@@ -668,7 +653,7 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 
 		segments := float32(len(wds))
 		for _, wd := range wds {
-			if weekdaysToggle[wd] != StatusOn {
+			if weekdays[wd].status != StatusOn {
 				segments--
 			}
 		}
@@ -677,7 +662,7 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 		angle := float32(0)
 
 		for _, wd := range wds {
-			if weekdaysToggle[wd] != StatusOn {
+			if weekdays[wd].status != StatusOn {
 				continue
 			}
 
@@ -690,7 +675,7 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 				angle,
 				angle+angleFactor,
 				8,
-				colors[wd],
+				weekdays[wd].color,
 			)
 
 			angle += angleFactor

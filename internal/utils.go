@@ -74,9 +74,9 @@ func countDuplicates[T comparable](arr []T) map[T]int {
 	return res
 }
 
-func all[T comparable](arr []T, v T) bool {
+func all[T comparable](arr []T, pred func(T) bool) bool {
 	for _, el := range arr {
-		if el == v {
+		if pred(el) {
 			continue
 		}
 		return false
@@ -128,11 +128,11 @@ func jobsToCoords(jobs []Job) [][]Coord {
 		result[job.Weekday] = append(result[job.Weekday], Coord{Job: job, X: x, Y: 1})
 	}
 
-	for wd, weekdays := range result {
-		if len(weekdays) > 0 {
-			weekdaysToggle[wd] = StatusOn
+	for wd, coords := range result {
+		if len(coords) > 0 {
+			weekdays[wd].status = StatusOn
 		} else {
-			weekdaysToggle[wd] = StatusDisabled
+			weekdays[wd].status = StatusDisabled
 		}
 	}
 
@@ -152,18 +152,22 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 
 	gridHighestY = 0
 
-	for day, coordDay := range coords {
+	for wd, coordDay := range coords {
 		for _, coord := range coordDay {
 			found := false
 
-			for i := range result[day] {
-				if coord.X == result[day][i].X {
+			if coord.Y > gridHighestY {
+				gridHighestY = coord.Y
+			}
+
+			for i := range result[wd] {
+				if coord.X == result[wd][i].X {
 					found = true
-					result[day][i].Jobs = append(result[day][i].Jobs, coord.Job)
+					result[wd][i].Jobs = append(result[wd][i].Jobs, coord.Job)
 				}
 
-				if len(result[day][i].Jobs) >= grid.Rows {
-					grid.Rows = len(result[day][i].Jobs) + 2
+				if len(result[wd][i].Jobs) >= grid.Rows {
+					grid.Rows = len(result[wd][i].Jobs) + 2
 				}
 			}
 
@@ -171,7 +175,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 				cg := coord.GridCoord()
 				// cg.OrigX = coord.X
 
-				result[day] = append(result[day], cg)
+				result[wd] = append(result[wd], cg)
 			}
 		}
 	}
@@ -193,16 +197,16 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	scaledW := float32(grid.W) * zoomScale
 	highestRowY := float32(grid.H) / float32(grid.HighestRow)
 
-	for day := range 7 {
-		for i := range result[day] {
-			result[day][i].OrigY = float32(len(result[day][i].Jobs))
+	for wd := range 7 {
+		for i := range result[wd] {
+			result[wd][i].OrigY = float32(len(result[wd][i].Jobs))
 
-			if result[day][i].OrigY > gridHighestY {
-				gridHighestY = result[day][i].OrigY
+			if result[wd][i].OrigY > gridHighestY {
+				gridHighestY = result[wd][i].OrigY
 			}
 
-			result[day][i].X = (result[day][i].X/float32(grid.Cols))*scaledW + float32(offset.X) - zoomOffset
-			result[day][i].Y = float32(grid.H+offset.Y) - highestRowY*result[day][i].OrigY
+			result[wd][i].X = (result[wd][i].X/float32(grid.Cols))*scaledW + float32(offset.X) - zoomOffset
+			result[wd][i].Y = float32(grid.H+offset.Y) - highestRowY*result[wd][i].OrigY
 		}
 	}
 

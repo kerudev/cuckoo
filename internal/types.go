@@ -252,3 +252,13 @@ func StatusFromBool(b bool) Status {
 	}
 	return StatusOff
 }
+
+type Weekday struct {
+	status Status
+	color  rl.Color
+	faded  rl.Color
+}
+
+func NewWeekday(color rl.Color) Weekday {
+	return Weekday{status: StatusOn, color: color, faded: rl.Fade(color, 0)}
+}
