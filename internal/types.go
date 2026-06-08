@@ -180,14 +180,6 @@ type Grid struct {
 	HighestRow int
 }
 
-type DrawMode int32
-
-const (
-	DrawNone DrawMode = iota
-	DrawLines
-	DrawBezier
-)
-
 type TooltipPosition int32
 
 const (
@@ -261,4 +253,16 @@ type Weekday struct {
 
 func NewWeekday(color rl.Color) Weekday {
 	return Weekday{status: StatusOn, color: color, faded: rl.Fade(color, 0)}
+}
+
+type UserOptions struct {
+	drawCoords bool
+	drawLines  bool
+	drawGrid   bool
+	drawFade   bool
+}
+
+type ToggleParams struct {
+	Icon string
+	Ptr  *bool
 }
