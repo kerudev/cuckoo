@@ -129,9 +129,7 @@ func jobsToCoords(jobs []Job) [][]Coord {
 	}
 
 	for wd, coords := range result {
-		if len(coords) > 0 {
-			weekdays[wd].status = StatusOn
-		} else {
+		if len(coords) <= 0 {
 			weekdays[wd].status = StatusDisabled
 		}
 	}
