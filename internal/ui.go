@@ -119,6 +119,102 @@ func drawGridLines() {
 	}
 }
 
+func drawCoordsLines(coords []GridCoord, color rl.Color) {
+	// Sort coordinates to draw line in order
+	sort.Slice(coords, func(i, j int) bool {
+		return coords[i].X < coords[j].X
+	})
+
+	// Draw lines that connect coordinates
+	for k := 0; k < len(coords)-1; k++ {
+		start := coords[k].Vector2()
+		end := coords[k+1].Vector2()
+
+		rl.DrawLineEx(start, end, float32(gridBorder), color)
+	}
+}
+
+func drawFade(coord GridCoord, next GridCoord, wd int) {
+	mid := rl.Vector2{}
+
+	alpha0 := float32(255)
+	alpha1 := float32(255)
+	alpha2 := float32(255)
+
+	recX := int32(0)
+	recY := int32(0)
+	recAlpha := float32(0)
+
+	if coord.Y < next.Y {
+		/**
+		 * (0) x
+		 *     |\
+		 *     | \
+		 *     |  \
+		 * (1) x---x (2)
+		 *
+		 * - 0: coord
+		 * - 1: mid
+		 * - 2: next
+		 */
+
+		mid.X = coord.X
+		mid.Y = next.Y
+
+		alpha0 *= coord.OrigY / float32(gridHighestY)
+		alpha1 *= next.OrigY / float32(gridHighestY)
+		alpha2 *= next.OrigY / float32(gridHighestY)
+
+		recX = int32(mid.X)
+		recY = int32(mid.Y)
+		recAlpha = next.OrigY
+	} else {
+		/**
+		 *         x (2)
+		 *        /|
+		 *       / |
+		 *      /  |
+		 * (0) x---x (1)
+		 *
+		 * - 0: coord
+		 * - 1: mid
+		 * - 2: next
+		 */
+
+		mid.X = next.X
+		mid.Y = coord.Y
+
+		alpha0 *= coord.OrigY / float32(gridHighestY)
+		alpha1 *= coord.OrigY / float32(gridHighestY)
+		alpha2 *= next.OrigY / float32(gridHighestY)
+
+		recX = int32(coord.X)
+		recY = int32(coord.Y)
+		recAlpha = coord.OrigY
+	}
+
+	color := weekdays[wd].color
+
+	// Draw triangle with faded vertices
+	rl.Begin(rl.Triangles)
+	rl.Color4ub(color.R, color.G, color.B, uint8(alpha0))
+	rl.Vertex2f(coord.X, coord.Y)
+	rl.Color4ub(color.R, color.G, color.B, uint8(alpha1))
+	rl.Vertex2f(mid.X, mid.Y)
+	rl.Color4ub(color.R, color.G, color.B, uint8(alpha2))
+	rl.Vertex2f(next.X, next.Y)
+	rl.End()
+
+	// Draw gradient below graph
+	w := int32(cell.W)
+	h := grid.H + offset.Y - int32(mid.Y)
+
+	// Calculate rectangle fade based on highest coordinate
+	recColor := rl.Fade(color, recAlpha*cell.H/(float32(gridHighestY)*cell.H))
+
+	rl.DrawRectangleGradientV(recX, recY, w, h, recColor, weekdays[wd].faded)
+}
+
 func drawGrid(gridCoords [][]GridCoord) {
 	// Set all values that depend on the previous frame
 	cols := grid.Cols
@@ -175,15 +271,6 @@ func drawGrid(gridCoords [][]GridCoord) {
 		}
 	}
 
-	// Draw zoom slider
-	if zoom > 1 {
-		scrollW := grid.W - gridBorder*2
-		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/zoomScale))
-
-		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad - gridBorder, Width: scrollW, Height: 12}
-		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &zoomSlider, 0, float32(grid.W))
-	}
-
 	// Draw coordinates in layers by weekday
 	for wd, dayCoords := range gridCoords {
 		if weekdays[wd].status != StatusOn {
@@ -191,18 +278,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		}
 
 		if userOptions.drawLines {
-			// Sort coordinates to draw line in order
-			sort.Slice(dayCoords, func(i, j int) bool {
-				return dayCoords[i].X < dayCoords[j].X
-			})
-
-			// Draw lines that connect coordinates
-			for k := 0; k < len(dayCoords)-1; k++ {
-				start := dayCoords[k].Vector2()
-				end := dayCoords[k+1].Vector2()
-
-				rl.DrawLineEx(start, end, float32(gridBorder), weekdays[wd].color)
-			}
+			drawCoordsLines(dayCoords, weekdays[wd].color)
 		}
 
 		if !userOptions.drawCoords && !userOptions.drawFade {
@@ -235,83 +311,18 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 				next := dayCoords[i+1]
 
-				mid := rl.Vector2{}
-
-				alpha0 := float32(255)
-				alpha1 := float32(255)
-				alpha2 := float32(255)
-
-				recX := int32(0)
-				recY := int32(0)
-				recAlpha := float32(0)
-
-				if coord.Y < next.Y {
-					/**
-					 * (0) x
-					 *     |\
-					 *     | \
-					 *     |  \
-					 * (1) x---x (2)
-					 *
-					 * - 0: coord
-					 * - 1: mid
-					 * - 2: next
-					 */
-
-					mid.X = coord.X
-					mid.Y = next.Y
-
-					alpha0 *= coord.OrigY / float32(gridHighestY)
-					alpha1 *= next.OrigY / float32(gridHighestY)
-					alpha2 *= next.OrigY / float32(gridHighestY)
-
-					recX = int32(mid.X)
-					recY = int32(mid.Y)
-					recAlpha = next.OrigY
-				} else {
-					/**
-					 *         x (2)
-					 *        /|
-					 *       / |
-					 *      /  |
-					 * (0) x---x (1)
-					 *
-					 * - 0: coord
-					 * - 1: mid
-					 * - 2: next
-					 */
-
-					mid.X = next.X
-					mid.Y = coord.Y
-
-					alpha0 *= coord.OrigY / float32(gridHighestY)
-					alpha1 *= coord.OrigY / float32(gridHighestY)
-					alpha2 *= next.OrigY / float32(gridHighestY)
-
-					recX = int32(coord.X)
-					recY = int32(coord.Y)
-					recAlpha = coord.OrigY
-				}
-
-				// Draw triangle with faded vertices
-				rl.Begin(rl.Triangles)
-				rl.Color4ub(color.R, color.G, color.B, uint8(alpha0))
-				rl.Vertex2f(coord.X, coord.Y)
-				rl.Color4ub(color.R, color.G, color.B, uint8(alpha1))
-				rl.Vertex2f(mid.X, mid.Y)
-				rl.Color4ub(color.R, color.G, color.B, uint8(alpha2))
-				rl.Vertex2f(next.X, next.Y)
-				rl.End()
-
-				// Draw gradient below graph
-				w := int32(cell.W)
-				h := grid.H + offset.Y - int32(mid.Y)
-
-				recColor := rl.Fade(color, recAlpha*cell.H/(float32(gridHighestY)*cell.H))
-
-				rl.DrawRectangleGradientV(recX, recY, w, h, recColor, weekdays[wd].faded)
+				drawFade(coord, next, wd)
 			}
 		}
+	}
+
+	// Draw zoom slider
+	if zoom > 1 {
+		scrollW := grid.W - gridBorder*2
+		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/zoomScale))
+
+		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad - gridBorder, Width: scrollW, Height: 12}
+		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &zoomSlider, 0, float32(grid.W))
 	}
 
 	// Draw rectangles on left and right so lines are hidden
@@ -389,9 +400,7 @@ func drawUIOptions(groupByScroll *int32) {
 	groupByIdx := int32(groupBy)
 	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", groupByScroll, &groupByIdx)
 
-	if groupByIdx >= 0 {
-		groupBy = GroupBy(groupByIdx)
-	}
+	groupBy = GroupBy(groupByIdx)
 
 	// Draw option - Weekdays
 
@@ -474,9 +483,7 @@ func drawUserOptions(positionScroll *int32) {
 	positionIdx := int32(position)
 	rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", positionScroll, &positionIdx)
 
-	if positionIdx >= 0 {
-		position = TooltipPosition(positionIdx)
-	}
+	position = TooltipPosition(positionIdx)
 
 	// User option - Draw options
 	rl.DrawText("Draw options", 120+offset.X, grid.H+offset.Y*7+textPad, fontSize, rl.Black)
