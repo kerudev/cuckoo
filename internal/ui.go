@@ -135,7 +135,7 @@ func drawCoordsLines(coords []GridCoord, color rl.Color) {
 }
 
 func drawFade(coord GridCoord, next GridCoord, wd int) {
-	mid := rl.Vector2{}
+	mid := Vector2Int32{}
 
 	alpha0 := float32(255)
 	alpha1 := float32(255)
@@ -158,8 +158,8 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		 * - 2: next
 		 */
 
-		mid.X = coord.X
-		mid.Y = next.Y
+		mid.X = int32(coord.X)
+		mid.Y = int32(next.Y)
 
 		alpha0 *= coord.OrigY / float32(gridHighestY)
 		alpha1 *= next.OrigY / float32(gridHighestY)
@@ -181,8 +181,8 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		 * - 2: next
 		 */
 
-		mid.X = next.X
-		mid.Y = coord.Y
+		mid.X = int32(next.X)
+		mid.Y = int32(coord.Y)
 
 		alpha0 *= coord.OrigY / float32(gridHighestY)
 		alpha1 *= coord.OrigY / float32(gridHighestY)
@@ -195,18 +195,22 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 
 	color := weekdays[wd].color
 
+	// All draw calls use integers to avoid:
+	// - Drawing the same pixel twice (darker color)
+	// - Not drawing a pixel (white pixel)
+
 	// Draw triangle with faded vertices
 	rl.Begin(rl.Triangles)
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha0))
-	rl.Vertex2f(coord.X, coord.Y)
+	rl.Vertex2i(int32(coord.X), int32(coord.Y))
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha1))
-	rl.Vertex2f(mid.X, mid.Y)
+	rl.Vertex2i(mid.X, mid.Y)
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha2))
-	rl.Vertex2f(next.X, next.Y)
+	rl.Vertex2i(int32(next.X), int32(next.Y))
 	rl.End()
 
 	// Draw gradient below graph
-	w := int32(cell.W)
+	w := int32(next.X) - int32(coord.X)
 	h := grid.H + offset.Y - int32(mid.Y)
 
 	// Calculate rectangle fade based on highest coordinate
@@ -287,7 +291,16 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		// Draw coordinates
 		for i, coord := range dayCoords {
-			color := weekdays[wd].color
+			if userOptions.drawFade {
+				// Skip drawing gradient after last coordinate
+				if i+1 >= len(dayCoords) {
+					continue
+				}
+
+				next := dayCoords[i+1]
+
+				drawFade(coord, next, wd)
+			}
 
 			if userOptions.drawCoords {
 				// Skip if coord is off the grid (left)
@@ -300,18 +313,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 					break
 				}
 
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), color)
-			}
-
-			if userOptions.drawFade {
-				// Skip drawing gradient after last coordinate
-				if i+1 >= len(dayCoords) {
-					continue
-				}
-
-				next := dayCoords[i+1]
-
-				drawFade(coord, next, wd)
+				rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), weekdays[wd].color)
 			}
 		}
 	}
