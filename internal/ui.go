@@ -120,11 +120,6 @@ func drawGridLines() {
 }
 
 func drawCoordsLines(coords []GridCoord, color rl.Color) {
-	// Sort coordinates to draw line in order
-	sort.Slice(coords, func(i, j int) bool {
-		return coords[i].X < coords[j].X
-	})
-
 	// Draw lines that connect coordinates
 	for k := 0; k < len(coords)-1; k++ {
 		start := coords[k].Vector2()

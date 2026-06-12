@@ -1,6 +1,7 @@
 package cuckoo
 
 import (
+	"sort"
 	"strconv"
 	"unicode"
 
@@ -196,6 +197,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	highestRowY := float32(grid.H) / float32(grid.HighestRow)
 
 	for wd := range 7 {
+		// Translate coordinates to grid
 		for i := range result[wd] {
 			result[wd][i].OrigY = float32(len(result[wd][i].Jobs))
 
@@ -206,6 +208,11 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 			result[wd][i].X = (result[wd][i].X/float32(grid.Cols))*scaledW + float32(offset.X) - zoomOffset
 			result[wd][i].Y = float32(grid.H+offset.Y) - highestRowY*result[wd][i].OrigY
 		}
+
+		// Sort coordinates to draw them in order
+		sort.Slice(result[wd], func(i, j int) bool {
+			return result[wd][i].X < result[wd][j].X
+		})
 	}
 
 	return result
