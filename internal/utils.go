@@ -257,6 +257,10 @@ func lerpColor(color rl.Color, f float32) rl.Color {
 	return rl.NewColor(lerpRGB(color.R, color.G, color.B, color.A, f))
 }
 
+func lerpHex(hex rg.PropertyValue, f float32) rg.PropertyValue {
+	return rg.NewColorPropertyValue(lerpColor(hex.AsColor(), f))
+}
+
 func lerpColorToHex(color rl.Color, f float32) rg.PropertyValue {
 	return rg.NewColorPropertyValue(lerpColor(color, f))
 }

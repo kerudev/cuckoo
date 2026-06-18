@@ -408,8 +408,11 @@ func drawUIOptions(groupByScroll *int32) {
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
-	def_BASE_COLOR_NORMAL := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL)
+	def_TEXT_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED)
+	def_TEXT_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED)
 
+	def_BORDER_COLOR_NORMAL := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL)
+	def_BASE_COLOR_NORMAL := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL)
 	def_BORDER_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
 	def_BASE_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
 	def_BORDER_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
@@ -419,19 +422,41 @@ func drawUIOptions(groupByScroll *int32) {
 
 	for wd := range weekdays {
 		status := weekdays[wd].status
-		color := weekdays[wd].color
-		hexColor := rg.NewColorPropertyValue(color)
+		hex := rg.NewColorPropertyValue(weekdays[wd].color)
+		black := rg.NewColorPropertyValue(rl.Black)
 
-		if status == StatusDisabled {
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_FOCUSED)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, def_BASE_COLOR_NORMAL)
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_PRESSED)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, def_BASE_COLOR_NORMAL)
-		} else {
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hexColor)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpColorToHex(color, 0.8))
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hexColor)
-			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpColorToHex(color, 0.7))
+		// Set styles based on status
+		switch status {
+		case StatusDisabled:
+			base := rg.NewColorPropertyValue(rl.RayWhite)
+
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, def_BORDER_COLOR_NORMAL)
+
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL, base)
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, base)
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, base)
+
+		case StatusOff:
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, black)
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, black)
+
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hex)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpHex(hex, 0.9))
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hex)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpHex(hex, 0.8))
+
+		case StatusOn:
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, black)
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, black)
+
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, hex)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, lerpHex(hex, 0.8))
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, hex)
+			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, lerpHex(hex, 0.7))
 		}
 
 		button := rl.RectangleInt32{
@@ -455,6 +480,11 @@ func drawUIOptions(groupByScroll *int32) {
 		// Reset style to defaults
 		rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, def_BORDER_WIDTH)
 
+		rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, def_TEXT_COLOR_PRESSED)
+		rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, def_TEXT_COLOR_FOCUSED)
+
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL, def_BORDER_COLOR_NORMAL)
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL, def_BASE_COLOR_NORMAL)
 		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_FOCUSED)
 		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, def_BASE_COLOR_FOCUSED)
 		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_PRESSED)
