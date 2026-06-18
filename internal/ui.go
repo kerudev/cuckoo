@@ -472,7 +472,7 @@ func drawUIOptions(groupByScroll *int32) {
 		if status != StatusDisabled {
 			weekdays[wd].status = StatusFromBool(active)
 
-			if !active && all(weekdays, func(wd Weekday) bool { return wd.status == StatusOff }) {
+			if !active && all(weekdays, func(wd Weekday) bool { return wd.status != StatusOn }) {
 				weekdays[wd].status = StatusOn
 			}
 		}
