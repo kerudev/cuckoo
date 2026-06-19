@@ -29,7 +29,7 @@ var boxSegments = int32(8)
 var boxSize = int32(20)
 var boxBorder = int32(1)
 var boxPad = boxSize + boxBorder*2
-var coordRadius = 4
+var coordRadius = float32(4)
 
 var gridBorder = int32(2)
 
@@ -308,7 +308,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 					break
 				}
 
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), float32(coordRadius), weekdays[wd].color)
+				rl.DrawCircle(int32(coord.X), int32(coord.Y), coordRadius, weekdays[wd].color)
 			}
 		}
 	}
@@ -554,12 +554,28 @@ func drawTooltip(gridCoords [][]GridCoord) {
 
 	// Get coords where mouse is over
 	for wd, dayCoords := range gridCoords {
+		// If a day is not on, there are no coordinates to check
+		if weekdays[wd].status != StatusOn {
+			continue
+		}
+
 		for _, coord := range dayCoords {
-			if weekdays[wd].status != StatusOn {
+			// If the coordinate is not on the same Y range, skip it
+			if !(mouse.Y >= coord.Y-coordRadius && mouse.Y <= coord.Y+coordRadius) {
 				continue
 			}
 
-			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), 4) {
+			// If the coordinate is behind the mouse, don't check collisions
+			if mouse.X > coord.X+coordRadius {
+				continue
+			}
+
+			// If the coordinate is ahead the mouse, don't keep iterating
+			if mouse.X+20 <= coord.X {
+				break
+			}
+
+			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), coordRadius) {
 				mouseOver[wd] = append(mouseOver[wd], coord)
 			}
 		}
