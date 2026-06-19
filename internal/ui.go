@@ -397,7 +397,10 @@ func drawUIOptions(groupByScroll *int32) {
 	groupByIdx := int32(groupBy)
 	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", groupByScroll, &groupByIdx)
 
-	groupBy = GroupBy(groupByIdx)
+	// Prevent ListView from having nothing selected
+	if groupByIdx >= 0 {
+		groupBy = GroupBy(groupByIdx)
+	}
 
 	// Draw option - Weekdays
 
@@ -510,7 +513,10 @@ func drawUserOptions(positionScroll *int32) {
 	positionIdx := int32(position)
 	rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", positionScroll, &positionIdx)
 
-	position = TooltipPosition(positionIdx)
+	// Prevent ListView from having nothing selected
+	if positionIdx >= 0 {
+		position = TooltipPosition(positionIdx)
+	}
 
 	// User option - Draw options
 	rl.DrawText("Draw options", 120+offset.X, grid.H+offset.Y*7+textPad, fontSize, rl.Black)
@@ -612,7 +618,7 @@ func drawTooltip(gridCoords [][]GridCoord) {
 		tooltip.X = pad
 		tooltip.Y = pad
 
-		if tooltip.Width > int32(mouse.X) - pad - offset.X {
+		if tooltip.Width > int32(mouse.X)-pad-offset.X {
 			tooltip.X = screen.W - pad - tooltip.Width
 		}
 
