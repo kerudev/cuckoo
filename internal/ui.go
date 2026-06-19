@@ -541,93 +541,7 @@ func drawUserOptions(positionScroll *int32) {
 	}
 }
 
-func drawTooltip(rec rl.Rectangle) {
-	// Raylib computes the radius using the formula:
-	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
-	//
-	// The radius depends on the "roundness", which must be known beforehand so
-	// the radius is always the same.
-	boxRoundness := 2 * boxRadius / minF32(rec.Height, rec.Width)
-
-	rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
-	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
-}
-
-func drawMouseOverCoord(gridCoords [][]GridCoord) {
-	mouseOver := []GridCoord{}
-
-	mouse := rl.GetMousePosition()
-
-	// Get coords where mouse is over
-	for day, dayCoords := range gridCoords {
-		for _, coord := range dayCoords {
-			if weekdays[day].status != StatusOn {
-				continue
-			}
-
-			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), 4) {
-				mouseOver = append(mouseOver, coord)
-			}
-		}
-	}
-
-	if len(mouseOver) == 0 {
-		return
-	}
-
-	names := []string{}
-	for _, coord := range mouseOver {
-		for _, job := range coord.Jobs {
-			names = append(names, job.Name)
-		}
-	}
-
-	finalNames := []string{}
-	maxW := int32(0)
-
-	for name, count := range countDuplicates(names) {
-		s := fmt.Sprintf("%s (%d)", name, count)
-		finalNames = append(finalNames, s)
-
-		if w := rl.MeasureText(s, fontSize); w > maxW {
-			maxW = w
-		}
-	}
-
-	sort.Slice(finalNames, func(i, j int) bool {
-		return sortAlphabetically(finalNames[i], finalNames[j])
-	})
-
-	// Prepare tooltip
-	base := mouseOver[0]
-
-	tooltip := rl.RectangleInt32{
-		X:      int32(base.X) + textPad,
-		Y:      int32(base.Y) - textPad,
-		Width:  maxW + textPad*2,
-		Height: fontSize*int32(len(finalNames)) + textPad*2,
-	}
-
-	// Move tooltip to the left when it renders out of the grid
-	if tooltip.X+tooltip.Width > offset.X+grid.W {
-		tooltip.X = int32(base.X) - textPad - tooltip.Width
-	}
-
-	drawTooltip(tooltip.ToFloat32())
-
-	// Draw text on tooltip
-	for i, name := range finalNames {
-		rl.DrawText(
-			name,
-			tooltip.X+textPad,
-			tooltip.Y+textPad+fontSize*int32(i),
-			fontSize,
-			rl.Black,
-		)
-	}
-}
-
-func drawMouseOverGrid(gridCoords [][]GridCoord) {
+func drawTooltip(gridCoords [][]GridCoord) {
 	mouseOver := make([][]GridCoord, 7)
 
 	mouse := rl.GetMousePosition()
@@ -685,14 +599,43 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 		return sortAlphabetically(keys[i], keys[j])
 	})
 
+	// Prepare tooltip
 	tooltip := rl.RectangleInt32{
-		X:      offset.X * 2,
-		Y:      offset.X * 2,
 		Width:  maxW + textPad*2,
 		Height: fontSize * int32(maxRow),
 	}
 
-	drawTooltip(tooltip.ToFloat32())
+	switch position {
+	case PositionGrid:
+		pad := offset.X * 2
+
+		tooltip.X = pad
+		tooltip.Y = pad
+
+		if tooltip.Width > int32(mouse.X) - pad - offset.X {
+			tooltip.X = screen.W - pad - tooltip.Width
+		}
+
+	case PositionCoord:
+		var base GridCoord
+
+		for _, coord := range mouseOver {
+			if len(coord) > 0 {
+				base = coord[0]
+				break
+			}
+		}
+
+		tooltip.X = int32(base.X) + textPad
+		tooltip.Y = int32(base.Y) - textPad
+
+		// Move tooltip to the left when it renders out of the grid
+		if tooltip.X+tooltip.Width > offset.X+grid.W {
+			tooltip.X = int32(base.X) - textPad - tooltip.Width
+		}
+	}
+
+	drawTooltipRec(tooltip.ToFloat32())
 
 	// Draw text on tooltip
 	row := int32(0)
@@ -756,6 +699,18 @@ func drawMouseOverGrid(gridCoords [][]GridCoord) {
 
 		row += int32(len(result[cron])) + 1
 	}
+}
+
+func drawTooltipRec(rec rl.Rectangle) {
+	// Raylib computes the radius using the formula:
+	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+	//
+	// The radius depends on the "roundness", which must be known beforehand so
+	// the radius is always the same.
+	boxRoundness := 2 * boxRadius / minF32(rec.Height, rec.Width)
+
+	rl.DrawRectangleRounded(rec, boxRoundness, boxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, boxSegments, 2, rl.Black)
 }
 
 func drawFooter() {
@@ -841,13 +796,7 @@ func DrawLoop(sample map[string]string) {
 		rl.DrawLine(lineX, grid.H+offset.Y*2+textPad, lineX, screen.H-offset.Y, rl.Gray)
 
 		drawFooter()
-
-		switch position {
-		case PositionCoord:
-			drawMouseOverCoord(gridCoords)
-		case PositionGrid:
-			drawMouseOverGrid(gridCoords)
-		}
+		drawTooltip(gridCoords)
 
 		rl.EndDrawing()
 
