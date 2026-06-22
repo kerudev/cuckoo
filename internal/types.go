@@ -1,16 +1,25 @@
 package cuckoo
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+//////////////////////////////
+// Raylib-like types
+//////////////////////////////
+
 type Vector2Int32 struct {
 	X int32
 	Y int32
 }
+
+//////////////////////////////
+// Data types
+//////////////////////////////
 
 type Cron struct {
 	Name    string
@@ -36,6 +45,8 @@ func parseCronField(field string, min int, max int) []int {
 		// step (x/y)
 		if parts := strings.Split(value, "/"); len(parts) == 2 {
 			start := min
+
+			// Step is not something like */5
 			if parts[0] != "*" {
 				if v, err := strconv.Atoi(parts[0]); err == nil {
 					start = v
@@ -140,6 +151,14 @@ type Job struct {
 	Weekday int // 0-6
 }
 
+func (j Job) AsTime() string {
+	return fmt.Sprintf("%02d:%02d", j.Hour, j.Min)
+}
+
+//////////////////////////////
+// GUI related
+//////////////////////////////
+
 type Coord struct {
 	Job Job
 	X   float32
@@ -179,6 +198,10 @@ type Grid struct {
 	Cols       int
 	HighestRow int
 }
+
+//////////////////////////////
+// Enums
+//////////////////////////////
 
 type TooltipPosition int32
 
@@ -245,6 +268,17 @@ func StatusFromBool(b bool) Status {
 	return StatusOff
 }
 
+//////////////////////////////
+// Utility data types
+//////////////////////////////
+
+type UserOptions struct {
+	drawCoords bool
+	drawLines  bool
+	drawGrid   bool
+	drawFade   bool
+}
+
 type Weekday struct {
 	status Status
 	color  rl.Color
@@ -253,13 +287,6 @@ type Weekday struct {
 
 func NewWeekday(color rl.Color) Weekday {
 	return Weekday{status: StatusOn, color: color, faded: rl.Fade(color, 0)}
-}
-
-type UserOptions struct {
-	drawCoords bool
-	drawLines  bool
-	drawGrid   bool
-	drawFade   bool
 }
 
 type ToggleParams struct {

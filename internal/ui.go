@@ -318,7 +318,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		scrollW := grid.W - gridBorder*2
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/zoomScale))
 
-		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad - gridBorder, Width: scrollW, Height: 12}
+		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad, Width: scrollW, Height: 10}
 		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &zoomSlider, 0, float32(grid.W))
 	}
 
@@ -549,6 +549,7 @@ func drawUserOptions(positionScroll *int32) {
 
 func drawTooltip(gridCoords [][]GridCoord) {
 	mouseOver := make([][]GridCoord, 7)
+	totalOver := 0
 
 	mouse := rl.GetMousePosition()
 
@@ -577,54 +578,75 @@ func drawTooltip(gridCoords [][]GridCoord) {
 
 			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), coordRadius) {
 				mouseOver[wd] = append(mouseOver[wd], coord)
+				totalOver++
 			}
 		}
+	}
+
+	// If mouse is not over any coordinate, return
+	if totalOver == 0 {
+		return
 	}
 
 	maxCronW := int32(0)
 	maxNameW := int32(0)
-	maxRow := 0
 
-	crons := map[string][]string{}
+	nRows := 0
+
+	// TODO the code below this point to the end of the function can be heavily
+	// optimized and reduced
+
+	crons := map[string]map[string][]string{}
 	for _, coords := range mouseOver {
 		for _, coord := range coords {
 			for _, job := range coord.Jobs {
-				crons[job.Cron] = append(crons[job.Cron], job.Name)
+				time := job.AsTime()
+
+				if _, ok := crons[time]; !ok {
+					crons[time] = make(map[string][]string)
+				}
+
+				crons[time][job.Cron] = append(crons[time][job.Cron], job.Name)
 			}
 		}
 	}
 
-	result := map[string][]string{}
-	for cron, names := range crons {
-		if w := rl.MeasureText(cron, fontSize) + textPad + fontRadius; w > maxCronW {
-			maxCronW = w
-		}
-
-		counts := countDuplicates(names)
-
-		for name, count := range counts {
-			s := fmt.Sprintf("%s (%d)", name, count)
-			result[cron] = append(result[cron], s)
-
-			if w := rl.MeasureText(s, fontSize); w > maxNameW {
-				maxNameW = w
+	result := map[string]map[string][]string{}
+	for time, cronKeys := range crons {
+		for cron, names := range cronKeys {
+			if w := rl.MeasureText(cron, fontSize) + textPad + fontRadius; w > maxCronW {
+				maxCronW = w
 			}
+
+			counts := countDuplicates(names)
+
+			for name, count := range counts {
+				s := fmt.Sprintf("%s (%d)", name, count)
+
+				if _, ok := result[time]; !ok {
+					result[time] = make(map[string][]string)
+				}
+
+				result[time][cron] = append(result[time][cron], s)
+
+				if w := rl.MeasureText(s, fontSize); w > maxNameW {
+					maxNameW = w
+				}
+			}
+
+			// Add one line for the cron string and another for spacing
+			nRows += len(counts) + 1 + 1
 		}
 
-		maxRow += len(counts) + 1 + 1
+		nRows += 2
 	}
 
 	maxW := max(maxCronW, maxNameW)
 
-	keys := slices.Collect(maps.Keys(result))
-	sort.Slice(keys, func(i, j int) bool {
-		return sortAlphabetically(keys[i], keys[j])
-	})
-
 	// Prepare tooltip
 	tooltip := rl.RectangleInt32{
 		Width:  maxW + textPad*2,
-		Height: fontSize * int32(maxRow),
+		Height: fontSize * int32(nRows),
 	}
 
 	switch position {
@@ -659,67 +681,101 @@ func drawTooltip(gridCoords [][]GridCoord) {
 
 	drawTooltipRec(tooltip.ToFloat32())
 
-	// Draw text on tooltip
 	row := int32(0)
 
-	for _, cron := range keys {
-		wds := parseCronField(strings.Split(cron, " ")[4], 0, 6)
+	// TODO optimize so this doesn't have to run every time
+	times := slices.Collect(maps.Keys(result))
+	sort.Slice(times, func(i, j int) bool {
+		return sortAlphabetically(times[i], times[j])
+	})
 
-		segments := float32(len(wds))
-		for _, wd := range wds {
-			if weekdays[wd].status != StatusOn {
-				segments--
-			}
-		}
-
-		angleFactor := float32(360) / segments
-		angle := float32(0)
-
-		for _, wd := range wds {
-			if weekdays[wd].status != StatusOn {
-				continue
-			}
-
-			rl.DrawCircleSector(
-				rl.Vector2{
-					X: float32(tooltip.X + textPad + fontRadius),
-					Y: float32(tooltip.Y + textPad + fontSize*row + fontRadius),
-				},
-				float32(fontRadius),
-				angle,
-				angle+angleFactor,
-				8,
-				weekdays[wd].color,
-			)
-
-			angle += angleFactor
-		}
-
-		rl.DrawText(
-			cron,
-			tooltip.X+textPad+4*4,
-			tooltip.Y+textPad+fontSize*row,
-			fontSize,
+	for _, time := range times {
+		// Draw text on tooltip
+		rg.DrawIcon(
+			rg.ICON_CLOCK,
+			tooltip.X+textPad,
+			tooltip.Y+textPad+2+fontSize*row,
+			1,
 			rl.Black,
 		)
 
-		sort.Slice(result[cron], func(i, j int) bool {
-			return sortAlphabetically(result[cron][i], result[cron][j])
+		rl.DrawText(
+			time,
+			tooltip.X+textPad*4,
+			tooltip.Y+textPad+2+fontSize*row,
+			16,
+			rl.Black,
+		)
+
+		row += 2
+
+		// TODO optimize so this doesn't have to run every time
+		crons := slices.Collect(maps.Keys(result[time]))
+		sort.Slice(crons, func(i, j int) bool {
+			return sortAlphabetically(crons[i], crons[j])
 		})
 
-		row++
+		for _, cron := range crons {
+			wds := parseCronField(strings.Split(cron, " ")[4], 0, 6)
 
-		for i, name := range result[cron] {
+			segments := float32(len(wds))
+			for _, wd := range wds {
+				if weekdays[wd].status != StatusOn {
+					segments--
+				}
+			}
+
+			angleFactor := float32(360) / segments
+			angle := float32(0)
+
+			for _, wd := range wds {
+				if weekdays[wd].status != StatusOn {
+					continue
+				}
+
+				rl.DrawCircleSector(
+					rl.Vector2{
+						X: float32(tooltip.X + textPad + fontRadius),
+						Y: float32(tooltip.Y + textPad + fontSize*row + fontRadius),
+					},
+					float32(fontRadius),
+					angle,
+					angle+angleFactor,
+					8,
+					weekdays[wd].color,
+				)
+
+				angle += angleFactor
+			}
+
+			// Draw crons and their count
 			rl.DrawText(
-				name,
-				tooltip.X+textPad,
-				tooltip.Y+textPad+fontSize*(int32(i)+row),
+				cron,
+				tooltip.X+textPad+4*4,
+				tooltip.Y+textPad+fontSize*row,
 				fontSize,
 				rl.Black,
 			)
-		}
 
-		row += int32(len(result[cron])) + 1
+			// TODO optimize so this doesn't have to run every time
+			sort.Slice(result[time][cron], func(i, j int) bool {
+				return sortAlphabetically(result[time][cron][i], result[time][cron][j])
+			})
+
+			row++
+
+			for i, name := range result[time][cron] {
+				rl.DrawText(
+					name,
+					tooltip.X+textPad,
+					tooltip.Y+textPad+fontSize*(int32(i)+row),
+					fontSize,
+					rl.Black,
+				)
+			}
+
+			row += int32(len(result[time][cron])) + 1
+		}
 	}
 }
 
