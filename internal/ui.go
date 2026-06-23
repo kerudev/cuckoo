@@ -58,8 +58,13 @@ var zoomBase = float32(0.0)
 var zoomFactor = float32(1.0)
 var zoomScale = float32(1.0)
 
+var mouseOver = make([][]GridCoord, 7)
+var totalOver = 0
+
 // State
 var screen = NewState(Screen{W: 0, H: 0})
+var mouse = NewState(rl.Vector2{X: 0, Y: 0})
+var isMouseLocked = NewState(false)
 
 var groupBy = NewState(GroupByWdHourMin)
 var stepMin = NewState(StepMin1)
@@ -245,13 +250,12 @@ func drawGrid(gridCoords [][]GridCoord) {
 	}
 
 	// Draw background line on mouse over
-	mouse := rl.GetMousePosition()
 	bg := rl.NewColor(200, 230, 250, 80)
 	bgX := float32(offset.X) - zoomOffset
 
 	for range cols {
-		mouseInX := bgX < mouse.X && mouse.X <= bgX+cell.W
-		mouseInY := float32(offset.Y) < mouse.Y && mouse.Y <= float32(grid.H)
+		mouseInX := bgX < mouse.Val.X && mouse.Val.X <= bgX+cell.W
+		mouseInY := float32(offset.Y) < mouse.Val.Y && mouse.Val.Y <= float32(grid.H)
 
 		if mouseInX && mouseInY {
 			bgRec := rl.RectangleInt32{X: int32(bgX) + boxBorder, Y: offset.Y, Width: int32(cell.W) - boxBorder*2, Height: grid.H}
@@ -261,7 +265,7 @@ func drawGrid(gridCoords [][]GridCoord) {
 		bgX += cell.W
 
 		if zoom.Equals(1) {
-			zoomSlider.Set(rl.Clamp(mouse.X-cell.W, 0, float32(grid.W)))
+			zoomSlider.Set(rl.Clamp(mouse.Val.X-cell.W, 0, float32(grid.W)))
 		}
 	}
 
@@ -544,37 +548,37 @@ func drawUserOptions(positionScroll *int32) {
 }
 
 func drawTooltip(gridCoords [][]GridCoord) {
-	mouseOver := make([][]GridCoord, 7)
-	totalOver := 0
+	if isMouseLocked.HasChanged() || zoom.HasChanged() || !isMouseLocked.Val && mouse.HasChanged() {
+		mouseOver = make([][]GridCoord, 7)
+		totalOver = 0
 
-	mouse := rl.GetMousePosition()
-
-	// Get coords where mouse is over
-	for wd, dayCoords := range gridCoords {
-		// If a day is not on, there are no coordinates to check
-		if weekdays[wd].status != StatusOn {
-			continue
-		}
-
-		for _, coord := range dayCoords {
-			// If the coordinate is not on the same Y range, skip it
-			if !(mouse.Y >= coord.Y-coordRadius && mouse.Y <= coord.Y+coordRadius) {
+		// Get coords where mouse is over
+		for wd, dayCoords := range gridCoords {
+			// If a day is not on, there are no coordinates to check
+			if weekdays[wd].status != StatusOn {
 				continue
 			}
 
-			// If the coordinate is behind the mouse, don't check collisions
-			if mouse.X > coord.X+coordRadius {
-				continue
-			}
+			for _, coord := range dayCoords {
+				// If the coordinate is not on the same Y range, skip it
+				if !(mouse.Val.Y >= coord.Y-coordRadius && mouse.Val.Y <= coord.Y+coordRadius) {
+					continue
+				}
 
-			// If the coordinate is ahead the mouse, don't keep iterating
-			if mouse.X+20 <= coord.X {
-				break
-			}
+				// If the coordinate is behind the mouse, don't check collisions
+				if mouse.Val.X > coord.X+coordRadius {
+					continue
+				}
 
-			if rl.CheckCollisionPointCircle(mouse, coord.Vector2(), coordRadius) {
-				mouseOver[wd] = append(mouseOver[wd], coord)
-				totalOver++
+				// If the coordinate is ahead the mouse, don't keep iterating
+				if mouse.Val.X+20 <= coord.X {
+					break
+				}
+
+				if rl.CheckCollisionPointCircle(mouse.Val, coord.Vector2(), coordRadius) {
+					mouseOver[wd] = append(mouseOver[wd], coord)
+					totalOver++
+				}
 			}
 		}
 	}
@@ -652,7 +656,8 @@ func drawTooltip(gridCoords [][]GridCoord) {
 		tooltip.X = pad
 		tooltip.Y = pad
 
-		if tooltip.Width > int32(mouse.X)-pad-offset.X {
+		// Move tooltip to the right when coordinates are on the left side
+		if !isMouseLocked.Val && tooltip.Width > int32(mouse.Val.X)-pad-offset.X {
 			tooltip.X = screen.Val.W - pad - tooltip.Width
 		}
 
@@ -799,7 +804,8 @@ func drawFooter() {
 	texts := []string{
 		fmt.Sprintf("Scale: x%.2f", zoomScale),
 		fmt.Sprintf("Cell.W: %.2f", cell.W),
-		fmt.Sprint("Cell.H: ", cell.H),
+		fmt.Sprintf("Cell.H: %.2f", cell.H),
+		fmt.Sprint("[L]ocked: ", isMouseLocked.Val),
 	}
 
 	rl.DrawText(strings.Join(texts, "\n"), footerX+textPad, footerY+textPad, footerFontSize, rl.Black)
@@ -825,6 +831,16 @@ func DrawLoop(sample map[string]string) {
 		screen.Val.W = int32(rl.GetScreenWidth())
 		screen.Val.H = int32(rl.GetScreenHeight())
 
+		mouse.Set(rl.GetMousePosition())
+
+		// Recalculate grid and coordinates only when screen changes size
+		if screen.HasChanged() {
+			grid.W = screen.Val.W - 40
+			grid.H = screen.Val.H - 240
+
+			gridCoords = coordToGrid(coords, &grid)
+		}
+
 		// Check if a file was dropped and reload coords
 
 		// TODO this sometimes crashes when the file is being dragged over the
@@ -844,12 +860,9 @@ func DrawLoop(sample map[string]string) {
 			}
 		}
 
-		// Recalculate grid and coordinates only when screen changes size
-		if screen.HasChanged() {
-			grid.W = screen.Val.W - 40
-			grid.H = screen.Val.H - 240
-
-			gridCoords = coordToGrid(coords, &grid)
+		// Input event handling (keyboard)
+		if rl.IsKeyPressed(rl.KeyL) {
+			isMouseLocked.Set(!isMouseLocked.Val)
 		}
 
 		rl.BeginDrawing()
@@ -887,6 +900,10 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		if zoom.HasChanged() || zoomSlider.HasChanged() && zoom.Val > 1 {
+			// NOTE: unlock mouse as mouseOver as coordinates are recalculated
+			// when zoom changes. Might be good to change this at some point.
+			isMouseLocked.Set(false)
+
 			zoomOffset = zoomSlider.Val * (zoomScale - 1)
 
 			coords = cronsToCoords(crons)
@@ -895,6 +912,8 @@ func DrawLoop(sample map[string]string) {
 
 		// Save state for next frame
 		screen.Update()
+		mouse.Update()
+		isMouseLocked.Update()
 
 		groupBy.Update()
 		stepMin.Update()
