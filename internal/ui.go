@@ -47,19 +47,25 @@ var weekdays = []Weekday{
 }
 
 // Internal
-var screen = Screen{W: 0, H: 0}
 var offset = Vector2Int32{X: 20, Y: 20}
 var cell = Cell{W: 0, H: 0}
-var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 
-var zoom = float32(1.0)
-var zoomSlider = float32(0.0)
+var grid = Grid{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
+var gridHighestY = float32(0.0)
+
 var zoomOffset = float32(0.0)
 var zoomBase = float32(0.0)
 var zoomFactor = float32(1.0)
 var zoomScale = float32(1.0)
 
-var gridHighestY = float32(0)
+// State
+var screen = NewState(Screen{W: 0, H: 0})
+
+var groupBy = NewState(GroupByWdHourMin)
+var stepMin = NewState(StepMin1)
+
+var zoom = NewState(float32(1.0))
+var zoomSlider = NewState(float32(0.0))
 
 // User options
 var userOptions = UserOptions{
@@ -69,18 +75,7 @@ var userOptions = UserOptions{
 	drawFade:   true,
 }
 
-var stepMin = StepMin1
-var groupBy = GroupByWdHourMin
 var position = PositionGrid
-
-// Previous state
-var prevScreen = screen
-
-var prevGroupBy = groupBy
-var prevStepMin = stepMin
-
-var prevZoom = zoom
-var prevZoomSlider = zoomSlider
 
 func drawGridLines() {
 	// Draw lines vertically
@@ -217,7 +212,7 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 func drawGrid(gridCoords [][]GridCoord) {
 	// Set all values that depend on the previous frame
 	cols := grid.Cols
-	if groupBy == GroupByWdHour {
+	if groupBy.Equals(GroupByWdHour) {
 		cols += 1
 	}
 
@@ -228,19 +223,19 @@ func drawGrid(gridCoords [][]GridCoord) {
 		calc := float32(cell.W) / (zoomScale * zoomFactor * 2)
 
 		if scroll > 0 {
-			zoomSlider += calc
+			zoomSlider.Val += calc
 		} else if scroll < 0 {
-			zoomSlider -= calc
+			zoomSlider.Val -= calc
 		}
 	} else {
 		// Vertical scroll
-		zoom = rl.Clamp(zoom+scroll, 1, 9)
+		zoom.Set(rl.Clamp(zoom.Val+scroll, 1, 9))
 		zoomBase = float32(grid.W) / float32(grid.Cols)
 
-		zoomFactor = (zoom - 1) / 8.0
+		zoomFactor = (zoom.Val - 1) / 8.0
 		zoomScale = float32(math.Pow(float64(grid.W)/float64(zoomBase), float64(zoomFactor)))
 
-		zoomOffset = zoomSlider * (zoomScale - 1)
+		zoomOffset = zoomSlider.Val * (zoomScale - 1)
 	}
 
 	cell.W = zoomBase * zoomScale
@@ -265,8 +260,8 @@ func drawGrid(gridCoords [][]GridCoord) {
 
 		bgX += cell.W
 
-		if zoom == 1 {
-			zoomSlider = rl.Clamp(mouse.X-cell.W, 0, float32(grid.W))
+		if zoom.Equals(1) {
+			zoomSlider.Set(rl.Clamp(mouse.X-cell.W, 0, float32(grid.W)))
 		}
 	}
 
@@ -314,12 +309,12 @@ func drawGrid(gridCoords [][]GridCoord) {
 	}
 
 	// Draw zoom slider
-	if zoom > 1 {
+	if zoom.Val > 1 {
 		scrollW := grid.W - gridBorder*2
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/zoomScale))
 
 		zoomSliderRec := rl.RectangleInt32{X: offset.X + gridBorder, Y: grid.H + textPad, Width: scrollW, Height: 10}
-		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &zoomSlider, 0, float32(grid.W))
+		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &zoomSlider.Val, 0, float32(grid.W))
 	}
 
 	// Draw rectangles on left and right so lines are hidden
@@ -394,12 +389,12 @@ func drawUIOptions(groupByScroll *int32) {
 	// Draw option - GroupBy
 	rl.DrawText("Group by", offset.X, grid.H+offset.Y*2+textPad, fontSize, rl.Black)
 	groupByRec := rl.RectangleInt32{X: offset.X, Y: grid.H + offset.Y*3, Width: 100, Height: 31*2 + 1}
-	groupByIdx := int32(groupBy)
+	groupByIdx := int32(groupBy.Val)
 	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", groupByScroll, &groupByIdx)
 
 	// Prevent ListView from having nothing selected
 	if groupByIdx >= 0 {
-		groupBy = GroupBy(groupByIdx)
+		groupBy.Set(GroupBy(groupByIdx))
 	}
 
 	// Draw option - Weekdays
@@ -495,13 +490,14 @@ func drawUIOptions(groupByScroll *int32) {
 	}
 
 	// Draw option - StepMin
-	if groupBy == GroupByWdHourMin {
+	if groupBy.Equals(GroupByWdHourMin) {
 		rl.DrawText("Step of x minutes", 120+offset.X, grid.H+offset.Y*4+textPad, fontSize, rl.Black)
 		stepMinRec := rl.RectangleInt32{X: 120 + offset.X, Y: grid.H + offset.Y*5, Width: boxSize, Height: boxSize}
 
-		stepMinIdx := int32(stepMin)
+		stepMinIdx := int32(stepMin.Val)
 		rg.ToggleGroup(stepMinRec.ToFloat32(), "#113#;5;10;15;20;30", &stepMinIdx)
-		stepMin = StepMin(stepMinIdx)
+
+		stepMin.Set(StepMin(stepMinIdx))
 	}
 }
 
@@ -657,7 +653,7 @@ func drawTooltip(gridCoords [][]GridCoord) {
 		tooltip.Y = pad
 
 		if tooltip.Width > int32(mouse.X)-pad-offset.X {
-			tooltip.X = screen.W - pad - tooltip.Width
+			tooltip.X = screen.Val.W - pad - tooltip.Width
 		}
 
 	case PositionCoord:
@@ -792,13 +788,13 @@ func drawTooltipRec(rec rl.Rectangle) {
 }
 
 func drawFooter() {
-	footerX := screen.W - offset.X - footerW
+	footerX := screen.Val.W - offset.X - footerW
 	footerY := grid.H + offset.Y*2 + fontSize*2
 
 	text := "Drop file to change sample"
 	textW := rl.MeasureText(text, footerFontSize)
 
-	rl.DrawText(text, screen.W-textW-offset.X, grid.H+offset.Y*2, footerFontSize, rl.Black)
+	rl.DrawText(text, screen.Val.W-textW-offset.X, grid.H+offset.Y*2, footerFontSize, rl.Black)
 
 	texts := []string{
 		fmt.Sprintf("Scale: x%.2f", zoomScale),
@@ -826,8 +822,8 @@ func DrawLoop(sample map[string]string) {
 	font = rl.GetFontDefault()
 
 	for !rl.WindowShouldClose() {
-		screen.W = int32(rl.GetScreenWidth())
-		screen.H = int32(rl.GetScreenHeight())
+		screen.Val.W = int32(rl.GetScreenWidth())
+		screen.Val.H = int32(rl.GetScreenHeight())
 
 		// Check if a file was dropped and reload coords
 
@@ -849,9 +845,9 @@ func DrawLoop(sample map[string]string) {
 		}
 
 		// Recalculate grid and coordinates only when screen changes size
-		if screen.H != prevScreen.H || screen.W != prevScreen.W {
-			grid.W = screen.W - 40
-			grid.H = screen.H - 240
+		if screen.HasChanged() {
+			grid.W = screen.Val.W - 40
+			grid.H = screen.Val.H - 240
 
 			gridCoords = coordToGrid(coords, &grid)
 		}
@@ -871,7 +867,7 @@ func DrawLoop(sample map[string]string) {
 
 		// Horizontal line
 		lineX := 150 + offset.X + boxPad*6
-		rl.DrawLine(lineX, grid.H+offset.Y*2+textPad, lineX, screen.H-offset.Y, rl.Gray)
+		rl.DrawLine(lineX, grid.H+offset.Y*2+textPad, lineX, screen.Val.H-offset.Y, rl.Gray)
 
 		drawFooter()
 		drawTooltip(gridCoords)
@@ -879,33 +875,32 @@ func DrawLoop(sample map[string]string) {
 		rl.EndDrawing()
 
 		// Recalculate coordinates based on bucket
-		if stepMin != prevStepMin {
+		if stepMin.HasChanged() {
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
 		// Recalculate coordinates based on group by
-		if groupBy != prevGroupBy {
+		if groupBy.HasChanged() {
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
-		if zoom != prevZoom || zoomSlider != prevZoomSlider && zoom > 1 {
-			zoomOffset = zoomSlider * (zoomScale - 1)
+		if zoom.HasChanged() || zoomSlider.HasChanged() && zoom.Val > 1 {
+			zoomOffset = zoomSlider.Val * (zoomScale - 1)
 
 			coords = cronsToCoords(crons)
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
 		// Save state for next frame
-		prevScreen.W = screen.W
-		prevScreen.H = screen.H
+		screen.Update()
 
-		prevGroupBy = groupBy
-		prevStepMin = stepMin
+		groupBy.Update()
+		stepMin.Update()
 
-		prevZoom = zoom
-		prevZoomSlider = zoomSlider
+		zoom.Update()
+		zoomSlider.Update()
 	}
 
 	rl.CloseWindow()

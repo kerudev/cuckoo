@@ -116,12 +116,12 @@ func cronsToJobs(crons []Cron) []Job {
 func jobsToCoords(jobs []Job) [][]Coord {
 	result := make([][]Coord, 7)
 
-	minuteSegment := stepMin.Factor()
+	minuteSegment := stepMin.Val.Factor()
 
 	for _, job := range jobs {
 		x := float32(job.Hour)
 
-		if groupBy == GroupByWdHourMin {
+		if groupBy.Equals(GroupByWdHourMin) {
 			bucket := calcBucket(job.Min, minuteSegment)
 			x += float32(bucket) / 60
 		}
@@ -182,7 +182,7 @@ func coordToGrid(coords [][]Coord, grid *Grid) [][]GridCoord {
 	grid.HighestRow = grid.Rows
 
 	// Remove the last column, as it makes no sense when grouping by hour
-	if groupBy == GroupByWdHour {
+	if groupBy.Equals(GroupByWdHour) {
 		grid.Cols -= 1
 	}
 

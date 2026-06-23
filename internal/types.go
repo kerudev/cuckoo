@@ -279,6 +279,32 @@ type UserOptions struct {
 	drawFade   bool
 }
 
+// https://stackoverflow.com/a/71065353
+type State[T comparable] struct {
+	Val T
+	Old T
+}
+
+func NewState[T comparable](initial T) State[T] {
+	return State[T]{Val: initial, Old: initial}
+}
+
+func (s *State[T]) Update() {
+	s.Old = s.Val
+}
+
+func (s *State[T]) Set(val T) {
+	s.Val = val
+}
+
+func (s *State[T]) HasChanged() bool {
+	return s.Val != s.Old
+}
+
+func (s *State[T]) Equals(val T) bool {
+	return s.Val == val
+}
+
 type Weekday struct {
 	status Status
 	color  rl.Color
