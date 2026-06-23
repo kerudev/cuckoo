@@ -279,14 +279,20 @@ type UserOptions struct {
 	drawFade   bool
 }
 
+type AnyState interface {
+	Update()
+}
+
 // https://stackoverflow.com/a/71065353
 type State[T comparable] struct {
 	Val T
 	Old T
 }
 
-func NewState[T comparable](initial T) State[T] {
-	return State[T]{Val: initial, Old: initial}
+func NewState[T comparable](initial T) *State[T] {
+	s := &State[T]{Val: initial, Old: initial}
+	allStates = append(allStates, s) // OK: s es *State[T]
+	return s
 }
 
 func (s *State[T]) Update() {

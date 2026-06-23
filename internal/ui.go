@@ -62,6 +62,8 @@ var mouseOver = make([][]GridCoord, 7)
 var totalOver = 0
 
 // State
+var allStates = []AnyState{}
+
 var screen = NewState(Screen{W: 0, H: 0})
 var mouse = NewState(rl.Vector2{X: 0, Y: 0})
 var isMouseLocked = NewState(false)
@@ -910,16 +912,10 @@ func DrawLoop(sample map[string]string) {
 			gridCoords = coordToGrid(coords, &grid)
 		}
 
-		// Save state for next frame
-		screen.Update()
-		mouse.Update()
-		isMouseLocked.Update()
-
-		groupBy.Update()
-		stepMin.Update()
-
-		zoom.Update()
-		zoomSlider.Update()
+		// Save each state for next frame
+		for _, state := range allStates {
+			state.Update()
+		}
 	}
 
 	rl.CloseWindow()
