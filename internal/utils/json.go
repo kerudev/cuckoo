@@ -1,4 +1,4 @@
-package cuckoo
+package utils
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func ReadPath(path string, payload any) (error) {
+func ReadPath(path string, payload any) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("Error while reading %s", path)
