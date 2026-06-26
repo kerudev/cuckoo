@@ -144,10 +144,10 @@ func ParseCronField(field string, min int, max int) []int {
 	return list
 }
 
-func CronsFromStrings(sample map[string]string) []Cron {
+func CronsFromStrings(strings map[string]string) []Cron {
 	result := []Cron{}
 
-	for name, cron := range sample {
+	for name, cron := range strings {
 		result = append(result, NewCron(name, cron))
 	}
 

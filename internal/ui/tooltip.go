@@ -55,14 +55,11 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		return
 	}
 
-	maxCronW := int32(0)
-	maxNameW := int32(0)
-
 	nRows := 0
+	maxW := int32(0)
 
-	// TODO the code below this point to the end of the function can be heavily
-	// optimized and reduced
-
+	// Extract data from MouseOver
+	// Time (HH:MM) -> Cron string -> Job names
 	crons := map[string]map[string][]string{}
 	for _, coords := range MouseOver {
 		for _, coord := range coords {
@@ -78,26 +75,26 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		}
 	}
 
-	result := map[string]map[string][]string{}
-	for time, cronKeys := range crons {
-		for cron, names := range cronKeys {
-			if w := rl.MeasureText(cron, FontSize) + TextPad + FontRadius; w > maxCronW {
-				maxCronW = w
+	schedule := map[string]map[string][]string{}
+	for time, crons := range crons {
+		for cron, jobs := range crons {
+			if w := rl.MeasureText(cron, FontSize) + TextPad + FontRadius; w > maxW {
+				maxW = w
 			}
 
-			counts := CountDuplicates(names)
+			counts := CountDuplicates(jobs)
 
-			for name, count := range counts {
-				s := fmt.Sprintf("%s (%d)", name, count)
+			for job, count := range counts {
+				s := fmt.Sprintf("%s (%d)", job, count)
 
-				if _, ok := result[time]; !ok {
-					result[time] = make(map[string][]string)
+				if _, ok := schedule[time]; !ok {
+					schedule[time] = make(map[string][]string)
 				}
 
-				result[time][cron] = append(result[time][cron], s)
+				schedule[time][cron] = append(schedule[time][cron], s)
 
-				if w := rl.MeasureText(s, FontSize); w > maxNameW {
-					maxNameW = w
+				if w := rl.MeasureText(s, FontSize); w > maxW {
+					maxW = w
 				}
 			}
 
@@ -107,8 +104,6 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 
 		nRows += 2
 	}
-
-	maxW := max(maxCronW, maxNameW)
 
 	// Prepare tooltip
 	tooltip := rl.RectangleInt32{
@@ -147,18 +142,35 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		}
 	}
 
-	drawTooltipRec(tooltip.ToFloat32())
+	drawTooltipRec(tooltip)
+	drawTooltipText(tooltip, schedule)
+}
 
+func drawTooltipRec(tooltip rl.RectangleInt32) {
+	rec := tooltip.ToFloat32()
+
+	// Raylib computes the radius using the formula:
+	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+	//
+	// The radius depends on the "roundness", which must be known beforehand so
+	// the radius is always the same.
+	boxRoundness := 2 * BoxRadius / MinF32(rec.Height, rec.Width)
+
+	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)
+}
+
+func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]string) {
 	row := int32(0)
 
-	// TODO optimize so this doesn't have to run every time
-	times := slices.Collect(maps.Keys(result))
+	// Sort HH:MM keys
+	times := slices.Collect(maps.Keys(data))
 	sort.Slice(times, func(i, j int) bool {
 		return SortAlphabetically(times[i], times[j])
 	})
 
 	for _, time := range times {
-		// Draw text on tooltip
+		// Draw clock icon and time
 		rg.DrawIcon(
 			rg.ICON_CLOCK,
 			tooltip.X+TextPad,
@@ -177,8 +189,8 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 
 		row += 2
 
-		// TODO optimize so this doesn't have to run every time
-		crons := slices.Collect(maps.Keys(result[time]))
+		// Sort cron strings
+		crons := slices.Collect(maps.Keys(data[time]))
 		sort.Slice(crons, func(i, j int) bool {
 			return SortAlphabetically(crons[i], crons[j])
 		})
@@ -225,16 +237,18 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 				rl.Black,
 			)
 
-			// TODO optimize so this doesn't have to run every time
-			sort.Slice(result[time][cron], func(i, j int) bool {
-				return SortAlphabetically(result[time][cron][i], result[time][cron][j])
+			jobs := data[time][cron]
+
+			// Sort job names
+			sort.Slice(jobs, func(i, j int) bool {
+				return SortAlphabetically(jobs[i], jobs[j])
 			})
 
 			row++
 
-			for i, name := range result[time][cron] {
+			for i, job := range jobs {
 				rl.DrawText(
-					name,
+					job,
 					tooltip.X+TextPad,
 					tooltip.Y+TextPad+FontSize*(int32(i)+row),
 					FontSize,
@@ -242,19 +256,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 				)
 			}
 
-			row += int32(len(result[time][cron])) + 1
+			row += int32(len(jobs)) + 1
 		}
 	}
-}
-
-func drawTooltipRec(rec rl.Rectangle) {
-	// Raylib computes the radius using the formula:
-	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
-	//
-	// The radius depends on the "roundness", which must be known beforehand so
-	// the radius is always the same.
-	boxRoundness := 2 * BoxRadius / MinF32(rec.Height, rec.Width)
-
-	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
-	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)
 }
