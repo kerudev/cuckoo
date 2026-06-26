@@ -13,14 +13,18 @@ var FontSize = int32(12)
 var FontRadius = FontSize / 2
 var TextPad = int32(8)
 
-var BoxRadius = float32(8)
+var BoxRadius = float32(8.0)
+var BoxDiameter = 2 * BoxRadius
 var BoxSegments = int32(8)
 var BoxSize = int32(20)
 var BoxBorder = int32(1)
 var BoxPad = BoxSize + BoxBorder*2
-var CoordRadius = float32(4)
+var CoordRadius = float32(4.0)
 
 var GridBorder = int32(2)
+
+var TooltipTimeFontSize = int32(16)
+var TooltipScrollW = int32(10)
 
 var FooterW = int32(120)
 var FooterFontSize = int32(16)
@@ -59,6 +63,8 @@ var S_StepMin = NewState(StepMin1)
 
 var S_Zoom = NewState(float32(1.0))
 var S_ZoomSlider = NewState(float32(0.0))
+
+var S_TooltipScroll = NewState(int32(0))
 
 // User options
 var UserOpt = UserOptions{

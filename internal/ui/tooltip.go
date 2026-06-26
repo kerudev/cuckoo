@@ -111,16 +111,29 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		Height: FontSize * int32(nRows),
 	}
 
+	scrollMax := tooltip.Height
+
+	hasOverflow := false
+
 	switch Position {
 	case PositionGrid:
-		pad := Offset.X * 2
+		padX := Offset.X * 2
+		padY := Offset.Y * 2
 
-		tooltip.X = pad
-		tooltip.Y = pad
+		tooltip.X = padX
+		tooltip.Y = padY
 
 		// Move tooltip to the right when coordinates are on the left side
-		if !IsMouseLocked.Val && tooltip.Width > int32(S_Mouse.Val.X)-pad-Offset.X {
-			tooltip.X = S_Screen.Val.W - pad - tooltip.Width
+		if !IsMouseLocked.Val && tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
+			tooltip.X = S_Screen.Val.W - padX - tooltip.Width
+		}
+
+		if tooltip.Height > Grid.H-padY {
+			tooltip.Width += 10
+			tooltip.Height = Grid.H - padY
+
+			scrollMax -= tooltip.Height
+			hasOverflow = true
 		}
 
 	case PositionCoord:
@@ -140,13 +153,25 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		if tooltip.X+tooltip.Width > Offset.X+Grid.W {
 			tooltip.X = int32(base.X) - TextPad - tooltip.Width
 		}
+
+		if tooltip.Height+tooltip.Y > Grid.H-TextPad {
+			tooltip.Width += 10
+			tooltip.Height = Grid.H - tooltip.Y
+
+			scrollMax -= tooltip.Height
+			hasOverflow = true
+		}
 	}
 
-	drawTooltipRec(tooltip)
+	drawTooltipRec(tooltip, hasOverflow, scrollMax)
+
+	// TODO optimize to reduce draw calls when text is out of the tooltip
+	rl.BeginScissorMode(tooltip.X, tooltip.Y, tooltip.Width, tooltip.Height)
 	drawTooltipText(tooltip, schedule)
+	rl.EndScissorMode()
 }
 
-func drawTooltipRec(tooltip rl.RectangleInt32) {
+func drawTooltipRec(tooltip rl.RectangleInt32, hasOverflow bool, scrollMax int32) {
 	rec := tooltip.ToFloat32()
 
 	// Raylib computes the radius using the formula:
@@ -154,10 +179,30 @@ func drawTooltipRec(tooltip rl.RectangleInt32) {
 	//
 	// The radius depends on the "roundness", which must be known beforehand so
 	// the radius is always the same.
-	boxRoundness := 2 * BoxRadius / MinF32(rec.Height, rec.Width)
+	boxRoundness := BoxDiameter / MinF32(rec.Height, rec.Width)
 
 	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
 	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)
+
+	if hasOverflow {
+		rg.SetStyle(rg.SCROLLBAR, rg.BORDER_WIDTH, rg.GetStyle(rg.SLIDER, rg.BORDER_WIDTH))
+
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_NORMAL))
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_FOCUSED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_FOCUSED))
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_PRESSED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_PRESSED))
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_DISABLED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_DISABLED))
+
+		rg.SetStyle(rg.BUTTON, rg.BASE_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BASE_COLOR_NORMAL))
+
+		tooltipScrollRec := rl.RectangleInt32{
+			X:      tooltip.X + tooltip.Width - TooltipScrollW,
+			Y:      tooltip.Y + int32(BoxRadius),
+			Width:  TooltipScrollW,
+			Height: tooltip.Height - int32(BoxDiameter),
+		}
+
+		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec.ToFloat32(), S_TooltipScroll.Val, 0, scrollMax))
+	}
 }
 
 func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]string) {
@@ -174,7 +219,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 		rg.DrawIcon(
 			rg.ICON_CLOCK,
 			tooltip.X+TextPad,
-			tooltip.Y+TextPad+2+FontSize*row,
+			tooltip.Y+TextPad+2+FontSize*row-S_TooltipScroll.Val,
 			1,
 			rl.Black,
 		)
@@ -182,8 +227,8 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 		rl.DrawText(
 			time,
 			tooltip.X+TextPad*4,
-			tooltip.Y+TextPad+2+FontSize*row,
-			16,
+			tooltip.Y+TextPad+2+FontSize*row-S_TooltipScroll.Val,
+			TooltipTimeFontSize,
 			rl.Black,
 		)
 
@@ -216,7 +261,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 				rl.DrawCircleSector(
 					rl.Vector2{
 						X: float32(tooltip.X + TextPad + FontRadius),
-						Y: float32(tooltip.Y + TextPad + FontSize*row + FontRadius),
+						Y: float32(tooltip.Y + TextPad + FontSize*row + FontRadius - S_TooltipScroll.Val),
 					},
 					float32(FontRadius),
 					angle,
@@ -232,7 +277,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 			rl.DrawText(
 				cron,
 				tooltip.X+TextPad+4*4,
-				tooltip.Y+TextPad+FontSize*row,
+				tooltip.Y+TextPad+FontSize*row-S_TooltipScroll.Val,
 				FontSize,
 				rl.Black,
 			)
@@ -250,7 +295,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 				rl.DrawText(
 					job,
 					tooltip.X+TextPad,
-					tooltip.Y+TextPad+FontSize*(int32(i)+row),
+					tooltip.Y+TextPad+FontSize*(int32(i)+row)-S_TooltipScroll.Val,
 					FontSize,
 					rl.Black,
 				)
