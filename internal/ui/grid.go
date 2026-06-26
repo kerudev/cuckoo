@@ -65,6 +65,9 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		}
 	}
 
+	// Scissor Mode to prevent drawing pixels outside the grid
+	rl.BeginScissorMode(Offset.X, Offset.Y, Grid.W, Grid.H)
+
 	// Draw coordinates in layers by weekday
 	for wd, dayCoords := range gridCoords {
 		if Weekdays[wd].Status != StatusOn {
@@ -89,7 +92,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 				next := dayCoords[i+1]
 
-				DrawFade(coord, next, wd)
+				drawFade(coord, next, wd)
 			}
 
 			if UserOpt.DrawCoords {
@@ -108,6 +111,8 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		}
 	}
 
+	rl.EndScissorMode()
+
 	// Draw Zoom slider
 	if S_Zoom.Val > 1 {
 		scrollW := Grid.W - GridBorder*2
@@ -116,11 +121,6 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		zoomSliderRec := rl.RectangleInt32{X: Offset.X + GridBorder, Y: Grid.H + TextPad, Width: scrollW, Height: 10}
 		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &S_ZoomSlider.Val, 0, float32(Grid.W))
 	}
-
-	// Draw rectangles on left and right so lines are hidden
-	// TODO optimize so this is not needed
-	rl.DrawRectangle(0, Offset.Y, Offset.X, Grid.H, rl.RayWhite)
-	rl.DrawRectangle(Grid.W+Offset.X, Offset.Y, Offset.X, Grid.H, rl.RayWhite)
 
 	// Draw text on X axis
 	for col := range cols {
@@ -232,7 +232,7 @@ func drawCoordsLines(coords []GridCoord, color rl.Color) {
 	}
 }
 
-func DrawFade(coord GridCoord, next GridCoord, wd int) {
+func drawFade(coord GridCoord, next GridCoord, wd int) {
 	mid := Vector2Int32{}
 
 	alpha0 := float32(255)
