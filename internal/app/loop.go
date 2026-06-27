@@ -59,10 +59,7 @@ func DrawLoop(sample map[string]string) {
 			}
 		}
 
-		// Input event handling (keyboard)
-		if rl.IsKeyPressed(rl.KeyL) {
-			S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
-		}
+		handleKeyPresses()
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
@@ -98,6 +95,7 @@ func DrawLoop(sample map[string]string) {
 			gridCoords = CoordToGrid(coords, &Grid)
 		}
 
+		// Reset zoom and coordinates
 		if S_Zoom.HasChanged() || S_ZoomSlider.HasChanged() && S_Zoom.Val > 1 {
 			// NOTE: unlock Mouse as MouseOver as coordinates are recalculated
 			// when Zoom changes. Might be good to change this at some point.
@@ -109,6 +107,7 @@ func DrawLoop(sample map[string]string) {
 			gridCoords = CoordToGrid(coords, &Grid)
 		}
 
+		// Reset tooltip scroll
 		if S_IsMouseLocked.HasChanged() {
 			S_TooltipScroll.Set(0)
 		}
@@ -120,4 +119,43 @@ func DrawLoop(sample map[string]string) {
 	}
 
 	rl.CloseWindow()
+}
+
+func handleKeyPresses() {
+	// Input event handling (keyboard)
+	if rl.IsKeyPressed(rl.KeyL) {
+		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
+	}
+
+	key := rl.GetKeyPressed()
+
+	// Return if no key was pressed
+	if key == rl.KeyNull {
+		return
+	}
+	
+	mod := int32(rl.KeyNull)
+
+	if key >= rl.KeyOne && key <= rl.KeySeven {
+		mod = rl.KeyOne
+	}
+
+	if key >= rl.KeyKp1 && key <= rl.KeyKp8 {
+		mod = rl.KeyKp1
+	}
+
+	// Return if the key pressed is not a number
+	if mod == rl.KeyNull {
+		return
+	}
+
+	idx := key % mod
+
+	if Weekdays[idx].Status != StatusDisabled {
+		Weekdays[idx].Status = StatusFromBool(!Weekdays[idx].Status.Bool())
+
+		if All(Weekdays, func(wd Weekday) bool { return wd.Status != StatusOn }) {
+			Weekdays[idx].Status = StatusOn
+		}
+	}
 }
