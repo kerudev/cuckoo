@@ -102,79 +102,80 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 			nRows += len(counts) + 1 + 1
 		}
 
+		// Spacing
 		nRows += 2
 	}
 
-	// Prepare tooltip
-	tooltip := rl.RectangleInt32{
-		Width:  maxW + TextPad*2,
-		Height: FontSize * int32(nRows),
-	}
+	if !S_IsMouseLocked.Val {
+		S_TooltipHasOverflow.Val = false
 
-	scrollMax := tooltip.Height
+		// Prepare Tooltip
+		Tooltip.Width = maxW + TextPad*2
+		Tooltip.Height = FontSize * int32(nRows)
 
-	hasOverflow := false
+		S_TooltipScrollMax.Val = Tooltip.Height
 
-	switch Position {
-	case PositionGrid:
-		padX := Offset.X * 2
-		padY := Offset.Y * 2
+		switch Position {
+		case PositionGrid:
+			padX := Offset.X * 2
+			padY := Offset.Y * 2
 
-		tooltip.X = padX
-		tooltip.Y = padY
+			Tooltip.X = padX
+			Tooltip.Y = padY
 
-		// Move tooltip to the right when coordinates are on the left side
-		if !S_IsMouseLocked.Val && tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
-			tooltip.X = S_Screen.Val.W - padX - tooltip.Width
-		}
+			// Move tooltip to the right when coordinates are on the left side
+			if Tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
+				Tooltip.X = S_Screen.Val.W - padX - Tooltip.Width
+			}
 
-		// Clamp tooltip height when it's too large
-		if tooltip.Height > Grid.H-padY {
-			tooltip.Width += 10
-			tooltip.Height = Grid.H - padY
+			// Clamp tooltip height when it's too large
+			if Tooltip.Height > Grid.H-padY {
+				Tooltip.Width += 10
+				Tooltip.Height = Grid.H - padY
 
-			scrollMax -= tooltip.Height
-			hasOverflow = true
-		}
+				S_TooltipScrollMax.Val -= Tooltip.Height
+				S_TooltipHasOverflow.Val = true
+			}
 
-	case PositionCoord:
-		var base GridCoord
+		case PositionCoord:
+			var base GridCoord
 
-		for _, coords := range MouseOver {
-			if len(coords) > 0 {
-				base = coords[0]
-				break
+			for _, coords := range MouseOver {
+				if len(coords) > 0 {
+					base = coords[0]
+					break
+				}
+			}
+
+			Tooltip.X = int32(base.X) + TextPad
+			Tooltip.Y = int32(base.Y) - TextPad
+
+			// Move tooltip to the left when it renders out of the Grid
+			if Tooltip.X+Tooltip.Width > Offset.X+Grid.W {
+				Tooltip.X = int32(base.X) - TextPad - Tooltip.Width
+			}
+
+			// TODO sometimes the size is really small
+			// Clamp tooltip height when it's too large
+			if Tooltip.Height+Tooltip.Y > Grid.H-TextPad {
+				Tooltip.Width += 10
+				Tooltip.Height = Grid.H - Tooltip.Y
+
+				S_TooltipScrollMax.Val -= Tooltip.Height
+				S_TooltipHasOverflow.Val = true
 			}
 		}
-
-		tooltip.X = int32(base.X) + TextPad
-		tooltip.Y = int32(base.Y) - TextPad
-
-		// Move tooltip to the left when it renders out of the Grid
-		if tooltip.X+tooltip.Width > Offset.X+Grid.W {
-			tooltip.X = int32(base.X) - TextPad - tooltip.Width
-		}
-
-		// TODO sometimes the size is really small
-		// Clamp tooltip height when it's too large
-		if tooltip.Height+tooltip.Y > Grid.H-TextPad {
-			tooltip.Width += 10
-			tooltip.Height = Grid.H - tooltip.Y
-
-			scrollMax -= tooltip.Height
-			hasOverflow = true
-		}
 	}
 
-	drawTooltipRec(tooltip, hasOverflow, scrollMax)
+	drawTooltipRec(Tooltip)
 
 	// TODO optimize to reduce draw calls when text is out of the tooltip
-	rl.BeginScissorMode(tooltip.X, tooltip.Y, tooltip.Width, tooltip.Height)
-	drawTooltipText(tooltip, schedule)
+	rl.BeginScissorMode(Tooltip.X, Tooltip.Y, Tooltip.Width, Tooltip.Height)
+	drawTooltipText(Tooltip, schedule)
 	rl.EndScissorMode()
 }
 
-func drawTooltipRec(tooltip rl.RectangleInt32, hasOverflow bool, scrollMax int32) {
+func drawTooltipRec(tooltip rl.RectangleInt32) {
 	rec := tooltip.ToFloat32()
 
 	// Raylib computes the radius using the formula:
@@ -187,7 +188,7 @@ func drawTooltipRec(tooltip rl.RectangleInt32, hasOverflow bool, scrollMax int32
 	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
 	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)
 
-	if hasOverflow {
+	if S_TooltipHasOverflow.Val {
 		rg.SetStyle(rg.SCROLLBAR, rg.BORDER_WIDTH, rg.GetStyle(rg.SLIDER, rg.BORDER_WIDTH))
 
 		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_NORMAL))
@@ -204,7 +205,7 @@ func drawTooltipRec(tooltip rl.RectangleInt32, hasOverflow bool, scrollMax int32
 			Height: tooltip.Height - int32(BoxDiameter),
 		}
 
-		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec.ToFloat32(), S_TooltipScroll.Val, 0, scrollMax))
+		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec.ToFloat32(), S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
 	}
 }
 
@@ -235,6 +236,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 			rl.Black,
 		)
 
+		// Spacing
 		row += 2
 
 		// Sort cron strings

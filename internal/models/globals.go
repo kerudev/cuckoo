@@ -44,6 +44,7 @@ var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = CellRec{W: 0, H: 0}
 
 var Grid = GridRec{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
+var Tooltip = rl.RectangleInt32{}
 
 var ZoomOffset = float32(0.0)
 var ZoomBase = float32(0.0)
@@ -65,6 +66,8 @@ var S_Zoom = NewState(float32(1.0))
 var S_ZoomSlider = NewState(float32(0.0))
 
 var S_TooltipScroll = NewState(int32(0))
+var S_TooltipScrollMax = NewState(int32(0))
+var S_TooltipHasOverflow = NewState(false)
 
 // User options
 var UserOpt = UserOptions{
