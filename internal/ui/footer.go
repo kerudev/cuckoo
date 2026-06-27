@@ -22,7 +22,7 @@ func DrawFooter() {
 		fmt.Sprintf("Scale: x%.2f", ZoomScale),
 		fmt.Sprintf("Cell.W: %.2f", Cell.W),
 		fmt.Sprintf("Cell.H: %.2f", Cell.H),
-		fmt.Sprint("[L]ocked: ", IsMouseLocked.Val),
+		fmt.Sprint("[L]ocked: ", S_IsMouseLocked.Val),
 	}
 
 	rl.DrawText(strings.Join(texts, "\n"), footerX+TextPad, footerY+TextPad, FooterFontSize, rl.Black)

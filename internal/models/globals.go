@@ -56,7 +56,7 @@ var TotalOver = 0
 // State
 var S_Screen = NewState(Screen{W: 0, H: 0})
 var S_Mouse = NewState(rl.Vector2{X: 0, Y: 0})
-var IsMouseLocked = NewState(false)
+var S_IsMouseLocked = NewState(false)
 
 var S_GroupBy = NewState(GroupByWdHourMin)
 var S_StepMin = NewState(StepMin1)

@@ -15,7 +15,7 @@ import (
 )
 
 func DrawTooltip(gridCoords [][]GridCoord) {
-	if IsMouseLocked.HasChanged() || S_Zoom.HasChanged() || !IsMouseLocked.Val && S_Mouse.HasChanged() {
+	if S_IsMouseLocked.HasChanged() || S_Zoom.HasChanged() || !S_IsMouseLocked.Val && S_Mouse.HasChanged() {
 		MouseOver = make([][]GridCoord, 7)
 		TotalOver = 0
 
@@ -124,10 +124,11 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		tooltip.Y = padY
 
 		// Move tooltip to the right when coordinates are on the left side
-		if !IsMouseLocked.Val && tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
+		if !S_IsMouseLocked.Val && tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
 			tooltip.X = S_Screen.Val.W - padX - tooltip.Width
 		}
 
+		// Clamp tooltip height when it's too large
 		if tooltip.Height > Grid.H-padY {
 			tooltip.Width += 10
 			tooltip.Height = Grid.H - padY
@@ -154,6 +155,8 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 			tooltip.X = int32(base.X) - TextPad - tooltip.Width
 		}
 
+		// TODO sometimes the size is really small
+		// Clamp tooltip height when it's too large
 		if tooltip.Height+tooltip.Y > Grid.H-TextPad {
 			tooltip.Width += 10
 			tooltip.Height = Grid.H - tooltip.Y

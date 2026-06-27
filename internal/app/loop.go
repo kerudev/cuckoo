@@ -61,7 +61,7 @@ func DrawLoop(sample map[string]string) {
 
 		// Input event handling (keyboard)
 		if rl.IsKeyPressed(rl.KeyL) {
-			IsMouseLocked.Set(!IsMouseLocked.Val)
+			S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 		}
 
 		rl.BeginDrawing()
@@ -101,12 +101,16 @@ func DrawLoop(sample map[string]string) {
 		if S_Zoom.HasChanged() || S_ZoomSlider.HasChanged() && S_Zoom.Val > 1 {
 			// NOTE: unlock Mouse as MouseOver as coordinates are recalculated
 			// when Zoom changes. Might be good to change this at some point.
-			IsMouseLocked.Set(false)
+			S_IsMouseLocked.Set(false)
 
 			ZoomOffset = S_ZoomSlider.Val * (ZoomScale - 1)
 
 			coords = CoordsFromCrons(crons)
 			gridCoords = CoordToGrid(coords, &Grid)
+		}
+
+		if S_IsMouseLocked.HasChanged() {
+			S_TooltipScroll.Set(0)
 		}
 
 		// Save each state for next frame
