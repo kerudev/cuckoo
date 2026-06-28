@@ -60,6 +60,25 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		return
 	}
 
+	for wd, dayCoords := range MouseOver {
+		// If a day is not on, there are no coordinates to check
+		if S_Weekdays.Val[wd].Status != StatusOn {
+			continue
+		}
+
+		if len(dayCoords) == 0 {
+			continue
+		}
+
+		for _, coord := range dayCoords {
+			faded := rl.ColorLerp(S_Weekdays.Val[wd].Color, rl.White, 0.3)
+			rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, faded)
+
+			// https://github.com/raysan5/raylib/blob/6735907/src/rshapes.c#L1463
+			rl.DrawRing(coord.Vector2(), CoordRadius-1, CoordRadius+1, 0, 360, 36, rl.Black)
+		}
+	}
+
 	nRows := 0
 	maxW := int32(0)
 
