@@ -70,12 +70,12 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 	// Draw coordinates in layers by weekday
 	for wd, dayCoords := range gridCoords {
-		if Weekdays[wd].Status != StatusOn {
+		if S_Weekdays.Val[wd].Status != StatusOn {
 			continue
 		}
 
 		if UserOpt.DrawLines {
-			drawCoordsLines(dayCoords, Weekdays[wd].Color)
+			drawCoordsLines(dayCoords, S_Weekdays.Val[wd].Color)
 		}
 
 		if !UserOpt.DrawCoords && !UserOpt.DrawFade {
@@ -106,7 +106,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 					break
 				}
 
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, Weekdays[wd].Color)
+				rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, S_Weekdays.Val[wd].Color)
 			}
 		}
 	}
@@ -291,7 +291,7 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		recAlpha = coord.OrigY
 	}
 
-	color := Weekdays[wd].Color
+	color := S_Weekdays.Val[wd].Color
 
 	// All draw calls use integers to avoid:
 	// - Drawing the same pixel twice (darker color)
@@ -314,5 +314,5 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 	// Calculate rectangle fade based on highest coordinate
 	recColor := rl.Fade(color, recAlpha*Cell.H/(float32(Grid.HighestY)*Cell.H))
 
-	rl.DrawRectangleGradientV(recX, recY, w, h, recColor, Weekdays[wd].Faded)
+	rl.DrawRectangleGradientV(recX, recY, w, h, recColor, S_Weekdays.Val[wd].Faded)
 }

@@ -133,7 +133,7 @@ func handleKeyPresses() {
 	if key == rl.KeyNull {
 		return
 	}
-	
+
 	mod := int32(rl.KeyNull)
 
 	if key >= rl.KeyOne && key <= rl.KeySeven {
@@ -151,11 +151,11 @@ func handleKeyPresses() {
 
 	idx := key % mod
 
-	if Weekdays[idx].Status != StatusDisabled {
-		Weekdays[idx].Status = StatusFromBool(!Weekdays[idx].Status.Bool())
+	if S_Weekdays.Val[idx].Status != StatusDisabled {
+		S_Weekdays.Val[idx].Status = StatusFromBool(!S_Weekdays.Val[idx].Status.Bool())
 
-		if All(Weekdays, func(wd Weekday) bool { return wd.Status != StatusOn }) {
-			Weekdays[idx].Status = StatusOn
+		if All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
+			S_Weekdays.Val[idx].Status = StatusOn
 		}
 	}
 }

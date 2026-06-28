@@ -6,8 +6,8 @@ import (
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	. "github.com/kerudev/cuckoo/internal/utils"
 	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
 func DrawUIOptions(groupByScroll *int32) {
@@ -43,9 +43,9 @@ func DrawUIOptions(groupByScroll *int32) {
 
 	rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
 
-	for wd := range Weekdays {
-		status := Weekdays[wd].Status
-		hex := rg.NewColorPropertyValue(Weekdays[wd].Color)
+	for wd := range S_Weekdays.Val {
+		status := S_Weekdays.Val[wd].Status
+		hex := rg.NewColorPropertyValue(S_Weekdays.Val[wd].Color)
 		black := rg.NewColorPropertyValue(rl.Black)
 
 		// Set styles based on status
@@ -93,10 +93,10 @@ func DrawUIOptions(groupByScroll *int32) {
 		rg.Toggle(button.ToFloat32(), strconv.Itoa(wd), &active)
 
 		if status != StatusDisabled {
-			Weekdays[wd].Status = StatusFromBool(active)
+			S_Weekdays.Val[wd].Status = StatusFromBool(active)
 
-			if !active && All(Weekdays, func(wd Weekday) bool { return wd.Status != StatusOn }) {
-				Weekdays[wd].Status = StatusOn
+			if !active && All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
+				S_Weekdays.Val[wd].Status = StatusOn
 			}
 		}
 

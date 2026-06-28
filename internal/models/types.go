@@ -198,7 +198,7 @@ func CoordsFromCrons(crons []Cron) [][]Coord {
 }
 
 func CoordsFromJobs(jobs []Job) [][]Coord {
-	result := make([][]Coord, 7)
+	result := make([][]Coord, WD_COUNT)
 
 	minuteSegment := S_StepMin.Val.Factor()
 
@@ -215,7 +215,7 @@ func CoordsFromJobs(jobs []Job) [][]Coord {
 
 	for wd, coords := range result {
 		if len(coords) <= 0 {
-			Weekdays[wd].Status = StatusDisabled
+			S_Weekdays.Val[wd].Status = StatusDisabled
 		}
 	}
 
@@ -235,7 +235,7 @@ func (c GridCoord) Vector2() rl.Vector2 {
 }
 
 func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
-	result := make([][]GridCoord, 7)
+	result := make([][]GridCoord, WD_COUNT)
 
 	Grid.Rows = INITIAL_ROWS
 	Grid.Cols = INITIAL_COLS
@@ -287,7 +287,7 @@ func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
 	scaledW := float32(Grid.W) * ZoomScale
 	highestRowY := float32(Grid.H) / float32(Grid.HighestRow)
 
-	for wd := range 7 {
+	for wd := range WD_COUNT {
 		// Translate coordinates to Grid
 		for i := range result[wd] {
 			result[wd][i].OrigY = float32(len(result[wd][i].Jobs))

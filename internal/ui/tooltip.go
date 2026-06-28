@@ -15,14 +15,19 @@ import (
 )
 
 func DrawTooltip(gridCoords [][]GridCoord) {
-	if S_IsMouseLocked.HasChanged() || S_Zoom.HasChanged() || !S_IsMouseLocked.Val && S_Mouse.HasChanged() {
-		MouseOver = make([][]GridCoord, 7)
+	stateChanged := S_IsMouseLocked.HasChanged() ||
+		S_Weekdays.HasChanged() ||
+		S_Zoom.HasChanged() ||
+		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
+
+	if stateChanged {
+		MouseOver = make([][]GridCoord, WD_COUNT)
 		TotalOver = 0
 
 		// Get coords where Mouse is over
 		for wd, dayCoords := range gridCoords {
 			// If a day is not on, there are no coordinates to check
-			if Weekdays[wd].Status != StatusOn {
+			if S_Weekdays.Val[wd].Status != StatusOn {
 				continue
 			}
 
@@ -106,7 +111,8 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		nRows += 2
 	}
 
-	if !S_IsMouseLocked.Val {
+	// Resize tooltip when mouse is unlocked or weekdays changed
+	if !S_IsMouseLocked.Val || S_Weekdays.HasChanged() {
 		S_TooltipHasOverflow.Val = false
 
 		// Prepare Tooltip
@@ -250,7 +256,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 
 			segments := float32(len(wds))
 			for _, wd := range wds {
-				if Weekdays[wd].Status != StatusOn {
+				if S_Weekdays.Val[wd].Status != StatusOn {
 					segments--
 				}
 			}
@@ -259,7 +265,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 			angle := float32(0)
 
 			for _, wd := range wds {
-				if Weekdays[wd].Status != StatusOn {
+				if S_Weekdays.Val[wd].Status != StatusOn {
 					continue
 				}
 
@@ -272,7 +278,7 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 					angle,
 					angle+angleFactor,
 					8,
-					Weekdays[wd].Color,
+					S_Weekdays.Val[wd].Color,
 				)
 
 				angle += angleFactor
