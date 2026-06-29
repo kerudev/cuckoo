@@ -152,9 +152,10 @@ func handleKeyPresses() {
 	idx := key % mod
 
 	if S_Weekdays.Val[idx].Status != StatusDisabled {
-		S_Weekdays.Val[idx].Status = StatusFromBool(!S_Weekdays.Val[idx].Status.Bool())
+		active := S_Weekdays.Val[idx].Status.Bool()
+		S_Weekdays.Val[idx].Status = StatusFromBool(!active)
 
-		if All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
+		if active && All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
 			S_Weekdays.Val[idx].Status = StatusOn
 		}
 	}
