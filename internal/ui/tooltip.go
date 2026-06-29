@@ -140,26 +140,26 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 
 		S_TooltipScrollMax.Val = Tooltip.Height
 
+		padX := Offset.X * 2
+		padY := Offset.Y * 2
+
 		switch Position {
 		case PositionGrid:
-			padX := Offset.X * 2
-			padY := Offset.Y * 2
-
 			Tooltip.X = padX
 			Tooltip.Y = padY
 
-			// Move tooltip to the right when coordinates are on the left side
-			if Tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
-				Tooltip.X = S_Screen.Val.W - padX - Tooltip.Width
-			}
-
-			// Clamp tooltip height when it's too large
+			// Clamp height when it's too large
 			if Tooltip.Height > Grid.H-padY {
-				Tooltip.Width += 10
+				Tooltip.Width += TooltipScrollW
 				Tooltip.Height = Grid.H - padY
 
 				S_TooltipScrollMax.Val -= Tooltip.Height
 				S_TooltipHasOverflow.Val = true
+			}
+
+			// Move to the right when coordinates are on the left side
+			if Tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
+				Tooltip.X = S_Screen.Val.W - padX - Tooltip.Width
 			}
 
 		case PositionCoord:
@@ -172,22 +172,32 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 				}
 			}
 
-			Tooltip.X = int32(base.X) + TextPad
-			Tooltip.Y = int32(base.Y) - TextPad
+			Tooltip.X = int32(base.X) + Offset.X
+			Tooltip.Y = int32(base.Y)
 
-			// Move tooltip to the left when it renders out of the Grid
-			if Tooltip.X+Tooltip.Width > Offset.X+Grid.W {
-				Tooltip.X = int32(base.X) - TextPad - Tooltip.Width
+			// Do stuff when the rectangle gets out of the grid (below)
+			if Tooltip.Height+Tooltip.Y > Grid.H-TextPad {
+				Tooltip.Y -= Tooltip.Height
+
+				// Move upwards
+				if Tooltip.Y < Offset.Y {
+					Tooltip.Y = Offset.Y * 2
+					Tooltip.Height = Clamp(Tooltip.Height, padY, Tooltip.Height)
+				}
+
+				// Clamp height when it's too large
+				if Tooltip.Height > Grid.H-padY {
+					Tooltip.Width += TooltipScrollW
+					Tooltip.Height = Grid.H - padY
+
+					S_TooltipScrollMax.Val -= Tooltip.Height
+					S_TooltipHasOverflow.Val = true
+				}
 			}
 
-			// TODO sometimes the size is really small
-			// Clamp tooltip height when it's too large
-			if Tooltip.Height+Tooltip.Y > Grid.H-TextPad {
-				Tooltip.Width += 10
-				Tooltip.Height = Grid.H - Tooltip.Y
-
-				S_TooltipScrollMax.Val -= Tooltip.Height
-				S_TooltipHasOverflow.Val = true
+			// Move to the left when it renders out of the Grid
+			if Tooltip.X+Tooltip.Width > Grid.W {
+				Tooltip.X = int32(base.X) - Offset.X - Tooltip.Width
 			}
 		}
 	}
@@ -208,7 +218,7 @@ func drawTooltipRec(tooltip rl.RectangleInt32) {
 	//
 	// The radius depends on the "roundness", which must be known beforehand so
 	// the radius is always the same.
-	boxRoundness := BoxDiameter / MinF32(rec.Height, rec.Width)
+	boxRoundness := BoxDiameter / min(rec.Height, rec.Width)
 
 	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
 	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)

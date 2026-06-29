@@ -8,6 +8,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
 func DrawGrid(gridCoords [][]GridCoord) {
@@ -30,7 +31,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		}
 	} else {
 		// Vertical scroll
-		S_Zoom.Set(rl.Clamp(S_Zoom.Val+scroll, 1, 9))
+		S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
 		ZoomBase = float32(Grid.W) / float32(Grid.Cols)
 
 		ZoomFactor = (S_Zoom.Val - 1) / 8.0
@@ -61,7 +62,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		bgX += Cell.W
 
 		if S_Zoom.Equals(1) {
-			S_ZoomSlider.Set(rl.Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.W)))
+			S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.W)))
 		}
 	}
 

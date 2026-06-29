@@ -4,9 +4,16 @@ import (
 	"strconv"
 	"unicode"
 
+	"golang.org/x/exp/constraints"
+
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+// https://stackoverflow.com/a/70370013
+type Number interface {
+    constraints.Integer | constraints.Float
+}
 
 // SortAlphabetically sorts alphabetically, including numbers.
 // It is meant to be used inside functions like `sort.Sort`.
@@ -84,12 +91,20 @@ func All[T comparable](arr []T, pred func(T) bool) bool {
 	return true
 }
 
-// MinF32 returns the smaller of x or y.
-func MinF32(x, y float32) float32 {
-	if x > y {
-		return y
+// Copied from rl.Clamp, but generic
+func Clamp[T Number](value, min, max T) T {
+	var res T
+	if value < min {
+		res = min
+	} else {
+		res = value
 	}
-	return x
+
+	if res > max {
+		return max
+	}
+
+	return res
 }
 
 // f <  0.5  -> darken color
