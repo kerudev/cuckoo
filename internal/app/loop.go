@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
@@ -34,8 +35,8 @@ func DrawLoop(sample map[string]string) {
 
 		// Recalculate Grid and coordinates only when Screen changes size
 		if S_Screen.HasChanged() {
-			Grid.W = S_Screen.Val.W - 40
-			Grid.H = S_Screen.Val.H - 240
+			Grid.W = S_Screen.Val.W - Offset.X*2
+			Grid.H = S_Screen.Val.H - Offset.Y*2 - 200
 
 			gridCoords = CoordToGrid(coords, &Grid)
 		}
@@ -59,7 +60,9 @@ func DrawLoop(sample map[string]string) {
 			}
 		}
 
-		handleKeyPresses()
+		handleKeyEvents()
+		handleMouseEvents()
+		handleMixedEvents()
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
@@ -121,7 +124,7 @@ func DrawLoop(sample map[string]string) {
 	rl.CloseWindow()
 }
 
-func handleKeyPresses() {
+func handleKeyEvents() {
 	// Input event handling (keyboard)
 	if rl.IsKeyPressed(rl.KeyL) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
@@ -157,6 +160,42 @@ func handleKeyPresses() {
 
 		if active && All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
 			S_Weekdays.Val[idx].Status = StatusOn
+		}
+	}
+}
+
+func handleMouseEvents() {
+	// Lock mouse position when clicking coordinates
+	if TotalOver > 0 && rl.IsMouseButtonPressed(rl.MouseButtonLeft) && !rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32()) {
+		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
+	}
+}
+
+func handleMixedEvents() {
+	// Move zoom slider with mouse and key events
+	isOverTooltip := TotalOver > 0 && S_IsMouseLocked.Val && rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
+
+	if !isOverTooltip {
+		scroll := rl.GetMouseWheelMove()
+
+		if rl.IsKeyDown(rl.KeyLeftShift) {
+			// Move zoom slider (horizontal scroll)
+			calc := Cell.W / (ZoomScale * ZoomFactor * 2)
+
+			if scroll > 0 {
+				S_ZoomSlider.Val += calc
+			} else if scroll < 0 {
+				S_ZoomSlider.Val -= calc
+			}
+		} else {
+			// Zoom in (vertical scroll)
+			S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
+			ZoomBase = float32(Grid.W) / float32(Grid.Cols)
+
+			ZoomFactor = (S_Zoom.Val - 1) / 8.0
+			ZoomScale = float32(math.Pow(float64(Grid.W)/float64(ZoomBase), float64(ZoomFactor)))
+
+			ZoomOffset = S_ZoomSlider.Val * (ZoomScale - 1)
 		}
 	}
 }
