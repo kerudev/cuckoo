@@ -18,26 +18,30 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		cols += 1
 	}
 
-	scroll := rl.GetMouseWheelMove()
+	isOverTooltip := TotalOver > 0 && S_IsMouseLocked.Val && rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
-	if rl.IsKeyDown(rl.KeyLeftShift) {
-		// Horizontal scroll
-		calc := float32(Cell.W) / (ZoomScale * ZoomFactor * 2)
+	if !isOverTooltip {
+		scroll := rl.GetMouseWheelMove()
 
-		if scroll > 0 {
-			S_ZoomSlider.Val += calc
-		} else if scroll < 0 {
-			S_ZoomSlider.Val -= calc
+		if rl.IsKeyDown(rl.KeyLeftShift) {
+			// Horizontal scroll
+			calc := Cell.W / (ZoomScale * ZoomFactor * 2)
+
+			if scroll > 0 {
+				S_ZoomSlider.Val += calc
+			} else if scroll < 0 {
+				S_ZoomSlider.Val -= calc
+			}
+		} else {
+			// Vertical scroll
+			S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
+			ZoomBase = float32(Grid.W) / float32(Grid.Cols)
+
+			ZoomFactor = (S_Zoom.Val - 1) / 8.0
+			ZoomScale = float32(math.Pow(float64(Grid.W)/float64(ZoomBase), float64(ZoomFactor)))
+
+			ZoomOffset = S_ZoomSlider.Val * (ZoomScale - 1)
 		}
-	} else {
-		// Vertical scroll
-		S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
-		ZoomBase = float32(Grid.W) / float32(Grid.Cols)
-
-		ZoomFactor = (S_Zoom.Val - 1) / 8.0
-		ZoomScale = float32(math.Pow(float64(Grid.W)/float64(ZoomBase), float64(ZoomFactor)))
-
-		ZoomOffset = S_ZoomSlider.Val * (ZoomScale - 1)
 	}
 
 	Cell.W = ZoomBase * ZoomScale

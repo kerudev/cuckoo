@@ -240,6 +240,13 @@ func drawTooltipRec(tooltip rl.RectangleInt32) {
 			Height: tooltip.Height - int32(BoxDiameter),
 		}
 
+		scroll := int32(rl.GetMouseWheelMove()) * int32(16)
+
+		if scroll != 0 {
+			S_TooltipScroll.Val -= scroll
+			S_TooltipScroll.Set(Clamp(S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
+		}
+
 		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec.ToFloat32(), S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
 	}
 }
