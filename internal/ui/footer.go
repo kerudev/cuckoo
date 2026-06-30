@@ -11,15 +11,15 @@ import (
 
 func DrawFooter() {
 	footerX := S_Screen.Val.W - Offset.X - FooterW
-	footerY := Grid.H + Offset.Y*2 + FontSize*2
+	footerY := Grid.Height + Offset.Y*2 + FontSize*2
 
 	text := "Drop file to change sample"
 	textW := rl.MeasureText(text, FooterFontSize)
 
-	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Grid.H+Offset.Y*2, FooterFontSize, rl.Black)
+	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Grid.Height+Offset.Y*2, FooterFontSize, rl.Black)
 
 	texts := []string{
-		fmt.Sprintf("Scale: x%.2f", ZoomScale),
+		fmt.Sprintf("Scale: x%.2f", C_Zoom.Scale),
 		fmt.Sprintf("Cell.W: %.2f", Cell.W),
 		fmt.Sprintf("Cell.H: %.2f", Cell.H),
 		fmt.Sprint("[L]ocked: ", S_IsMouseLocked.Val),

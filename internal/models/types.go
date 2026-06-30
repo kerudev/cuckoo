@@ -7,9 +7,14 @@ import (
 	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"golang.org/x/exp/constraints"
 
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
+
+type Numeric interface {
+	constraints.Integer | constraints.Float
+}
 
 //////////////////////////////
 // Raylib-like types
@@ -234,20 +239,20 @@ func (c GridCoord) Vector2() rl.Vector2 {
 	return rl.Vector2{X: c.X, Y: c.Y}
 }
 
-func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
+func CoordToGrid(coords [][]Coord) [][]GridCoord {
 	result := make([][]GridCoord, WD_COUNT)
 
-	Grid.Rows = INITIAL_ROWS
-	Grid.Cols = INITIAL_COLS
+	C_Grid.Rows = INITIAL_ROWS
+	C_Grid.Cols = INITIAL_COLS
 
-	Grid.HighestY = 0
+	C_Grid.HighestY = 0
 
 	for wd, coordDay := range coords {
 		for _, coord := range coordDay {
 			found := false
 
-			if coord.Y > Grid.HighestY {
-				Grid.HighestY = coord.Y
+			if coord.Y > C_Grid.HighestY {
+				C_Grid.HighestY = coord.Y
 			}
 
 			for i := range result[wd] {
@@ -256,8 +261,8 @@ func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
 					result[wd][i].Jobs = append(result[wd][i].Jobs, coord.Job)
 				}
 
-				if len(result[wd][i].Jobs) >= Grid.Rows {
-					Grid.Rows = len(result[wd][i].Jobs) + 2
+				if len(result[wd][i].Jobs) >= C_Grid.Rows {
+					C_Grid.Rows = len(result[wd][i].Jobs) + 2
 				}
 			}
 
@@ -270,34 +275,34 @@ func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
 		}
 	}
 
-	Grid.HighestRow = Grid.Rows
+	C_Grid.HighestRow = C_Grid.Rows
 
 	// Remove the last column, as it makes no sense when grouping by hour
 	if S_GroupBy.Eq(GroupByWdHour) {
-		Grid.Cols -= 1
+		C_Grid.Cols -= 1
 	}
 
-	if Grid.HighestRow > ROWS_CAP {
-		Grid.Rows = INITIAL_ROWS
+	if C_Grid.HighestRow > ROWS_CAP {
+		C_Grid.Rows = INITIAL_ROWS
 	}
 
-	Cell.W = float32(Grid.W) / float32(Grid.Cols)
-	Cell.H = float32(Grid.H) / float32(Grid.Rows)
+	Cell.W = float32(Grid.Width) / float32(C_Grid.Cols)
+	Cell.H = float32(Grid.Height) / float32(C_Grid.Rows)
 
-	scaledW := float32(Grid.W) * ZoomScale
-	highestRowY := float32(Grid.H) / float32(Grid.HighestRow)
+	scaledW := float32(Grid.Width) * C_Zoom.Scale
+	highestRowY := float32(Grid.Height) / float32(C_Grid.HighestRow)
 
 	for wd := range WD_COUNT {
 		// Translate coordinates to Grid
 		for i := range result[wd] {
 			result[wd][i].OrigY = float32(len(result[wd][i].Jobs))
 
-			if result[wd][i].OrigY > Grid.HighestY {
-				Grid.HighestY = result[wd][i].OrigY
+			if result[wd][i].OrigY > C_Grid.HighestY {
+				C_Grid.HighestY = result[wd][i].OrigY
 			}
 
-			result[wd][i].X = (result[wd][i].X/float32(Grid.Cols))*scaledW + float32(Offset.X) - ZoomOffset
-			result[wd][i].Y = float32(Grid.H+Offset.Y) - highestRowY*result[wd][i].OrigY
+			result[wd][i].X = (result[wd][i].X/float32(C_Grid.Cols))*scaledW + float32(Offset.X) - C_Zoom.Offset
+			result[wd][i].Y = float32(Grid.Height+Offset.Y) - highestRowY*result[wd][i].OrigY
 		}
 
 		// Sort coordinates to draw them in order
@@ -309,23 +314,17 @@ func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
 	return result
 }
 
-type Screen struct {
-	W int32
-	H int32
-}
-
-type CellRec struct {
-	W float32
-	H float32
+type Rec[T Numeric] struct {
+	W T
+	H T
 }
 
 type GridRec struct {
-	W          int32
-	H          int32
-	Rows       int
-	Cols       int
-	HighestRow int
-	HighestY   float32
+	// Rectangle
+	W int32
+	H int32
+	X int32
+	Y int32
 }
 
 //////////////////////////////
@@ -397,17 +396,9 @@ func StatusFromBool(b bool) Status {
 	return StatusOff
 }
 
-//////////////////////////////
-// Utility data types
-//////////////////////////////
-
-type UserOptions struct {
-	DrawCoords bool
-	DrawLines  bool
-	DrawGrid   bool
-	DrawFade   bool
-}
-
+// ////////////////////////////
+// State & Context
+// ////////////////////////////
 type AnyState interface {
 	Update()
 }
@@ -440,6 +431,31 @@ func (s *State[T]) HasChanged() bool {
 
 func (s *State[T]) Eq(val T) bool {
 	return s.Val == val
+}
+
+type GridContext struct {
+	Rows       int
+	Cols       int
+	HighestRow int
+	HighestY   float32
+}
+
+type ZoomContext struct {
+	Offset float32
+	Base   float32
+	Factor float32
+	Scale  float32
+}
+
+//////////////////////////////
+// Utility data types
+//////////////////////////////
+
+type UserOptions struct {
+	DrawCoords bool
+	DrawLines  bool
+	DrawGrid   bool
+	DrawFade   bool
 }
 
 type Weekday struct {

@@ -18,9 +18,6 @@ func DrawLoop(sample map[string]string) {
 
 	gridCoords := [][]GridCoord{}
 
-	groupByScroll := int32(0)
-	positionScroll := int32(0)
-
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 	rl.InitWindow(800, 700, "Cuckoo")
 	rl.SetWindowMinSize(800, 700)
@@ -35,10 +32,10 @@ func DrawLoop(sample map[string]string) {
 
 		// Recalculate Grid and coordinates only when Screen changes size
 		if S_Screen.HasChanged() {
-			Grid.W = S_Screen.Val.W - Offset.X*2
-			Grid.H = S_Screen.Val.H - Offset.Y*2 - 200
+			Grid.Width = S_Screen.Val.W - Offset.X*2
+			Grid.Height = S_Screen.Val.H - Offset.Y*2 - 200
 
-			gridCoords = CoordToGrid(coords, &Grid)
+			gridCoords = CoordToGrid(coords)
 		}
 
 		// Check if a file was dropped and reload coords
@@ -56,7 +53,7 @@ func DrawLoop(sample map[string]string) {
 			} else {
 				crons = CronsFromStrings(sample)
 				coords = CoordsFromCrons(crons)
-				gridCoords = CoordToGrid(coords, &Grid)
+				gridCoords = CoordToGrid(coords)
 			}
 		}
 
@@ -69,17 +66,17 @@ func DrawLoop(sample map[string]string) {
 
 		ui.DrawGrid(gridCoords)
 
-		ui.DrawUIOptions(&groupByScroll)
+		ui.DrawUIOptions()
 
 		// Vertical line
-		lineY := Grid.H + Offset.Y*7 - TextPad/2
+		lineY := Grid.Height + Offset.Y*7 - TextPad/2
 		rl.DrawLine(Offset.X, lineY, 290, lineY, rl.Gray)
 
-		ui.DrawUserOptions(&positionScroll)
+		ui.DrawUserOptions()
 
 		// Horizontal line
 		lineX := 150 + Offset.X + BoxPad*6
-		rl.DrawLine(lineX, Grid.H+Offset.Y*2+TextPad, lineX, S_Screen.Val.H-Offset.Y, rl.Gray)
+		rl.DrawLine(lineX, Grid.Height+Offset.Y*2+TextPad, lineX, S_Screen.Val.H-Offset.Y, rl.Gray)
 
 		ui.DrawFooter()
 		ui.DrawTooltip(gridCoords)
@@ -89,13 +86,13 @@ func DrawLoop(sample map[string]string) {
 		// Recalculate coordinates based on bucket
 		if S_StepMin.HasChanged() {
 			coords = CoordsFromCrons(crons)
-			gridCoords = CoordToGrid(coords, &Grid)
+			gridCoords = CoordToGrid(coords)
 		}
 
 		// Recalculate coordinates based on group by
 		if S_GroupBy.HasChanged() {
 			coords = CoordsFromCrons(crons)
-			gridCoords = CoordToGrid(coords, &Grid)
+			gridCoords = CoordToGrid(coords)
 		}
 
 		// Reset zoom and coordinates
@@ -104,10 +101,10 @@ func DrawLoop(sample map[string]string) {
 			// when Zoom changes. Might be good to change this at some point.
 			S_IsMouseLocked.Set(false)
 
-			ZoomOffset = S_ZoomSlider.Val * (ZoomScale - 1)
+			C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
 
 			coords = CoordsFromCrons(crons)
-			gridCoords = CoordToGrid(coords, &Grid)
+			gridCoords = CoordToGrid(coords)
 		}
 
 		// Reset tooltip scroll
@@ -182,9 +179,9 @@ func handleMouseEvents() {
 
 		if mouseX != 0 {
 			S_ZoomSlider.Set(Clamp(
-				S_ZoomSlider.Val-mouseX/(ZoomScale-1),
+				S_ZoomSlider.Val-mouseX/(C_Zoom.Scale-1),
 				0,
-				float32(Grid.W),
+				float32(Grid.Width),
 			))
 		}
 	}
@@ -199,7 +196,7 @@ func handleMixedEvents() {
 
 		if rl.IsKeyDown(rl.KeyLeftShift) {
 			// Move zoom slider (horizontal scroll)
-			calc := Cell.W / (ZoomScale * ZoomFactor * 2)
+			calc := Cell.W / (C_Zoom.Scale * C_Zoom.Factor * 2)
 
 			if scroll > 0 {
 				S_ZoomSlider.Val += calc
@@ -209,12 +206,12 @@ func handleMixedEvents() {
 		} else {
 			// Zoom in (vertical scroll)
 			S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
-			ZoomBase = float32(Grid.W) / float32(Grid.Cols)
+			C_Zoom.Base = float32(Grid.Width) / float32(C_Grid.Cols)
 
-			ZoomFactor = (S_Zoom.Val - 1) / 8.0
-			ZoomScale = float32(math.Pow(float64(Grid.W)/float64(ZoomBase), float64(ZoomFactor)))
+			C_Zoom.Factor = (S_Zoom.Val - 1) / 8.0
+			C_Zoom.Scale = float32(math.Pow(float64(Grid.Width)/float64(C_Zoom.Base), float64(C_Zoom.Factor)))
 
-			ZoomOffset = S_ZoomSlider.Val * (ZoomScale - 1)
+			C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
 		}
 	}
 }

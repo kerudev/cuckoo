@@ -12,12 +12,12 @@ import (
 
 func DrawGrid(gridCoords [][]GridCoord) {
 	// Set all values that depend on the previous frame
-	cols := Grid.Cols
+	cols := C_Grid.Cols
 	if S_GroupBy.Eq(GroupByWdHour) {
 		cols += 1
 	}
 
-	Cell.W = ZoomBase * ZoomScale
+	Cell.W = C_Zoom.Base * C_Zoom.Scale
 
 	if UserOpt.DrawGrid {
 		drawGridLines()
@@ -25,26 +25,26 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 	// Draw background line on Mouse over
 	bg := rl.NewColor(200, 230, 250, 80)
-	bgX := float32(Offset.X) - ZoomOffset
+	bgX := float32(Offset.X) - C_Zoom.Offset
 
 	for range cols {
 		mouseInX := bgX < S_Mouse.Val.X && S_Mouse.Val.X <= bgX+Cell.W
-		mouseInY := float32(Offset.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Grid.H)
+		mouseInY := float32(Offset.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Grid.Height)
 
 		if mouseInX && mouseInY {
-			bgRec := rl.RectangleInt32{X: int32(bgX) + BoxBorder, Y: Offset.Y, Width: int32(Cell.W) - BoxBorder*2, Height: Grid.H}
+			bgRec := rl.RectangleInt32{X: int32(bgX) + BoxBorder, Y: Offset.Y, Width: int32(Cell.W) - BoxBorder*2, Height: Grid.Height}
 			rl.DrawRectangleRec(bgRec.ToFloat32(), bg)
 		}
 
 		bgX += Cell.W
 
 		if S_Zoom.Eq(1) {
-			S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.W)))
+			S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.Width)))
 		}
 	}
 
 	// Scissor Mode to prevent drawing pixels outside the grid
-	rl.BeginScissorMode(Offset.X, Offset.Y, Grid.W, Grid.H)
+	rl.BeginScissorMode(Offset.X, Offset.Y, Grid.Width, Grid.Height)
 
 	// Draw coordinates in layers by weekday
 	for wd, dayCoords := range gridCoords {
@@ -80,7 +80,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 				}
 
 				// Stop if coord is off the Grid (right)
-				if coord.X > float32(Grid.W+Offset.X) {
+				if coord.X > float32(Grid.Width+Offset.X) {
 					break
 				}
 
@@ -93,11 +93,11 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 	// Draw Zoom slider
 	if S_Zoom.Val > 1 {
-		scrollW := Grid.W - GridBorder*2
-		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/ZoomScale))
+		scrollW := Grid.Width - GridBorder*2
+		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/C_Zoom.Scale))
 
-		zoomSliderRec := rl.RectangleInt32{X: Offset.X + GridBorder, Y: Grid.H + TextPad, Width: scrollW, Height: 10}
-		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &S_ZoomSlider.Val, 0, float32(Grid.W))
+		zoomSliderRec := rl.RectangleInt32{X: Offset.X + GridBorder, Y: Grid.Height + TextPad, Width: scrollW, Height: 10}
+		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &S_ZoomSlider.Val, 0, float32(Grid.Width))
 	}
 
 	// Draw numbers on X axis
@@ -105,7 +105,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		text := strconv.Itoa(col)
 
 		textW := rl.MeasureTextEx(Font, text, float32(FontSize), 1).X
-		textX := Cell.W*float32(col) - textW/2 + float32(Offset.X) - ZoomOffset
+		textX := Cell.W*float32(col) - textW/2 + float32(Offset.X) - C_Zoom.Offset
 
 		// Clamp number to the left side
 		if textX < float32(Offset.X) {
@@ -117,31 +117,31 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		}
 
 		// Clamp number to the right side
-		if textX > float32(Grid.W+Offset.X)-textW/2 {
-			if textX-Cell.W < float32(Grid.W+Offset.X-TextPad*3) {
-				textX = float32(Grid.W+Offset.X) - textW/2
+		if textX > float32(Grid.Width+Offset.X)-textW/2 {
+			if textX-Cell.W < float32(Grid.Width+Offset.X-TextPad*3) {
+				textX = float32(Grid.Width+Offset.X) - textW/2
 			} else {
 				continue
 			}
 		}
 
-		rl.DrawText(text, int32(textX), Grid.H+Offset.Y+2, FontSize, rl.Black)
+		rl.DrawText(text, int32(textX), Grid.Height+Offset.Y+2, FontSize, rl.Black)
 	}
 
 	// Draw numbers on Y axis
 	textRect := rl.MeasureTextEx(Font, strconv.Itoa(cols), float32(FontSize), 1)
 
 	nRow := 0
-	step := Grid.HighestRow / Grid.Rows
-	last := (Grid.HighestRow / step) * step
+	step := C_Grid.HighestRow / C_Grid.Rows
+	last := (C_Grid.HighestRow / step) * step
 
-	for row := range Grid.HighestRow + 1 {
-		if Grid.HighestRow > ROWS_CAP && row%step != 0 {
+	for row := range C_Grid.HighestRow + 1 {
+		if C_Grid.HighestRow > ROWS_CAP && row%step != 0 {
 			continue
 		}
 
 		if row == last {
-			row = Grid.HighestRow
+			row = C_Grid.HighestRow
 		}
 
 		text := strconv.Itoa(row)
@@ -152,35 +152,35 @@ func DrawGrid(gridCoords [][]GridCoord) {
 			Y: textRect.Y + rl.Lerp(0.0, textRect.Y-textSize.Y, 0.5),
 		}
 
-		textY := float32(Grid.H+Offset.Y) - Cell.H*float32(nRow) - textPos.Y/2
+		textY := float32(Grid.Height+Offset.Y) - Cell.H*float32(nRow) - textPos.Y/2
 		nRow++
 
 		rl.DrawText(text, int32(textPos.X-float32(Offset.X)/2), int32(textY), FontSize, rl.Black)
 	}
 
 	// Draw Grid container
-	gridRec := rl.RectangleInt32{X: Offset.X, Y: Offset.Y, Width: Grid.W, Height: Grid.H}
+	gridRec := rl.RectangleInt32{X: Offset.X, Y: Offset.Y, Width: Grid.Width, Height: Grid.Height}
 	rl.DrawRectangleLinesEx(gridRec.ToFloat32(), 2, rl.Black)
 }
 
 func drawGridLines() {
 	// Draw lines vertically
-	colX := float32(Offset.X) - ZoomOffset
+	colX := float32(Offset.X) - C_Zoom.Offset
 
-	for range Grid.Cols {
+	for range C_Grid.Cols {
 		colX += Cell.W
 
 		if colX < float32(Offset.X) {
 			continue
 		}
 
-		if colX > float32(Grid.W+Offset.X) {
+		if colX > float32(Grid.Width+Offset.X) {
 			break
 		}
 
 		rl.DrawLineEx(
 			rl.Vector2{X: colX, Y: float32(Offset.Y)},
-			rl.Vector2{X: colX, Y: float32(Grid.H + Offset.Y)},
+			rl.Vector2{X: colX, Y: float32(Grid.Height + Offset.Y)},
 			float32(GridBorder),
 			rl.LightGray,
 		)
@@ -189,11 +189,11 @@ func drawGridLines() {
 	// Draw lines horizontally
 	rowY := float32(Offset.Y)
 
-	for range Grid.Rows {
+	for range C_Grid.Rows {
 		rowY += Cell.H
 		rl.DrawLineEx(
 			rl.Vector2{X: float32(Offset.X), Y: rowY},
-			rl.Vector2{X: float32(Grid.W + Offset.Y), Y: rowY},
+			rl.Vector2{X: float32(Grid.Width + Offset.Y), Y: rowY},
 			float32(GridBorder),
 			rl.LightGray,
 		)
@@ -237,9 +237,9 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		mid.X = int32(coord.X)
 		mid.Y = int32(next.Y)
 
-		alpha0 *= coord.OrigY / float32(Grid.HighestY)
-		alpha1 *= next.OrigY / float32(Grid.HighestY)
-		alpha2 *= next.OrigY / float32(Grid.HighestY)
+		alpha0 *= coord.OrigY / float32(C_Grid.HighestY)
+		alpha1 *= next.OrigY / float32(C_Grid.HighestY)
+		alpha2 *= next.OrigY / float32(C_Grid.HighestY)
 
 		recX = int32(mid.X)
 		recY = int32(mid.Y)
@@ -260,9 +260,9 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		mid.X = int32(next.X)
 		mid.Y = int32(coord.Y)
 
-		alpha0 *= coord.OrigY / float32(Grid.HighestY)
-		alpha1 *= coord.OrigY / float32(Grid.HighestY)
-		alpha2 *= next.OrigY / float32(Grid.HighestY)
+		alpha0 *= coord.OrigY / float32(C_Grid.HighestY)
+		alpha1 *= coord.OrigY / float32(C_Grid.HighestY)
+		alpha2 *= next.OrigY / float32(C_Grid.HighestY)
 
 		recX = int32(coord.X)
 		recY = int32(coord.Y)
@@ -287,10 +287,10 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 
 	// Draw gradient below graph
 	w := int32(next.X) - int32(coord.X)
-	h := Grid.H + Offset.Y - int32(mid.Y)
+	h := Grid.Height + Offset.Y - int32(mid.Y)
 
 	// Calculate rectangle fade based on highest coordinate
-	recColor := rl.Fade(color, recAlpha*Cell.H/(float32(Grid.HighestY)*Cell.H))
+	recColor := rl.Fade(color, recAlpha*Cell.H/(float32(C_Grid.HighestY)*Cell.H))
 
 	rl.DrawRectangleGradientV(recX, recY, w, h, recColor, S_Weekdays.Val[wd].Faded)
 }

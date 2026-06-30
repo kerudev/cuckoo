@@ -149,9 +149,9 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 			Tooltip.Y = padY
 
 			// Clamp height when it's too large
-			if Tooltip.Height > Grid.H-padY {
+			if Tooltip.Height > Grid.Height-padY {
 				Tooltip.Width += TooltipScrollW
-				Tooltip.Height = Grid.H - padY
+				Tooltip.Height = Grid.Height - padY
 
 				S_TooltipScrollMax.Val -= Tooltip.Height
 				S_TooltipHasOverflow.Val = true
@@ -176,7 +176,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 			Tooltip.Y = int32(base.Y)
 
 			// Do stuff when the rectangle gets out of the grid (below)
-			if Tooltip.Height+Tooltip.Y > Grid.H-TextPad {
+			if Tooltip.Height+Tooltip.Y > Grid.Height-TextPad {
 				Tooltip.Y -= Tooltip.Height
 
 				// Move upwards
@@ -186,9 +186,9 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 				}
 
 				// Clamp height when it's too large
-				if Tooltip.Height > Grid.H-padY {
+				if Tooltip.Height > Grid.Height-padY {
 					Tooltip.Width += TooltipScrollW
-					Tooltip.Height = Grid.H - padY
+					Tooltip.Height = Grid.Height - padY
 
 					S_TooltipScrollMax.Val -= Tooltip.Height
 					S_TooltipHasOverflow.Val = true
@@ -196,7 +196,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 			}
 
 			// Move to the left when it renders out of the Grid
-			if Tooltip.X+Tooltip.Width > Grid.W {
+			if Tooltip.X+Tooltip.Width > Grid.Width {
 				Tooltip.X = int32(base.X) - Offset.X - Tooltip.Width
 			}
 		}

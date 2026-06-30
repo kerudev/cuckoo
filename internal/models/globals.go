@@ -32,22 +32,20 @@ var FooterFontSize = int32(16)
 
 // Internal
 var Offset = Vector2Int32{X: 20, Y: 20}
-var Cell = CellRec{W: 0, H: 0}
-
-var Grid = GridRec{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
+var Cell = Rec[float32]{}
+var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y}
 var Tooltip = rl.RectangleInt32{}
-
-var ZoomOffset = float32(0.0)
-var ZoomBase = float32(0.0)
-var ZoomFactor = float32(1.0)
-var ZoomScale = float32(1.0)
 
 var MouseOver = make([][]GridCoord, WD_COUNT)
 var TotalOver = 0
 
+// Context
+var C_Grid = GridContext{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
+var C_Zoom = ZoomContext{Factor: 1, Scale: 1}
+
 // State
-var S_Screen = NewState(Screen{W: 0, H: 0})
-var S_Mouse = NewState(rl.Vector2{X: 0, Y: 0})
+var S_Screen = NewState(Rec[int32]{})
+var S_Mouse = NewState(rl.Vector2{})
 var S_IsMouseLocked = NewState(false)
 
 var S_Weekdays = NewState([WD_COUNT]Weekday{
