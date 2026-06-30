@@ -165,17 +165,36 @@ func handleKeyEvents() {
 }
 
 func handleMouseEvents() {
+	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
+
+	if isOverTooltip {
+		return
+	}
+
 	// Lock mouse position when clicking coordinates
-	if TotalOver > 0 && rl.IsMouseButtonPressed(rl.MouseButtonLeft) && !rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32()) {
+	if TotalOver > 0 && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
+	}
+
+	// Move zoom slider by dragging over grid 
+	if S_Zoom.Val > 1 && rl.IsMouseButtonDown(rl.MouseButtonRight) {
+		mouseX := rl.GetMouseDelta().X
+
+		if mouseX != 0 {
+			S_ZoomSlider.Set(Clamp(
+				S_ZoomSlider.Val-mouseX/(ZoomScale-1),
+				0,
+				float32(Grid.W),
+			))
+		}
 	}
 }
 
 func handleMixedEvents() {
 	// Move zoom slider with mouse and key events
-	isOverTooltip := TotalOver > 0 && S_IsMouseLocked.Val && rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
+	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
-	if !isOverTooltip {
+	if !(TotalOver > 0 && S_IsMouseLocked.Val && isOverTooltip) {
 		scroll := rl.GetMouseWheelMove()
 
 		if rl.IsKeyDown(rl.KeyLeftShift) {
