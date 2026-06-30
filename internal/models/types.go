@@ -289,6 +289,8 @@ func CoordToGrid(coords [][]Coord) [][]GridCoord {
 	Cell.W = float32(Grid.Width) / float32(C_Grid.Cols)
 	Cell.H = float32(Grid.Height) / float32(C_Grid.Rows)
 
+	C_Zoom.Base = Cell.W
+
 	scaledW := float32(Grid.Width) * C_Zoom.Scale
 	highestRowY := float32(Grid.Height) / float32(C_Grid.HighestRow)
 

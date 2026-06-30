@@ -31,16 +31,25 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		mouseInX := bgX < S_Mouse.Val.X && S_Mouse.Val.X <= bgX+Cell.W
 		mouseInY := float32(Offset.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Grid.Height)
 
-		if mouseInX && mouseInY {
-			bgRec := rl.RectangleInt32{X: int32(bgX) + BoxBorder, Y: Offset.Y, Width: int32(Cell.W) - BoxBorder*2, Height: Grid.Height}
-			rl.DrawRectangleRec(bgRec.ToFloat32(), bg)
+		if !(mouseInX && mouseInY) {
+			bgX += Cell.W
+			continue
 		}
 
-		bgX += Cell.W
-
-		if S_Zoom.Eq(1) {
-			S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.Width)))
+		bgRec := rl.RectangleInt32{
+			X:      int32(bgX) + BoxBorder,
+			Y:      Offset.Y,
+			Width:  int32(Cell.W) - BoxBorder*2,
+			Height: Grid.Height,
 		}
+		rl.DrawRectangleRec(bgRec.ToFloat32(), bg)
+
+		break
+	}
+
+	// Change slider based on mouse position to "follow" the cursor
+	if S_Mouse.HasChanged() && S_Zoom.Eq(1) {
+		S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.Width)))
 	}
 
 	// Scissor Mode to prevent drawing pixels outside the grid

@@ -189,9 +189,13 @@ func handleMouseEvents() {
 
 func handleMixedEvents() {
 	// Move zoom slider with mouse and key events
-	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
+	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
 
-	if !(TotalOver > 0 && S_IsMouseLocked.Val && isOverTooltip) {
+	if !isOverGrid {
+		return
+	}
+
+	if !(TotalOver > 0 && S_IsMouseLocked.Val) {
 		scroll := rl.GetMouseWheelMove()
 
 		if rl.IsKeyDown(rl.KeyLeftShift) {

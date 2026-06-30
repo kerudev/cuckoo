@@ -202,16 +202,16 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		}
 	}
 
-	drawTooltipRec(Tooltip)
+	drawTooltipRec()
 
 	// TODO optimize to reduce draw calls when text is out of the tooltip
 	rl.BeginScissorMode(Tooltip.X, Tooltip.Y, Tooltip.Width, Tooltip.Height)
-	drawTooltipText(Tooltip, schedule)
+	drawTooltipText(schedule)
 	rl.EndScissorMode()
 }
 
-func drawTooltipRec(tooltip rl.RectangleInt32) {
-	rec := tooltip.ToFloat32()
+func drawTooltipRec() {
+	rec := Tooltip.ToFloat32()
 
 	// Raylib computes the radius using the formula:
 	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
@@ -234,24 +234,27 @@ func drawTooltipRec(tooltip rl.RectangleInt32) {
 		rg.SetStyle(rg.BUTTON, rg.BASE_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BASE_COLOR_NORMAL))
 
 		tooltipScrollRec := rl.RectangleInt32{
-			X:      tooltip.X + tooltip.Width - TooltipScrollW,
-			Y:      tooltip.Y + int32(BoxRadius),
+			X:      Tooltip.X + Tooltip.Width - TooltipScrollW,
+			Y:      Tooltip.Y + int32(BoxRadius),
 			Width:  TooltipScrollW,
-			Height: tooltip.Height - int32(BoxDiameter),
+			Height: Tooltip.Height - int32(BoxDiameter),
 		}
 
-		scroll := int32(rl.GetMouseWheelMove()) * int32(16)
-
-		if scroll != 0 {
-			S_TooltipScroll.Val -= scroll
-			S_TooltipScroll.Set(Clamp(S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
+		// Allow scroll just when mouse is over tooltip
+		if rl.CheckCollisionPointRec(S_Mouse.Val, rec) {
+			scroll := int32(rl.GetMouseWheelMove()) * int32(16)
+	
+			if scroll != 0 {
+				S_TooltipScroll.Val -= scroll
+				S_TooltipScroll.Set(Clamp(S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
+			}
 		}
 
 		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec.ToFloat32(), S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
 	}
 }
 
-func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]string) {
+func drawTooltipText(data map[string]map[string][]string) {
 	row := int32(0)
 
 	// Sort HH:MM keys
@@ -264,16 +267,16 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 		// Draw clock icon and time
 		rg.DrawIcon(
 			rg.ICON_CLOCK,
-			tooltip.X+TextPad,
-			tooltip.Y+TextPad+2+FontSize*row-S_TooltipScroll.Val,
+			Tooltip.X+TextPad,
+			Tooltip.Y+TextPad+2+FontSize*row-S_TooltipScroll.Val,
 			1,
 			rl.Black,
 		)
 
 		rl.DrawText(
 			time,
-			tooltip.X+TextPad*4,
-			tooltip.Y+TextPad+2+FontSize*row-S_TooltipScroll.Val,
+			Tooltip.X+TextPad*4,
+			Tooltip.Y+TextPad+2+FontSize*row-S_TooltipScroll.Val,
 			TooltipTimeFontSize,
 			rl.Black,
 		)
@@ -307,8 +310,8 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 
 				rl.DrawCircleSector(
 					rl.Vector2{
-						X: float32(tooltip.X + TextPad + FontRadius),
-						Y: float32(tooltip.Y + TextPad + FontSize*row + FontRadius - S_TooltipScroll.Val),
+						X: float32(Tooltip.X + TextPad + FontRadius),
+						Y: float32(Tooltip.Y + TextPad + FontSize*row + FontRadius - S_TooltipScroll.Val),
 					},
 					float32(FontRadius),
 					angle,
@@ -323,8 +326,8 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 			// Draw crons and their count
 			rl.DrawText(
 				cron,
-				tooltip.X+TextPad+4*4,
-				tooltip.Y+TextPad+FontSize*row-S_TooltipScroll.Val,
+				Tooltip.X+TextPad+4*4,
+				Tooltip.Y+TextPad+FontSize*row-S_TooltipScroll.Val,
 				FontSize,
 				rl.Black,
 			)
@@ -341,8 +344,8 @@ func drawTooltipText(tooltip rl.RectangleInt32, data map[string]map[string][]str
 			for i, job := range jobs {
 				rl.DrawText(
 					job,
-					tooltip.X+TextPad,
-					tooltip.Y+TextPad+FontSize*(int32(i)+row)-S_TooltipScroll.Val,
+					Tooltip.X+TextPad,
+					Tooltip.Y+TextPad+FontSize*(int32(i)+row)-S_TooltipScroll.Val,
 					FontSize,
 					rl.Black,
 				)
