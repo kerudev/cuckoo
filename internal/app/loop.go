@@ -167,7 +167,7 @@ func handleKeyEvents() {
 func handleMouseEvents() {
 	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
-	if isOverTooltip {
+	if isOverTooltip && S_IsMouseLocked.Val {
 		return
 	}
 
@@ -176,7 +176,7 @@ func handleMouseEvents() {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
-	// Move zoom slider by dragging over grid 
+	// Move zoom slider by dragging over grid
 	if S_Zoom.Val > 1 && rl.IsMouseButtonDown(rl.MouseButtonRight) {
 		mouseX := rl.GetMouseDelta().X
 
