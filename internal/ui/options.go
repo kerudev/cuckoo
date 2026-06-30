@@ -43,10 +43,11 @@ func DrawUIOptions(groupByScroll *int32) {
 
 	rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
 
+	black := rg.NewColorPropertyValue(rl.Black)
+
 	for wd := range S_Weekdays.Val {
 		status := S_Weekdays.Val[wd].Status
 		hex := rg.NewColorPropertyValue(S_Weekdays.Val[wd].Color)
-		black := rg.NewColorPropertyValue(rl.Black)
 
 		// Set styles based on status
 		switch status {
@@ -115,7 +116,7 @@ func DrawUIOptions(groupByScroll *int32) {
 	}
 
 	// Draw option - StepMin
-	if S_GroupBy.Equals(GroupByWdHourMin) {
+	if S_GroupBy.Eq(GroupByWdHourMin) {
 		rl.DrawText("Step of x minutes", 120+Offset.X, Grid.H+Offset.Y*4+TextPad, FontSize, rl.Black)
 		stepMinRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.H + Offset.Y*5, Width: BoxSize, Height: BoxSize}
 
@@ -128,7 +129,7 @@ func DrawUIOptions(groupByScroll *int32) {
 
 func DrawUserOptions(positionScroll *int32) {
 	// User option - TooltipPosition
-	rl.DrawText("Tooltip Position", Offset.X, Grid.H+Offset.Y*7+TextPad, FontSize, rl.Black)
+	rl.DrawText("Tooltip position", Offset.X, Grid.H+Offset.Y*7+TextPad, FontSize, rl.Black)
 	positionRec := rl.RectangleInt32{X: Offset.X, Y: Grid.H + Offset.Y*8, Width: 100, Height: 31*2 + 1}
 
 	positionIdx := int32(Position)

@@ -205,7 +205,7 @@ func CoordsFromJobs(jobs []Job) [][]Coord {
 	for _, job := range jobs {
 		x := float32(job.Hour)
 
-		if S_GroupBy.Equals(GroupByWdHourMin) {
+		if S_GroupBy.Eq(GroupByWdHourMin) {
 			bucket := CalcBucket(job.Min, minuteSegment)
 			x += float32(bucket) / 60
 		}
@@ -273,7 +273,7 @@ func CoordToGrid(coords [][]Coord, Grid *GridRec) [][]GridCoord {
 	Grid.HighestRow = Grid.Rows
 
 	// Remove the last column, as it makes no sense when grouping by hour
-	if S_GroupBy.Equals(GroupByWdHour) {
+	if S_GroupBy.Eq(GroupByWdHour) {
 		Grid.Cols -= 1
 	}
 
@@ -438,7 +438,7 @@ func (s *State[T]) HasChanged() bool {
 	return s.Val != s.Old
 }
 
-func (s *State[T]) Equals(val T) bool {
+func (s *State[T]) Eq(val T) bool {
 	return s.Val == val
 }
 

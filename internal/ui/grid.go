@@ -13,7 +13,7 @@ import (
 func DrawGrid(gridCoords [][]GridCoord) {
 	// Set all values that depend on the previous frame
 	cols := Grid.Cols
-	if S_GroupBy.Equals(GroupByWdHour) {
+	if S_GroupBy.Eq(GroupByWdHour) {
 		cols += 1
 	}
 
@@ -38,7 +38,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 		bgX += Cell.W
 
-		if S_Zoom.Equals(1) {
+		if S_Zoom.Eq(1) {
 			S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.W)))
 		}
 	}
@@ -100,7 +100,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &S_ZoomSlider.Val, 0, float32(Grid.W))
 	}
 
-	// Draw text on X axis
+	// Draw numbers on X axis
 	for col := range cols {
 		text := strconv.Itoa(col)
 
@@ -128,7 +128,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		rl.DrawText(text, int32(textX), Grid.H+Offset.Y+2, FontSize, rl.Black)
 	}
 
-	// Draw text on Y axis
+	// Draw numbers on Y axis
 	textRect := rl.MeasureTextEx(Font, strconv.Itoa(cols), float32(FontSize), 1)
 
 	nRow := 0
