@@ -23,6 +23,9 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		drawGridLines()
 	}
 
+	// Scissor Mode to prevent drawing pixels outside the grid
+	rl.BeginScissorMode(Offset.X, Offset.Y, Grid.Width, Grid.Height)
+
 	// Draw background line on Mouse over
 	bg := rl.NewColor(200, 230, 250, 80)
 	bgX := float32(Offset.X) - C_Zoom.Offset
@@ -33,6 +36,11 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 		if !(mouseInX && mouseInY) {
 			bgX += Cell.W
+
+			if bgX >= float32(Grid.Width+Offset.X) {
+				break
+			}
+
 			continue
 		}
 
@@ -51,9 +59,6 @@ func DrawGrid(gridCoords [][]GridCoord) {
 	if S_Mouse.HasChanged() && S_Zoom.Eq(1) {
 		S_ZoomSlider.Set(Clamp(S_Mouse.Val.X-Cell.W, 0, float32(Grid.Width)))
 	}
-
-	// Scissor Mode to prevent drawing pixels outside the grid
-	rl.BeginScissorMode(Offset.X, Offset.Y, Grid.Width, Grid.Height)
 
 	// Draw coordinates in layers by weekday
 	for wd, dayCoords := range gridCoords {
