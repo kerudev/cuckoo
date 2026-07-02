@@ -21,7 +21,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
 
 	if stateChanged {
-		MouseOver = make([][]GridCoord, WD_COUNT)
+		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
 
 		// Get coords where Mouse is over
@@ -243,7 +243,7 @@ func drawTooltipRec() {
 		// Allow scroll just when mouse is over tooltip
 		if rl.CheckCollisionPointRec(S_Mouse.Val, rec) {
 			scroll := int32(rl.GetMouseWheelMove()) * int32(16)
-	
+
 			if scroll != 0 {
 				S_TooltipScroll.Val -= scroll
 				S_TooltipScroll.Set(Clamp(S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))

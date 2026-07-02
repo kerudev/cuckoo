@@ -82,8 +82,12 @@ func (c Cron) Jobs() []Job {
 					Hour:    h,
 					Weekday: wd,
 				})
+
+				WdCounts[wd].Jobs += 1
 			}
 		}
+
+		WdCounts[wd].Crons += 1
 	}
 
 	return jobs
@@ -203,7 +207,7 @@ func CoordsFromCrons(crons []Cron) [][]Coord {
 }
 
 func CoordsFromJobs(jobs []Job) [][]Coord {
-	result := make([][]Coord, WD_COUNT)
+	result := make([][]Coord, WEEKDAYS)
 
 	minuteSegment := S_StepMin.Val.Factor()
 
@@ -240,7 +244,7 @@ func (c GridCoord) Vector2() rl.Vector2 {
 }
 
 func CoordToGrid(coords [][]Coord) [][]GridCoord {
-	result := make([][]GridCoord, WD_COUNT)
+	result := make([][]GridCoord, WEEKDAYS)
 
 	C_Grid.Rows = INITIAL_ROWS
 	C_Grid.Cols = INITIAL_COLS
@@ -294,7 +298,7 @@ func CoordToGrid(coords [][]Coord) [][]GridCoord {
 	scaledW := float32(Grid.Width) * C_Zoom.Scale
 	highestRowY := float32(Grid.Height) / float32(C_Grid.HighestRow)
 
-	for wd := range WD_COUNT {
+	for wd := range WEEKDAYS {
 		// Translate coordinates to Grid
 		for i := range result[wd] {
 			result[wd][i].OrigY = float32(len(result[wd][i].Jobs))
@@ -468,6 +472,11 @@ type Weekday struct {
 
 func NewWeekday(color rl.Color) Weekday {
 	return Weekday{Status: StatusOn, Color: color, Faded: rl.Fade(color, 0)}
+}
+
+type CountsByWd struct {
+	Crons int
+	Jobs  int
 }
 
 type ToggleParams struct {

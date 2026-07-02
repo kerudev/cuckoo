@@ -6,7 +6,7 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 const INITIAL_ROWS = 10
 const INITIAL_COLS = 24
 const ROWS_CAP = 30
-const WD_COUNT = 7
+const WEEKDAYS = 7
 
 // UI
 var Font = rl.Font{}
@@ -36,7 +36,8 @@ var Cell = Rec[float32]{}
 var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y}
 var Tooltip = rl.RectangleInt32{}
 
-var MouseOver = make([][]GridCoord, WD_COUNT)
+var WdCounts = [WEEKDAYS]CountsByWd{}
+var MouseOver = [WEEKDAYS][]GridCoord{}
 var TotalOver = 0
 
 // Context
@@ -48,7 +49,7 @@ var S_Screen = NewState(Rec[int32]{})
 var S_Mouse = NewState(rl.Vector2{})
 var S_IsMouseLocked = NewState(false)
 
-var S_Weekdays = NewState([WD_COUNT]Weekday{
+var S_Weekdays = NewState([WEEKDAYS]Weekday{
 	NewWeekday(rl.Red),
 	NewWeekday(rl.Orange),
 	NewWeekday(rl.Gold),
