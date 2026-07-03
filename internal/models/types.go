@@ -180,6 +180,8 @@ func (j Job) AsTime() string {
 func JobsFromCrons(crons []Cron) []Job {
 	result := []Job{}
 
+	WdCounts = [WEEKDAYS]CountsByWd{}
+
 	for _, cron := range crons {
 		result = append(result, cron.Jobs()...)
 	}
