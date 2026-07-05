@@ -45,7 +45,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		}
 
 		bgRec := rl.RectangleInt32{
-			X:      int32(bgX) + BoxBorder,
+			X:      int32(bgX) + BoxBorder*2,
 			Y:      Offset.Y,
 			Width:  int32(Cell.W) - BoxBorder*2,
 			Height: Grid.Height,

@@ -30,18 +30,21 @@ func DrawLoop(sample map[string]string) {
 
 		S_Mouse.Set(rl.GetMousePosition())
 
+		if !S_IsMouseLocked.Val {
+			S_MouseWithLock.Set(S_Mouse.Val)
+		}
+
 		// Recalculate Grid and coordinates only when Screen changes size
 		if S_Screen.HasChanged() {
 			Grid.Width = S_Screen.Val.W - Offset.X*2
 			Grid.Height = S_Screen.Val.H - Offset.Y*2 - 200
 
+			S_IsMouseLocked.Set(false)
+
 			gridCoords = CoordToGrid(coords)
 		}
 
 		// Check if a file was dropped and reload coords
-
-		// TODO this sometimes crashes when the file is being dragged over the
-		// window. This may be a problem of Go's bindings
 		if rl.IsFileDropped() {
 			droppedFiles := rl.LoadDroppedFiles()
 
@@ -162,6 +165,7 @@ func handleKeyEvents() {
 }
 
 func handleMouseEvents() {
+	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
 	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
 	if isOverTooltip && S_IsMouseLocked.Val {
@@ -169,12 +173,12 @@ func handleMouseEvents() {
 	}
 
 	// Lock mouse position when clicking coordinates
-	if TotalOver > 0 && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	if TotalOver > 0 && isOverGrid && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
 	// Move zoom slider by dragging over grid
-	if S_Zoom.Val > 1 && rl.IsMouseButtonDown(rl.MouseButtonRight) {
+	if S_Zoom.Val > 1 && isOverGrid && rl.IsMouseButtonDown(rl.MouseButtonRight) {
 		mouseX := rl.GetMouseDelta().X
 
 		if mouseX != 0 {

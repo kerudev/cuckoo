@@ -33,21 +33,21 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 
 			for _, coord := range dayCoords {
 				// If the coordinate is not on the same Y range, skip it
-				if !(S_Mouse.Val.Y >= coord.Y-CoordRadius && S_Mouse.Val.Y <= coord.Y+CoordRadius) {
+				if !(S_MouseWithLock.Val.Y >= coord.Y-CoordRadius && S_MouseWithLock.Val.Y <= coord.Y+CoordRadius) {
 					continue
 				}
 
 				// If the coordinate is behind the Mouse, don't check collisions
-				if S_Mouse.Val.X > coord.X+CoordRadius {
+				if S_MouseWithLock.Val.X > coord.X+CoordRadius {
 					continue
 				}
 
 				// If the coordinate is ahead the Mouse, don't keep iterating
-				if S_Mouse.Val.X+20 <= coord.X {
+				if S_MouseWithLock.Val.X+20 <= coord.X {
 					break
 				}
 
-				if rl.CheckCollisionPointCircle(S_Mouse.Val, coord.Vector2(), CoordRadius) {
+				if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
 					MouseOver[wd] = append(MouseOver[wd], coord)
 					TotalOver++
 				}

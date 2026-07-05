@@ -45,7 +45,7 @@ func DrawUIOptions() {
 
 	black := rg.NewColorPropertyValue(rl.Black)
 
-	for wd := range S_Weekdays.Val {
+	for wd := range WEEKDAYS {
 		status := S_Weekdays.Val[wd].Status
 		hex := rg.NewColorPropertyValue(S_Weekdays.Val[wd].Color)
 

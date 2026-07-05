@@ -47,6 +47,7 @@ var C_Zoom = ZoomContext{Factor: 1, Scale: 1}
 // State
 var S_Screen = NewState(Rec[int32]{})
 var S_Mouse = NewState(rl.Vector2{})
+var S_MouseWithLock = NewState(rl.Vector2{})
 var S_IsMouseLocked = NewState(false)
 
 var S_Weekdays = NewState([WEEKDAYS]Weekday{
