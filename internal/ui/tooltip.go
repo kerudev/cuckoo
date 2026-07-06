@@ -88,7 +88,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 	for _, coords := range MouseOver {
 		for _, coord := range coords {
 			for _, job := range coord.Jobs {
-				time := job.AsTime()
+				time := fmt.Sprintf("%s (%d)", job.AsTime(), int32(coord.OrigY))
 
 				if _, ok := crons[time]; !ok {
 					crons[time] = make(map[string][]string)
