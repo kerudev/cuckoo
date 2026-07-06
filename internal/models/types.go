@@ -248,6 +248,11 @@ func (c GridCoord) Vector2() rl.Vector2 {
 func CoordToGrid(coords [][]Coord) [][]GridCoord {
 	result := make([][]GridCoord, WEEKDAYS)
 
+	// Reset state
+	S_IsMouseLocked.Set(false)
+	S_Mouse.Set(rl.Vector2{})
+
+	// Reset grid values
 	C_Grid.Rows = INITIAL_ROWS
 	C_Grid.Cols = INITIAL_COLS
 

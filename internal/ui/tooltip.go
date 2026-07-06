@@ -132,13 +132,13 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 
 	// Resize tooltip when mouse is unlocked or weekdays changed
 	if !S_IsMouseLocked.Val || S_Weekdays.HasChanged() {
-		S_TooltipHasOverflow.Val = false
+		S_TooltipHasOverflow.Set(false)
 
 		// Prepare Tooltip
 		Tooltip.Width = maxW + TextPad*2
 		Tooltip.Height = FontSize * int32(nRows)
 
-		S_TooltipScrollMax.Val = Tooltip.Height
+		S_TooltipScrollMax.Set(Tooltip.Height)
 
 		padX := Offset.X * 2
 		padY := Offset.Y * 2
@@ -154,7 +154,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 				Tooltip.Height = Grid.Height - padY
 
 				S_TooltipScrollMax.Val -= Tooltip.Height
-				S_TooltipHasOverflow.Val = true
+				S_TooltipHasOverflow.Set(true)
 			}
 
 			// Move to the right when coordinates are on the left side
@@ -191,7 +191,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 					Tooltip.Height = Grid.Height - padY
 
 					S_TooltipScrollMax.Val -= Tooltip.Height
-					S_TooltipHasOverflow.Val = true
+					S_TooltipHasOverflow.Set(true)
 				}
 			}
 
