@@ -288,8 +288,9 @@ func CoordToGrid(coords [][]Coord) [][]GridCoord {
 		C_Grid.Cols -= 1
 	}
 
-	if C_Grid.HighestRow > ROWS_CAP {
-		C_Grid.Rows = INITIAL_ROWS
+	// Reduce rows until they meet the row cap
+	for C_Grid.Rows > ROWS_CAP {
+		C_Grid.Rows /= ROWS_RATIO
 	}
 
 	Cell.W = float32(Grid.Width) / float32(C_Grid.Cols)

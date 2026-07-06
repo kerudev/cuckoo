@@ -6,6 +6,7 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 const INITIAL_ROWS = 10
 const INITIAL_COLS = 24
 const ROWS_CAP = 30
+const ROWS_RATIO = ROWS_CAP / INITIAL_ROWS
 const WEEKDAYS = 7
 
 // UI
