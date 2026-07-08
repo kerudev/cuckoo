@@ -17,12 +17,21 @@ type Numeric interface {
 }
 
 //////////////////////////////
-// Raylib-like types
+// Raylib-like
 //////////////////////////////
 
 type Vector2Int32 struct {
 	X int32
 	Y int32
+}
+
+func NewRectangleInt32(x, y, w, h int32) rl.RectangleInt32 {
+	return rl.RectangleInt32{X: x, Y: y, Width: w, Height: h}
+}
+
+func NewRectangleFromInt32(x, y, w, h int32) rl.Rectangle {
+	rec := NewRectangleInt32(x, y, w, h)
+	return rec.ToFloat32()
 }
 
 //////////////////////////////

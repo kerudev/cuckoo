@@ -21,6 +21,7 @@ func DrawLoop(sample map[string]string) {
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 	rl.InitWindow(800, 700, "Cuckoo")
 	rl.SetWindowMinSize(800, 700)
+	rl.SetExitKey(rl.KeyNull)
 
 	Font = rl.GetFontDefault()
 
@@ -84,6 +85,10 @@ func DrawLoop(sample map[string]string) {
 		ui.DrawFooter()
 		ui.DrawTooltip(gridCoords)
 
+		if ShowHelp {
+			ui.DrawHelp()
+		}
+
 		rl.EndDrawing()
 
 		// Recalculate coordinates based on bucket
@@ -125,11 +130,17 @@ func DrawLoop(sample map[string]string) {
 }
 
 func handleKeyEvents() {
-	// Input event handling (keyboard)
+	// Show or hide help window
+	if rl.IsKeyPressed(rl.KeyH) {
+		ShowHelp = !ShowHelp
+	}
+
+	// Lock or unlock coordinates
 	if rl.IsKeyPressed(rl.KeyL) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
+	// Handle number keys to change Weekdays status
 	key := rl.GetKeyPressed()
 
 	// Return if no key was pressed

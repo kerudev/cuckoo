@@ -41,6 +41,8 @@ var WdCounts = [WEEKDAYS]CountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}
 var TotalOver = 0
 
+var ShowHelp = false
+
 // Context
 var C_Grid = GridContext{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
 var C_Zoom = ZoomContext{Factor: 1, Scale: 1}
