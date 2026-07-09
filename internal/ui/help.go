@@ -8,11 +8,16 @@ import (
 )
 
 var HelpLines = []string{
-	"H - Show this Help window",
+	"-Grid",
+	"LClick/L - Lock coordinates where mouse is over",
+	"Wheel[Up/Down] - Zoom in/out",
+	"LShift + Wheel[Up/Down] - Scroll right/left",
+	"Hold RMouse - Scroll right/left",
+	"-Tooltip",
+	"Wheel[Up/Down] - Scroll up/down",
+	"-",
 	"-Draw options",
 	"1-7 - Toggle weekdays (0-6)",
-	"-",
-	"ESCAPE - Close Window/Exit",
 }
 
 var HelpLineH = int32(24)
