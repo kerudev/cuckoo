@@ -20,7 +20,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		S_Zoom.HasChanged() ||
 		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
 
-	if stateChanged {
+	if stateChanged && !rg.IsLocked() {
 		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
 

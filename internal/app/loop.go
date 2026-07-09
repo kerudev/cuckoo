@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	ui "github.com/kerudev/cuckoo/internal/ui"
@@ -133,6 +134,16 @@ func handleKeyEvents() {
 	// Show or hide help window
 	if rl.IsKeyPressed(rl.KeyH) {
 		ShowHelp = !ShowHelp
+
+		if ShowHelp {
+			rg.Lock()
+		} else {
+			rg.Unlock()
+		}
+	}
+
+	if rg.IsLocked() {
+		return
 	}
 
 	// Lock or unlock coordinates
@@ -176,6 +187,10 @@ func handleKeyEvents() {
 }
 
 func handleMouseEvents() {
+	if rg.IsLocked() {
+		return
+	}
+
 	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
 	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
@@ -203,6 +218,10 @@ func handleMouseEvents() {
 }
 
 func handleMixedEvents() {
+	if rg.IsLocked() {
+		return
+	}
+
 	// Move zoom slider with mouse and key events
 	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
 
