@@ -77,14 +77,11 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		// Draw coordinates
 		for i, coord := range dayCoords {
 			if UserOpt.DrawFade {
-				// Skip drawing gradient after last coordinate
-				if i+1 >= len(dayCoords) {
-					continue
+				// Drawing gradient only before last coordinate
+				if i+1 < len(dayCoords) {
+					next := dayCoords[i+1]
+					drawFade(coord, next, wd)
 				}
-
-				next := dayCoords[i+1]
-
-				drawFade(coord, next, wd)
 			}
 
 			if UserOpt.DrawCoords {
