@@ -94,11 +94,7 @@ func DrawUIOptions() {
 		rg.Toggle(button.ToFloat32(), strconv.Itoa(wd), &active)
 
 		if status != StatusDisabled {
-			S_Weekdays.Val[wd].Status = StatusFromBool(active)
-
-			if !active && All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
-				S_Weekdays.Val[wd].Status = StatusOn
-			}
+			S_Weekdays.Val.SetStatus(wd, active)
 		}
 
 		// Reset style to defaults

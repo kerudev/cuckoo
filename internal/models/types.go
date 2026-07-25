@@ -75,13 +75,13 @@ func (c Cron) String() string {
 func (c Cron) Jobs() []Job {
 	jobs := []Job{}
 
-	Weekdays := ParseCronField(c.Weekday, 0, 6)
+	weekdays := ParseCronField(c.Weekday, 0, 6)
 	hours := ParseCronField(c.Hour, 0, 23)
 	mins := ParseCronField(c.Min, 0, 59)
 
 	s := c.String()
 
-	for _, wd := range Weekdays {
+	for _, wd := range weekdays {
 		for _, h := range hours {
 			for _, m := range mins {
 				jobs = append(jobs, Job{
@@ -233,8 +233,8 @@ func CoordsFromJobs(jobs []Job) [][]Coord {
 		result[job.Weekday] = append(result[job.Weekday], Coord{Job: job, X: x, Y: 1})
 	}
 
-	for wd, coords := range result {
-		if len(coords) <= 0 {
+	for wd, dayCoords := range result {
+		if len(dayCoords) <= 0 {
 			S_Weekdays.Val[wd].Status = StatusDisabled
 		}
 	}
@@ -487,8 +487,18 @@ type Weekday struct {
 	Faded  rl.Color
 }
 
+type Weekdays [WEEKDAYS]Weekday
+
 func NewWeekday(color rl.Color) Weekday {
 	return Weekday{Status: StatusOn, Color: color, Faded: rl.Fade(color, 0)}
+}
+
+func (wds *Weekdays) SetStatus(idx int, active bool) {
+	wds[idx].Status = StatusFromBool(active)
+
+	if !active && All(wds[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
+		wds[idx].Status = StatusOn
+	}
 }
 
 type CountsByWd struct {

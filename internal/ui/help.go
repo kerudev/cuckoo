@@ -8,6 +8,10 @@ import (
 )
 
 var HelpLines = []string{
+	"-Global",
+	"Drag&Drop file to change grid coordinates",
+	"H -  Toggle help window",
+	"-",
 	"-Grid",
 	"LClick/L - Lock coordinates where mouse is over",
 	"Wheel[Up/Down] - Zoom in/out",
@@ -41,7 +45,7 @@ func DrawHelp() {
 				HelpWindow.Height += HelpLineH
 			}
 		}
-		
+
 		HelpWindow.Width = 300
 		HelpWindow.X = (S_Screen.Val.W - HelpWindow.Width) / 2
 		HelpWindow.Y = (S_Screen.Val.H - HelpWindow.Height) / 2

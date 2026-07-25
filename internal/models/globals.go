@@ -53,7 +53,7 @@ var S_Mouse = NewState(rl.Vector2{})
 var S_MouseWithLock = NewState(rl.Vector2{})
 var S_IsMouseLocked = NewState(false)
 
-var S_Weekdays = NewState([WEEKDAYS]Weekday{
+var S_Weekdays = NewState(Weekdays{
 	NewWeekday(rl.Red),
 	NewWeekday(rl.Orange),
 	NewWeekday(rl.Gold),

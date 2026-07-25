@@ -60,6 +60,14 @@ func DrawLoop(sample map[string]string) {
 				coords = CoordsFromCrons(crons)
 				gridCoords = CoordToGrid(coords)
 			}
+
+			for wd, dayCoords := range gridCoords {
+				if len(dayCoords) <= 0 {
+					S_Weekdays.Val[wd].Status = StatusDisabled
+				} else {
+					S_Weekdays.Val[wd].Status = StatusOn
+				}
+			}
 		}
 
 		handleKeyEvents()
@@ -174,15 +182,10 @@ func handleKeyEvents() {
 		return
 	}
 
-	idx := key % mod
+	wd := int(key % mod)
 
-	if S_Weekdays.Val[idx].Status != StatusDisabled {
-		active := S_Weekdays.Val[idx].Status.Bool()
-		S_Weekdays.Val[idx].Status = StatusFromBool(!active)
-
-		if active && All(S_Weekdays.Val[:], func(wd Weekday) bool { return wd.Status != StatusOn }) {
-			S_Weekdays.Val[idx].Status = StatusOn
-		}
+	if S_Weekdays.Val[wd].Status != StatusDisabled {
+		S_Weekdays.Val.SetStatus(wd, !S_Weekdays.Val[wd].Status.Bool())
 	}
 }
 
