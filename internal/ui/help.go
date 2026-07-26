@@ -8,20 +8,34 @@ import (
 )
 
 var HelpLines = []string{
-	"-Global",
-	"Drag&Drop file to change grid coordinates",
-	"H -  Toggle help window",
+	"Drag&Drop file: changes grid coordinates",
+	"H - Toggle help window",
+
 	"-",
+
 	"-Grid",
 	"LClick/L - Lock coordinates where mouse is over",
 	"Wheel[Up/Down] - Zoom in/out",
 	"LShift + Wheel[Up/Down] - Scroll right/left",
 	"Hold RMouse - Scroll right/left",
+
 	"-Tooltip",
 	"Wheel[Up/Down] - Scroll up/down",
+
 	"-",
-	"-Draw options",
+
+	"-UI options",
+	"Group by: ",
+	"Minutes step: group coordinates by bucket",
 	"1-7 - Toggle weekdays (0-6)",
+
+	"-User options",
+	"Tooltip position: change where the tooltip is",
+	"Draw options:",
+	"  - Draw coordinates",
+	"  - Draw lines that join coordinates",
+	"  - Draw fade under coordinates",
+	"  - Draw grid lines",
 }
 
 var HelpLineH = int32(24)

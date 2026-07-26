@@ -113,11 +113,11 @@ func DrawUIOptions() {
 
 	// Draw option - StepMin
 	if S_GroupBy.Eq(GroupByWdHourMin) {
-		rl.DrawText("Step of x minutes", 120+Offset.X, Grid.Height+Offset.Y*4+TextPad, FontSize, rl.Black)
+		rl.DrawText("Minutes step", 120+Offset.X, Grid.Height+Offset.Y*4+TextPad, FontSize, rl.Black)
 		stepMinRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Offset.Y*5, Width: BoxSize, Height: BoxSize}
 
 		stepMinIdx := int32(S_StepMin.Val)
-		rg.ToggleGroup(stepMinRec.ToFloat32(), "#113#;5;10;15;20;30", &stepMinIdx)
+		rg.ToggleGroup(stepMinRec.ToFloat32(), "1;5;10;15;20;30", &stepMinIdx)
 
 		S_StepMin.Set(StepMin(stepMinIdx))
 	}

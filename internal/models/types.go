@@ -343,7 +343,6 @@ type Rec[T Numeric] struct {
 }
 
 type GridRec struct {
-	// Rectangle
 	W int32
 	H int32
 	X int32
