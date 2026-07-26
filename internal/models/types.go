@@ -325,7 +325,7 @@ func CoordToGrid(coords [][]Coord) [][]GridCoord {
 			}
 
 			result[wd][i].X = (result[wd][i].X/float32(C_Grid.Cols))*scaledW + float32(Offset.X) - C_Zoom.Offset
-			result[wd][i].Y = float32(Grid.Height+Offset.Y) - highestRowY*result[wd][i].OrigY
+			result[wd][i].Y = float32(Grid.Height+Grid.Y) - highestRowY*result[wd][i].OrigY
 		}
 
 		// Sort coordinates to draw them in order
@@ -340,13 +340,6 @@ func CoordToGrid(coords [][]Coord) [][]GridCoord {
 type Rec[T Numeric] struct {
 	W T
 	H T
-}
-
-type GridRec struct {
-	W int32
-	H int32
-	X int32
-	Y int32
 }
 
 //////////////////////////////

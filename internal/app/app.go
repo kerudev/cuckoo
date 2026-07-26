@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
-	utils "github.com/kerudev/cuckoo/internal/utils"
 )
 
 func Run() {
@@ -19,8 +17,5 @@ func Run() {
 		os.Exit(1)
 	}
 
-	sample := map[string]string{}
-	utils.ReadPath(path, &sample)
-
-	DrawLoop(sample)
+	DrawLoop(path)
 }

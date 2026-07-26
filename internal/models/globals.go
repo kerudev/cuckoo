@@ -24,6 +24,9 @@ var BoxPad = BoxSize + BoxBorder*2
 var CoordRadius = float32(4.0)
 
 var GridBorder = int32(2)
+var GridBGColor = rl.NewColor(200, 230, 250, 80)
+
+var ZoomSliderH = int32(10)
 
 var TooltipTimeFontSize = int32(16)
 var TooltipScrollW = int32(10)
@@ -34,7 +37,8 @@ var FooterFontSize = int32(16)
 // Internal
 var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = Rec[float32]{}
-var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y}
+
+var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y * 3}
 var Tooltip = rl.RectangleInt32{}
 
 var WdCounts = [WEEKDAYS]CountsByWd{}
@@ -72,6 +76,8 @@ var S_ZoomSlider = NewState(float32(0.0))
 var S_TooltipScroll = NewState(int32(0))
 var S_TooltipScrollMax = NewState(int32(0))
 var S_TooltipHasOverflow = NewState(false)
+
+var S_FileName = NewState("")
 
 // User options
 var UserOpt = UserOptions{

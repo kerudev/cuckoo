@@ -24,15 +24,14 @@ func DrawGrid(gridCoords [][]GridCoord) {
 	}
 
 	// Scissor Mode to prevent drawing pixels outside the grid
-	rl.BeginScissorMode(Offset.X, Offset.Y, Grid.Width, Grid.Height)
+	rl.BeginScissorMode(Offset.X, Grid.Y, Grid.Width, Grid.Height)
 
 	// Draw background line on Mouse over
-	bg := rl.NewColor(200, 230, 250, 80)
 	bgX := float32(Offset.X) - C_Zoom.Offset
 
 	for range cols {
 		mouseInX := bgX < S_Mouse.Val.X && S_Mouse.Val.X <= bgX+Cell.W
-		mouseInY := float32(Offset.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Grid.Height)
+		mouseInY := float32(Grid.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Grid.Height+Grid.Y)
 
 		if !(mouseInX && mouseInY) {
 			bgX += Cell.W
@@ -46,11 +45,11 @@ func DrawGrid(gridCoords [][]GridCoord) {
 
 		bgRec := rl.RectangleInt32{
 			X:      int32(bgX) + BoxBorder*2,
-			Y:      Offset.Y,
+			Y:      Grid.Y,
 			Width:  int32(Cell.W) - BoxBorder*2,
 			Height: Grid.Height,
 		}
-		rl.DrawRectangleRec(bgRec.ToFloat32(), bg)
+		rl.DrawRectangleRec(bgRec.ToFloat32(), GridBGColor)
 
 		break
 	}
@@ -107,7 +106,12 @@ func DrawGrid(gridCoords [][]GridCoord) {
 		scrollW := Grid.Width - GridBorder*2
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/C_Zoom.Scale))
 
-		zoomSliderRec := rl.RectangleInt32{X: Offset.X + GridBorder, Y: Grid.Height + TextPad, Width: scrollW, Height: 10}
+		zoomSliderRec := rl.RectangleInt32{
+			X:      Offset.X + GridBorder,
+			Y:      Grid.Height + Grid.Y - ZoomSliderH - GridBorder,
+			Width:  scrollW,
+			Height: ZoomSliderH,
+		}
 		rg.Slider(zoomSliderRec.ToFloat32(), "", "", &S_ZoomSlider.Val, 0, float32(Grid.Width))
 	}
 
@@ -136,7 +140,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 			}
 		}
 
-		rl.DrawText(text, int32(textX), Grid.Height+Offset.Y+2, FontSize, rl.Black)
+		rl.DrawText(text, int32(textX), Grid.Height+Grid.Y+2, FontSize, rl.Black)
 	}
 
 	// Draw numbers on Y axis
@@ -163,19 +167,18 @@ func DrawGrid(gridCoords [][]GridCoord) {
 			Y: textRect.Y + rl.Lerp(0.0, textRect.Y-textSize.Y, 0.5),
 		}
 
-		textY := float32(Grid.Height+Offset.Y) - Cell.H*float32(nRow) - textPos.Y/2
+		textY := float32(Grid.Height+Grid.Y) - Cell.H*float32(nRow) - textPos.Y/2
 		nRow++
 
 		rl.DrawText(text, int32(textPos.X-float32(Offset.X)/2), int32(textY), FontSize, rl.Black)
 	}
 
 	// Draw Grid container
-	gridRec := rl.RectangleInt32{X: Offset.X, Y: Offset.Y, Width: Grid.Width, Height: Grid.Height}
-	rl.DrawRectangleLinesEx(gridRec.ToFloat32(), 2, rl.Black)
+	rl.DrawRectangleLinesEx(Grid.ToFloat32(), 2, rl.Black)
 }
 
 func drawGridLines() {
-	// Draw lines vertically
+	// Draw vertical lines
 	colX := float32(Offset.X) - C_Zoom.Offset
 
 	for range C_Grid.Cols {
@@ -190,15 +193,15 @@ func drawGridLines() {
 		}
 
 		rl.DrawLineEx(
-			rl.Vector2{X: colX, Y: float32(Offset.Y)},
-			rl.Vector2{X: colX, Y: float32(Grid.Height + Offset.Y)},
+			rl.Vector2{X: colX, Y: float32(Grid.Y)},
+			rl.Vector2{X: colX, Y: float32(Grid.Height + Grid.Y)},
 			float32(GridBorder),
 			rl.LightGray,
 		)
 	}
 
-	// Draw lines horizontally
-	rowY := float32(Offset.Y)
+	// Draw horizontal lines
+	rowY := float32(Grid.Y)
 
 	for range C_Grid.Rows {
 		rowY += Cell.H
@@ -298,7 +301,7 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 
 	// Draw gradient below graph
 	w := int32(next.X) - int32(coord.X)
-	h := Grid.Height + Offset.Y - int32(mid.Y)
+	h := Grid.Height + Grid.Y - int32(mid.Y)
 
 	// Calculate rectangle fade based on highest coordinate
 	recColor := rl.Fade(color, recAlpha*Cell.H/(float32(C_Grid.HighestY)*Cell.H))

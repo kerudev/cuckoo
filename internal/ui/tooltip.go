@@ -141,7 +141,9 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		S_TooltipScrollMax.Set(Tooltip.Height)
 
 		padX := Offset.X * 2
-		padY := Offset.Y * 2
+		padY := Offset.Y + Grid.Y
+
+		padYInner := Offset.Y * 2
 
 		switch Position {
 		case PositionGrid:
@@ -149,9 +151,9 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 			Tooltip.Y = padY
 
 			// Clamp height when it's too large
-			if Tooltip.Height > Grid.Height-padY {
+			if Tooltip.Height > Grid.Height-padYInner {
 				Tooltip.Width += TooltipScrollW
-				Tooltip.Height = Grid.Height - padY
+				Tooltip.Height = Grid.Height - padYInner
 
 				S_TooltipScrollMax.Val -= Tooltip.Height
 				S_TooltipHasOverflow.Set(true)
@@ -180,15 +182,15 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 				Tooltip.Y -= Tooltip.Height
 
 				// Move upwards
-				if Tooltip.Y < Offset.Y {
-					Tooltip.Y = Offset.Y * 2
+				if Tooltip.Y < Grid.Y {
+					Tooltip.Y = Grid.Y + Offset.Y
 					Tooltip.Height = Clamp(Tooltip.Height, padY, Tooltip.Height)
 				}
 
 				// Clamp height when it's too large
-				if Tooltip.Height > Grid.Height-padY {
+				if Tooltip.Height > Grid.Height-padYInner {
 					Tooltip.Width += TooltipScrollW
-					Tooltip.Height = Grid.Height - padY
+					Tooltip.Height = Grid.Height - padYInner
 
 					S_TooltipScrollMax.Val -= Tooltip.Height
 					S_TooltipHasOverflow.Set(true)

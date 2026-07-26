@@ -3,25 +3,38 @@ package app
 import (
 	"fmt"
 	"math"
+	"path/filepath"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	ui "github.com/kerudev/cuckoo/internal/ui"
+	utils "github.com/kerudev/cuckoo/internal/utils"
 
 	. "github.com/kerudev/cuckoo/internal/models"
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-func DrawLoop(sample map[string]string) {
+func DrawLoop(path string) {
+	sample := map[string]string{}
+	utils.ReadPath(path, &sample)
+
+	// Init cuckoo internals and state
 	crons := CronsFromStrings(sample)
 	coords := CoordsFromCrons(crons)
-
 	gridCoords := [][]GridCoord{}
 
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	S_FileName.Set(absPath)
+
+	// Init raylib
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
-	rl.InitWindow(800, 700, "Cuckoo")
-	rl.SetWindowMinSize(800, 700)
+	rl.InitWindow(800, 800, "Cuckoo")
+	rl.SetWindowMinSize(800, 800)
 	rl.SetExitKey(rl.KeyNull)
 
 	Font = rl.GetFontDefault()
@@ -39,7 +52,7 @@ func DrawLoop(sample map[string]string) {
 		// Recalculate Grid and coordinates only when Screen changes size
 		if S_Screen.HasChanged() {
 			Grid.Width = S_Screen.Val.W - Offset.X*2
-			Grid.Height = S_Screen.Val.H - Offset.Y*2 - 200
+			Grid.Height = S_Screen.Val.H - Grid.Y - Offset.Y - 200
 
 			S_IsMouseLocked.Set(false)
 
@@ -81,15 +94,15 @@ func DrawLoop(sample map[string]string) {
 
 		ui.DrawUIOptions()
 
-		// Vertical line
-		lineY := Grid.Height + Offset.Y*7 - TextPad/2
+		// Horizontal line
+		lineY := Grid.Height + Grid.Y + Offset.Y*6 - TextPad/2
 		rl.DrawLine(Offset.X, lineY, 290, lineY, rl.Gray)
 
 		ui.DrawUserOptions()
 
-		// Horizontal line
+		// Vertical line
 		lineX := 150 + Offset.X + BoxPad*6
-		rl.DrawLine(lineX, Grid.Height+Offset.Y*2+TextPad, lineX, S_Screen.Val.H-Offset.Y, rl.Gray)
+		rl.DrawLine(lineX, Grid.Height+Grid.Y+Offset.Y+TextPad, lineX, S_Screen.Val.H-Offset.Y, rl.Gray)
 
 		ui.DrawFooter()
 		ui.DrawTooltip(gridCoords)

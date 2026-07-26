@@ -10,7 +10,7 @@ import (
 
 func DrawFooter() {
 	footerX := S_Screen.Val.W - Offset.X - FooterW
-	footerY := Grid.Height + Offset.Y*2 + FontSize*2
+	footerY := Grid.Height + Grid.Y + Offset.Y + FontSize*2
 
 	// text := "Drop file to change sample"
 	// textW := rl.MeasureText(text, FooterFontSize)
@@ -18,7 +18,7 @@ func DrawFooter() {
 	text := "Count of crons & jobs"
 	textW := rl.MeasureText(text, FontSize)
 
-	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Grid.Height+Offset.Y*2, FontSize, rl.Black)
+	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Grid.Height+Grid.Y+Offset.Y, FontSize, rl.Black)
 
 	totalCrons := 0
 	totalJobs := 0
@@ -34,11 +34,11 @@ func DrawFooter() {
 			s = "0 (0)"
 		}
 
-		rl.DrawCircle(footerX+TextPad, footerY+TextPad*2*int32(wd)+FontRadius, float32(FontRadius), S_Weekdays.Val[wd].Color)
-		rl.DrawText(s, footerX+TextPad+FontRadius*2, footerY+TextPad*2*int32(wd), FontSize, rl.Black)
+		rl.DrawCircle(footerX-TextPad, footerY+TextPad*2*int32(wd)+FontRadius, float32(FontRadius), S_Weekdays.Val[wd].Color)
+		rl.DrawText(s, footerX+TextPad, footerY+TextPad*2*int32(wd), FontSize, rl.Black)
 	}
 
-	rl.DrawText(fmt.Sprintf("%d (%d)", totalCrons, totalJobs), footerX+TextPad+FontRadius*2, footerY+TextPad*2*WEEKDAYS, FontSize, rl.Black)
+	rl.DrawText(fmt.Sprintf("%d (%d)", totalCrons, totalJobs), footerX+TextPad, footerY+TextPad*2*WEEKDAYS, FontSize, rl.Black)
 
 	// texts := []string{
 	// 	fmt.Sprintf("Scale: x%.2f", C_Zoom.Scale),

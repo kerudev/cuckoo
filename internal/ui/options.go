@@ -12,8 +12,8 @@ import (
 
 func DrawUIOptions() {
 	// Draw option - GroupBy
-	rl.DrawText("Group by", Offset.X, Grid.Height+Offset.Y*2+TextPad, FontSize, rl.Black)
-	groupByRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Offset.Y*3, Width: 100, Height: 31*2 + 1}
+	rl.DrawText("Group by", Offset.X, Grid.Height+Grid.Y+Offset.Y+TextPad, FontSize, rl.Black)
+	groupByRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*2, Width: 100, Height: 31*2 + 1}
 	groupByIdx := int32(S_GroupBy.Val)
 	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", nil, &groupByIdx)
 
@@ -27,7 +27,7 @@ func DrawUIOptions() {
 	// Check the implementation of GuiLoadStyleDefault for additional keys
 	// https://github.com/raysan5/raygui/blob/master/src/raygui.h
 
-	rl.DrawText("Weekdays", 120+Offset.X, Grid.Height+Offset.Y*2+TextPad, FontSize, rl.Black)
+	rl.DrawText("Weekdays", 120+Offset.X, Grid.Height+Grid.Y+Offset.Y+TextPad, FontSize, rl.Black)
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
@@ -85,7 +85,7 @@ func DrawUIOptions() {
 
 		button := rl.RectangleInt32{
 			X:      120 + Offset.X + BoxPad*int32(wd),
-			Y:      Grid.Height + Offset.Y*3,
+			Y:      Grid.Height + Grid.Y + Offset.Y*2,
 			Width:  BoxSize,
 			Height: BoxSize,
 		}
@@ -113,8 +113,8 @@ func DrawUIOptions() {
 
 	// Draw option - StepMin
 	if S_GroupBy.Eq(GroupByWdHourMin) {
-		rl.DrawText("Minutes step", 120+Offset.X, Grid.Height+Offset.Y*4+TextPad, FontSize, rl.Black)
-		stepMinRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Offset.Y*5, Width: BoxSize, Height: BoxSize}
+		rl.DrawText("Minutes step", 120+Offset.X, Grid.Height+Grid.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
+		stepMinRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*4, Width: BoxSize, Height: BoxSize}
 
 		stepMinIdx := int32(S_StepMin.Val)
 		rg.ToggleGroup(stepMinRec.ToFloat32(), "1;5;10;15;20;30", &stepMinIdx)
@@ -125,8 +125,8 @@ func DrawUIOptions() {
 
 func DrawUserOptions() {
 	// User option - TooltipPosition
-	rl.DrawText("Tooltip position", Offset.X, Grid.Height+Offset.Y*7+TextPad, FontSize, rl.Black)
-	positionRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Offset.Y*8, Width: 100, Height: 31*2 + 1}
+	rl.DrawText("Tooltip position", Offset.X, Grid.Height+Grid.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
+	positionRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*7, Width: 100, Height: 31*2 + 1}
 
 	positionIdx := int32(Position)
 	rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", nil, &positionIdx)
@@ -137,7 +137,7 @@ func DrawUserOptions() {
 	}
 
 	// User option - Draw options
-	rl.DrawText("Draw options", 120+Offset.X, Grid.Height+Offset.Y*7+TextPad, FontSize, rl.Black)
+	rl.DrawText("Draw options", 120+Offset.X, Grid.Height+Grid.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
 
 	drawCoordsIcon := "#213#"
 	if UserOpt.DrawCoords {
@@ -151,7 +151,7 @@ func DrawUserOptions() {
 		{"#97#", &UserOpt.DrawGrid},
 	}
 
-	toggleRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Offset.Y*8, Width: BoxSize, Height: BoxSize}
+	toggleRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*7, Width: BoxSize, Height: BoxSize}
 
 	for _, params := range options {
 		rg.Toggle(toggleRec.ToFloat32(), params.Icon, params.Ptr)
