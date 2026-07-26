@@ -127,6 +127,7 @@ func DrawLoop(sample map[string]string) {
 		// Reset tooltip scroll
 		if S_IsMouseLocked.HasChanged() {
 			S_TooltipScroll.Set(0)
+			S_Mouse.Set(rl.Vector2{})
 		}
 
 		// Save each state for next frame
