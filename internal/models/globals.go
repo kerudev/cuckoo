@@ -9,8 +9,11 @@ const ROWS_CAP = 30
 const ROWS_RATIO = ROWS_CAP / INITIAL_ROWS
 const WEEKDAYS = 7
 
-// UI
+// UI (runtime)
 var Font = rl.Font{}
+var ListViewItemH = int32(0)
+
+// UI (constants)
 var FontSize = int32(12)
 var FontRadius = FontSize / 2
 var TextPad = int32(8)
@@ -21,6 +24,7 @@ var BoxSegments = int32(8)
 var BoxSize = int32(20)
 var BoxBorder = int32(1)
 var BoxPad = BoxSize + BoxBorder*2
+
 var CoordRadius = float32(4.0)
 
 var GridBorder = int32(2)
@@ -78,6 +82,7 @@ var S_TooltipScrollMax = NewState(int32(0))
 var S_TooltipHasOverflow = NewState(false)
 
 var S_FileName = NewState("")
+var S_FilePicker = NewState(false)
 
 // User options
 var UserOpt = UserOptions{

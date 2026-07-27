@@ -38,6 +38,7 @@ func DrawLoop(path string) {
 	rl.SetExitKey(rl.KeyNull)
 
 	Font = rl.GetFontDefault()
+	ListViewItemH = int32(rg.GetStyle(rg.LISTVIEW, rg.LIST_ITEMS_HEIGHT) + rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)*2 + 1)
 
 	for !rl.WindowShouldClose() {
 		S_Screen.Val.W = int32(rl.GetScreenWidth())
@@ -106,6 +107,8 @@ func DrawLoop(path string) {
 
 		ui.DrawFooter()
 		ui.DrawTooltip(gridCoords)
+
+		ui.DrawFilePicker()
 
 		if ShowHelp {
 			ui.DrawHelp()

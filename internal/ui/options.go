@@ -13,7 +13,7 @@ import (
 func DrawUIOptions() {
 	// Draw option - GroupBy
 	rl.DrawText("Group by", Offset.X, Grid.Height+Grid.Y+Offset.Y+TextPad, FontSize, rl.Black)
-	groupByRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*2, Width: 100, Height: 31*2 + 1}
+	groupByRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*2, Width: 100, Height: ListViewItemH*2 + 2}
 	groupByIdx := int32(S_GroupBy.Val)
 	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", nil, &groupByIdx)
 
@@ -126,7 +126,7 @@ func DrawUIOptions() {
 func DrawUserOptions() {
 	// User option - TooltipPosition
 	rl.DrawText("Tooltip position", Offset.X, Grid.Height+Grid.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
-	positionRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*7, Width: 100, Height: 31*2 + 1}
+	positionRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*7, Width: 100, Height: ListViewItemH*2 + 2}
 
 	positionIdx := int32(Position)
 	rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", nil, &positionIdx)
