@@ -20,10 +20,9 @@ var S_FileFocused = NewState(int32(-1))
 var allowed = []string{".json"}
 
 func DrawFilePicker() {
-	// backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
 	// okButtonClicked := rg.Button(NewRectangleFromInt32(S_Screen.Val.W-Offset.X*2, Offset.Y, BoxSize, BoxSize), "OK")
 
-	rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
+	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
 	fileButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X+BoxSize+4, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxSize*2-8, BoxSize), S_FileName.Val)
 	rg.Button(NewRectangleFromInt32(S_Screen.Val.W-Offset.X*2, Offset.Y, BoxSize, BoxSize), "OK")
 
@@ -36,7 +35,18 @@ func DrawFilePicker() {
 		return
 	}
 
-	dirFiles, err := os.ReadDir(filepath.Dir(S_FileName.Val))
+	dirName := filepath.Dir(S_FileName.Val)
+
+	stat, err := os.Stat(S_FileName.Val)
+	if stat.IsDir() {
+		dirName = S_FileName.Val
+	}
+
+	if backButtonClicked {
+		S_FileName.Set(filepath.Dir(dirName))
+	}
+
+	dirFiles, err := os.ReadDir(dirName)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -68,7 +78,14 @@ func DrawFilePicker() {
 	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(def_LISTVIEW_BORDER_WIDTH))
 
 	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
-		S_FileName.Set(filepath.Join(filepath.Dir(S_FileName.Val), files[S_FileScroll.Val]))
+		newPath := ""
+		if stat.IsDir() {
+			newPath = filepath.Join(S_FileName.Val, files[S_FileScroll.Val])
+		} else {
+			newPath = filepath.Join(filepath.Dir(S_FileName.Val), files[S_FileScroll.Val])
+		}
+		
+		S_FileName.Set(newPath)
 	}
 
 	filePickerBG := Grid

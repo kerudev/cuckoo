@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
@@ -15,9 +16,9 @@ import (
 )
 
 var sample = map[string]string{}
-var	crons = []Cron{}
-var	coords = [][]Coord{}
-var	gridCoords = [][]GridCoord{}
+var crons = []Cron{}
+var coords = [][]Coord{}
+var gridCoords = [][]GridCoord{}
 
 func DrawLoop(path string) {
 	// Init cuckoo internals and state
@@ -142,7 +143,12 @@ func DrawLoop(path string) {
 }
 
 func handleNewFile(path string) {
-	sample := map[string]string{}
+	stat, _ := os.Stat(path)
+	if stat.IsDir() {
+		return
+	}
+
+	sample = map[string]string{}
 	err := ReadPath(path, &sample)
 
 	if err != nil {
