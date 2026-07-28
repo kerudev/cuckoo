@@ -55,6 +55,8 @@ func DrawLoop(path string) {
 			Grid.Width = S_Screen.Val.W - Offset.X*2
 			Grid.Height = S_Screen.Val.H - Grid.Y - Offset.Y - 200
 
+			Footer.Y = Grid.Height + Grid.Y
+
 			S_IsMouseLocked.Set(false)
 
 			gridCoords = CoordToGrid(coords)
@@ -73,18 +75,6 @@ func DrawLoop(path string) {
 		rl.ClearBackground(rl.RayWhite)
 
 		ui.DrawGrid(gridCoords)
-
-		ui.DrawUIOptions()
-
-		// Horizontal line
-		lineY := Grid.Height + Grid.Y + Offset.Y*6 - TextPad/2
-		rl.DrawLine(Offset.X, lineY, 290, lineY, rl.Gray)
-
-		ui.DrawUserOptions()
-
-		// Vertical line
-		lineX := 150 + Offset.X + BoxPad*6
-		rl.DrawLine(lineX, Grid.Height+Grid.Y+Offset.Y+TextPad, lineX, S_Screen.Val.H-Offset.Y, rl.Gray)
 
 		ui.DrawFooter()
 		ui.DrawTooltip(gridCoords)

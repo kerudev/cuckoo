@@ -235,12 +235,12 @@ func drawTooltipRec() {
 
 		rg.SetStyle(rg.BUTTON, rg.BASE_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BASE_COLOR_NORMAL))
 
-		tooltipScrollRec := rl.RectangleInt32{
-			X:      Tooltip.X + Tooltip.Width - TooltipScrollW,
-			Y:      Tooltip.Y + int32(BoxRadius),
-			Width:  TooltipScrollW,
-			Height: Tooltip.Height - int32(BoxDiameter),
-		}
+		tooltipScrollRec := NewRectangleFromInt32(
+			Tooltip.X + Tooltip.Width - TooltipScrollW,
+			Tooltip.Y + int32(BoxRadius),
+			TooltipScrollW,
+			Tooltip.Height - int32(BoxDiameter),
+		)
 
 		// Allow scroll just when mouse is over tooltip
 		if rl.CheckCollisionPointRec(S_Mouse.Val, rec) {
@@ -252,7 +252,7 @@ func drawTooltipRec() {
 			}
 		}
 
-		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec.ToFloat32(), S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
+		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec, S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
 	}
 }
 

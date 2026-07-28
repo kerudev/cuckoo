@@ -9,8 +9,24 @@ import (
 )
 
 func DrawFooter() {
+	DrawUIOptions()
+
+	// Horizontal line
+	lineY := Footer.Y + Offset.Y*6 - TextPad/2
+	rl.DrawLine(Offset.X, lineY, 290, lineY, rl.Gray)
+
+	DrawUserOptions()
+
+	// Vertical line
+	lineX := 150 + Offset.X + BoxPad*6
+	rl.DrawLine(lineX, Footer.Y+Offset.Y+TextPad, lineX, S_Screen.Val.H-Offset.Y, rl.Gray)
+
+	drawFooterData()
+}
+
+func drawFooterData() {
 	footerX := S_Screen.Val.W - Offset.X - FooterW
-	footerY := Grid.Height + Grid.Y + Offset.Y + FontSize*2
+	footerY := Footer.Y + Offset.Y + FontSize*2
 
 	// text := "Drop file to change sample"
 	// textW := rl.MeasureText(text, FooterFontSize)
@@ -18,7 +34,7 @@ func DrawFooter() {
 	text := "Count of crons & jobs"
 	textW := rl.MeasureText(text, FontSize)
 
-	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Grid.Height+Grid.Y+Offset.Y, FontSize, rl.Black)
+	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
 
 	totalCrons := 0
 	totalJobs := 0

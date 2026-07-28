@@ -12,10 +12,10 @@ import (
 
 func DrawUIOptions() {
 	// Draw option - GroupBy
-	rl.DrawText("Group by", Offset.X, Grid.Height+Grid.Y+Offset.Y+TextPad, FontSize, rl.Black)
-	groupByRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*2, Width: 100, Height: ListViewItemH*2 + 2}
+	rl.DrawText("Group by", Offset.X, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
+	groupByRec := NewRectangleFromInt32(Offset.X, Footer.Y + Offset.Y*2, 100, ListViewItemH*2 + 2)
 	groupByIdx := int32(S_GroupBy.Val)
-	rg.ListView(groupByRec.ToFloat32(), "Wd+Hour;Wd+Hour+Min", nil, &groupByIdx)
+	rg.ListView(groupByRec, "Wd+Hour;Wd+Hour+Min", nil, &groupByIdx)
 
 	// Prevent ListView from having nothing selected
 	if groupByIdx >= 0 {
@@ -27,7 +27,7 @@ func DrawUIOptions() {
 	// Check the implementation of GuiLoadStyleDefault for additional keys
 	// https://github.com/raysan5/raygui/blob/master/src/raygui.h
 
-	rl.DrawText("Weekdays", 120+Offset.X, Grid.Height+Grid.Y+Offset.Y+TextPad, FontSize, rl.Black)
+	rl.DrawText("Weekdays", 120+Offset.X, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
 
 	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
 
@@ -83,15 +83,10 @@ func DrawUIOptions() {
 			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, LerpHex(hex, 0.7))
 		}
 
-		button := rl.RectangleInt32{
-			X:      120 + Offset.X + BoxPad*int32(wd),
-			Y:      Grid.Height + Grid.Y + Offset.Y*2,
-			Width:  BoxSize,
-			Height: BoxSize,
-		}
-
 		active := status.Bool()
-		rg.Toggle(button.ToFloat32(), strconv.Itoa(wd), &active)
+
+		button := NewRectangleFromInt32(120 + Offset.X + BoxPad*int32(wd), Footer.Y + Offset.Y*2,BoxSize, BoxSize)
+		rg.Toggle(button, strconv.Itoa(wd), &active)
 
 		if status != StatusDisabled {
 			S_Weekdays.Val.SetStatus(wd, active)
@@ -113,11 +108,11 @@ func DrawUIOptions() {
 
 	// Draw option - StepMin
 	if S_GroupBy.Eq(GroupByWdHourMin) {
-		rl.DrawText("Minutes step", 120+Offset.X, Grid.Height+Grid.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
-		stepMinRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*4, Width: BoxSize, Height: BoxSize}
+		rl.DrawText("Minutes step", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
+		stepMinRec := NewRectangleFromInt32(120 + Offset.X, Footer.Y + Offset.Y*4, BoxSize, BoxSize)
 
 		stepMinIdx := int32(S_StepMin.Val)
-		rg.ToggleGroup(stepMinRec.ToFloat32(), "1;5;10;15;20;30", &stepMinIdx)
+		rg.ToggleGroup(stepMinRec, "1;5;10;15;20;30", &stepMinIdx)
 
 		S_StepMin.Set(StepMin(stepMinIdx))
 	}
@@ -125,11 +120,11 @@ func DrawUIOptions() {
 
 func DrawUserOptions() {
 	// User option - TooltipPosition
-	rl.DrawText("Tooltip position", Offset.X, Grid.Height+Grid.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
-	positionRec := rl.RectangleInt32{X: Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*7, Width: 100, Height: ListViewItemH*2 + 2}
+	rl.DrawText("Tooltip position", Offset.X, Footer.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
+	positionRec := NewRectangleFromInt32(Offset.X, Footer.Y + Offset.Y*7, 100, ListViewItemH*2 + 2)
 
 	positionIdx := int32(Position)
-	rg.ListView(positionRec.ToFloat32(), "Grid;Coordinate", nil, &positionIdx)
+	rg.ListView(positionRec, "Grid;Coordinate", nil, &positionIdx)
 
 	// Prevent ListView from having nothing selected
 	if positionIdx >= 0 {
@@ -137,7 +132,7 @@ func DrawUserOptions() {
 	}
 
 	// User option - Draw options
-	rl.DrawText("Draw options", 120+Offset.X, Grid.Height+Grid.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
+	rl.DrawText("Draw options", 120+Offset.X, Footer.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
 
 	drawCoordsIcon := "#213#"
 	if UserOpt.DrawCoords {
@@ -151,11 +146,11 @@ func DrawUserOptions() {
 		{"#97#", &UserOpt.DrawGrid},
 	}
 
-	toggleRec := rl.RectangleInt32{X: 120 + Offset.X, Y: Grid.Height + Grid.Y + Offset.Y*7, Width: BoxSize, Height: BoxSize}
+	toggleRec := NewRectangleFromInt32(120 + Offset.X, Footer.Y + Offset.Y*7, BoxSize, BoxSize)
 
 	for _, params := range options {
-		rg.Toggle(toggleRec.ToFloat32(), params.Icon, params.Ptr)
-		toggleRec.X += BoxPad
+		rg.Toggle(toggleRec, params.Icon, params.Ptr)
+		toggleRec.X += float32(BoxPad)
 	}
 
 	if !UserOpt.DrawCoords && !UserOpt.DrawLines && !UserOpt.DrawFade {

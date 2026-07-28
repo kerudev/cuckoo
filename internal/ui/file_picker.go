@@ -72,13 +72,13 @@ func DrawFilePicker() {
 	files := append(dirs, data...)
 	count := Clamp(int32(len(files)), 0, 6)
 
-	filePicker := Grid
-	filePicker.Height = count * ListViewItemH
+	filePicker := Grid.ToFloat32()
+	filePicker.Height = float32(count * ListViewItemH)
 
 	def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
 
 	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
-	rg.ListViewEx(filePicker.ToFloat32(), files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
+	rg.ListViewEx(filePicker, files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
 	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
 
 	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
@@ -95,9 +95,9 @@ func DrawFilePicker() {
 		S_FileName.Set(newPath)
 	}
 
-	filePickerBG := Grid
+	filePickerBG := Grid.ToFloat32()
 	filePickerBG.Y = filePicker.Y + filePicker.Height
-	filePickerBG.Height = Grid.Height - filePicker.Height
+	filePickerBG.Height = float32(Grid.Height) - filePicker.Height
 
-	rg.DrawRectangle(filePickerBG.ToFloat32(), 0, rl.Black, rl.Fade(rl.White, 0.8))
+	rg.DrawRectangle(filePickerBG, 0, rl.Black, rl.Fade(rl.White, 0.8))
 }

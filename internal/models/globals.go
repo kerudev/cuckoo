@@ -43,6 +43,7 @@ var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = Rec[float32]{}
 
 var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y * 3}
+var Footer = rl.RectangleInt32{}
 var Tooltip = rl.RectangleInt32{}
 
 var WdCounts = [WEEKDAYS]CountsByWd{}
