@@ -9,21 +9,19 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	ui "github.com/kerudev/cuckoo/internal/ui"
-	utils "github.com/kerudev/cuckoo/internal/utils"
 
 	. "github.com/kerudev/cuckoo/internal/models"
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-func DrawLoop(path string) {
-	// TODO handle possible error while reading path
-	sample := map[string]string{}
-	utils.ReadPath(path, &sample)
+var sample = map[string]string{}
+var	crons = []Cron{}
+var	coords = [][]Coord{}
+var	gridCoords = [][]GridCoord{}
 
+func DrawLoop(path string) {
 	// Init cuckoo internals and state
-	crons := CronsFromStrings(sample)
-	coords := CoordsFromCrons(crons)
-	gridCoords := [][]GridCoord{}
+	handleNewFile(path)
 
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -63,26 +61,7 @@ func DrawLoop(path string) {
 
 		// Check if a file was dropped and reload coords
 		if rl.IsFileDropped() {
-			droppedFiles := rl.LoadDroppedFiles()
-
-			sample = map[string]string{}
-			err := ReadPath(droppedFiles[0], &sample)
-
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				crons = CronsFromStrings(sample)
-				coords = CoordsFromCrons(crons)
-				gridCoords = CoordToGrid(coords)
-			}
-
-			for wd, dayCoords := range gridCoords {
-				if len(dayCoords) <= 0 {
-					S_Weekdays.Val[wd].Status = StatusDisabled
-				} else {
-					S_Weekdays.Val[wd].Status = StatusOn
-				}
-			}
+			handleNewFile(rl.LoadDroppedFiles()[0])
 		}
 
 		handleKeyEvents()
@@ -120,16 +99,7 @@ func DrawLoop(path string) {
 		// Recalculate coordinates when the file picker gets closed and a new file is chosen
 		// if S_FileName.HasChanged() && S_FilePicker.HasChanged() && S_FilePicker.Val {
 		if S_FileName.HasChanged() {
-			sample = map[string]string{}
-			err := utils.ReadPath(S_FileName.Val, &sample)
-
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				crons = CronsFromStrings(sample)
-				coords = CoordsFromCrons(crons)
-				gridCoords = CoordToGrid(coords)
-			}
+			handleNewFile(S_FileName.Val)
 		}
 
 		// Recalculate coordinates based on bucket
@@ -169,6 +139,27 @@ func DrawLoop(path string) {
 	}
 
 	rl.CloseWindow()
+}
+
+func handleNewFile(path string) {
+	sample := map[string]string{}
+	err := ReadPath(path, &sample)
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		crons = CronsFromStrings(sample)
+		coords = CoordsFromCrons(crons)
+		gridCoords = CoordToGrid(coords)
+	}
+
+	for wd, dayCoords := range gridCoords {
+		if len(dayCoords) <= 0 {
+			S_Weekdays.Val[wd].Status = StatusDisabled
+		} else {
+			S_Weekdays.Val[wd].Status = StatusOn
+		}
+	}
 }
 
 func handleKeyEvents() {
