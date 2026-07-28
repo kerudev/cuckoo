@@ -16,6 +16,7 @@ import (
 )
 
 func DrawLoop(path string) {
+	// TODO handle possible error while reading path
 	sample := map[string]string{}
 	utils.ReadPath(path, &sample)
 
@@ -115,6 +116,21 @@ func DrawLoop(path string) {
 		}
 
 		rl.EndDrawing()
+
+		// Recalculate coordinates when the file picker gets closed and a new file is chosen
+		// if S_FileName.HasChanged() && S_FilePicker.HasChanged() && S_FilePicker.Val {
+		if S_FileName.HasChanged() {
+			sample = map[string]string{}
+			err := utils.ReadPath(S_FileName.Val, &sample)
+
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				crons = CronsFromStrings(sample)
+				coords = CoordsFromCrons(crons)
+				gridCoords = CoordToGrid(coords)
+			}
+		}
 
 		// Recalculate coordinates based on bucket
 		if S_StepMin.HasChanged() {

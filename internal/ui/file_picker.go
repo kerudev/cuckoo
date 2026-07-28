@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"slices"
 
@@ -11,11 +10,12 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-var fileScrollIdx = int32(0)
-var fileActive = int32(-1)
-var fileFocused = int32(-1)
+var S_FileScroll = NewState(int32(0))
+var S_FileActive = NewState(int32(-1))
+var S_FileFocused = NewState(int32(-1))
 
 var allowed = []string{".json"}
 
@@ -31,6 +31,7 @@ func DrawFilePicker() {
 		S_FilePicker.Set(!S_FilePicker.Val)
 	}
 
+	// Return early if the file picker is not active
 	if !S_FilePicker.Val {
 		return
 	}
@@ -49,22 +50,30 @@ func DrawFilePicker() {
 
 		if file.IsDir() {
 			dirs = append(dirs, name)
-		} else if slices.Contains(allowed, path.Ext(name)) {
+		} else if slices.Contains(allowed, filepath.Ext(name)) {
 			data = append(data, name)
 		}
 	}
 
 	files := append(dirs, data...)
-	fileCount := int32(len(files))
+	count := Clamp(int32(len(files)), 0, 5)
 
 	filePicker := Grid
-	filePicker.Height = fileCount * ListViewItemH
+	filePicker.Height = count * ListViewItemH
 
-	rg.ListViewEx(filePicker.ToFloat32(), files, &fileFocused, &fileScrollIdx, &fileActive)
+	def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
+
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
+	rg.ListViewEx(filePicker.ToFloat32(), files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(def_LISTVIEW_BORDER_WIDTH))
+
+	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
+		S_FileName.Set(filepath.Join(filepath.Dir(S_FileName.Val), files[S_FileScroll.Val]))
+	}
 
 	filePickerBG := Grid
-	filePickerBG.Height = Grid.Height - filePicker.Height
 	filePickerBG.Y = filePicker.Y + filePicker.Height
+	filePickerBG.Height = Grid.Height - filePicker.Height
 
 	rg.DrawRectangle(filePickerBG.ToFloat32(), 0, rl.Black, rl.Fade(rl.White, 0.8))
 }
