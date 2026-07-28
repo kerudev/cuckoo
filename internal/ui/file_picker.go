@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -20,11 +21,14 @@ var S_FileFocused = NewState(int32(-1))
 var allowed = []string{".json"}
 
 func DrawFilePicker() {
-	// okButtonClicked := rg.Button(NewRectangleFromInt32(S_Screen.Val.W-Offset.X*2, Offset.Y, BoxSize, BoxSize), "OK")
-
 	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
-	fileButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X+BoxSize+4, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxSize*2-8, BoxSize), S_FileName.Val)
-	rg.Button(NewRectangleFromInt32(S_Screen.Val.W-Offset.X*2, Offset.Y, BoxSize, BoxSize), "OK")
+
+	fileButton := NewRectangleFromInt32(Offset.X+BoxPad, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxPad, BoxSize)
+	fileButtonClicked := rg.Button(fileButton, "")
+
+	fileButton.X += float32(BoxSize) / 2
+
+	rg.DrawText(S_FileName.Val, fileButton, int32(rg.TEXT_ALIGN_LEFT), rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor())
 
 	if fileButtonClicked {
 		S_FilePicker.Set(!S_FilePicker.Val)
@@ -59,14 +63,14 @@ func DrawFilePicker() {
 		name := file.Name()
 
 		if file.IsDir() {
-			dirs = append(dirs, name)
+			dirs = append(dirs, fmt.Sprintf("#1# %s", name))
 		} else if slices.Contains(allowed, filepath.Ext(name)) {
-			data = append(data, name)
+			data = append(data, fmt.Sprintf("#10# %s", name))
 		}
 	}
 
 	files := append(dirs, data...)
-	count := Clamp(int32(len(files)), 0, 5)
+	count := Clamp(int32(len(files)), 0, 6)
 
 	filePicker := Grid
 	filePicker.Height = count * ListViewItemH
@@ -75,16 +79,19 @@ func DrawFilePicker() {
 
 	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
 	rg.ListViewEx(filePicker.ToFloat32(), files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
-	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(def_LISTVIEW_BORDER_WIDTH))
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
 
 	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
+		// #10# file -> #10#, file
+		_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
 		newPath := ""
+
 		if stat.IsDir() {
-			newPath = filepath.Join(S_FileName.Val, files[S_FileScroll.Val])
+			newPath = filepath.Join(S_FileName.Val, newName)
 		} else {
-			newPath = filepath.Join(filepath.Dir(S_FileName.Val), files[S_FileScroll.Val])
+			newPath = filepath.Join(filepath.Dir(S_FileName.Val), newName)
 		}
-		
+
 		S_FileName.Set(newPath)
 	}
 
