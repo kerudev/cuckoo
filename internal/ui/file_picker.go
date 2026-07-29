@@ -28,7 +28,22 @@ func DrawFilePicker() {
 
 	fileButton.X += float32(BoxSize) / 2
 
-	rg.DrawText(S_FileName.Val, fileButton, int32(rg.TEXT_ALIGN_LEFT), rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor())
+	stat, _ := os.Stat(S_FileName.Val)
+	isDir := stat.IsDir()
+
+	icon := ""
+	if isDir {
+		icon = "#1#"
+	} else {
+		icon = "#10#"
+	}
+
+	rg.DrawText(
+		fmt.Sprintf("%s %s", icon, S_FileName.Val),
+		fileButton,
+		int32(rg.TEXT_ALIGN_LEFT),
+		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
+	)
 
 	// Toggle file picker
 	if fileButtonClicked {
@@ -42,9 +57,7 @@ func DrawFilePicker() {
 	}
 
 	dirName := ""
-	stat, _ := os.Stat(S_FileName.Val)
-
-	if stat.IsDir() {
+	if isDir {
 		dirName = S_FileName.Val
 	} else {
 		dirName = filepath.Dir(S_FileName.Val)
@@ -92,9 +105,9 @@ func DrawFilePicker() {
 	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
 		// #10# file -> #10#, file
 		_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
-		newPath := ""
 
-		if stat.IsDir() {
+		newPath := ""
+		if isDir {
 			newPath = filepath.Join(S_FileName.Val, newName)
 		} else {
 			newPath = filepath.Join(filepath.Dir(S_FileName.Val), newName)
