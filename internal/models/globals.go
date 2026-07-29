@@ -83,6 +83,7 @@ var S_TooltipScrollMax = NewState(int32(0))
 var S_TooltipHasOverflow = NewState(false)
 
 var S_FileName = NewState("")
+var S_LastFile = NewState("")
 var S_FilePicker = NewState(false)
 
 // User options

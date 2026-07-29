@@ -30,6 +30,7 @@ func DrawLoop(path string) {
 	}
 
 	S_FileName.Set(absPath)
+	S_LastFile.Set(absPath)
 
 	// Init raylib
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
