@@ -26,6 +26,12 @@ func DrawFilePicker() {
 	fileButton := NewRectangleFromInt32(Offset.X+BoxPad, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxPad, BoxSize)
 	fileButtonClicked := rg.Button(fileButton, "")
 
+	if ErrorText != "" {
+		errorRec := NewRectangleFromInt32(Offset.X, Offset.Y+BoxSize, S_Screen.Val.W-Offset.X*2, BoxSize)
+		rg.DrawRectangle(errorRec, 2, rl.Fade(rl.Red, 0.8), rl.Fade(rl.Red, 0.4))
+		rg.DrawText(ErrorText, errorRec, int32(rg.TEXT_ALIGN_CENTER), rl.Black)
+	}
+
 	fileButton.X += float32(BoxSize) / 2
 
 	stat, _ := os.Stat(S_FileName.Val)
@@ -112,6 +118,7 @@ func DrawFilePicker() {
 		} else {
 			newPath = filepath.Join(filepath.Dir(S_FileName.Val), newName)
 			S_LastFile.Set(newPath)
+			ErrorText = ""
 		}
 
 		S_FileName.Set(newPath)

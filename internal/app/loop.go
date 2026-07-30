@@ -22,10 +22,15 @@ var gridCoords = [][]GridCoord{}
 
 func DrawLoop(path string) {
 	// Init cuckoo internals and state
+	if path == "" {
+		path = "."
+		ErrorText = "Select a valid file to parse"
+	}
+
 	handleNewFile(path)
 
 	absPath, err := filepath.Abs(path)
-	if err != nil {
+	if err == nil {
 		fmt.Println(err)
 	}
 

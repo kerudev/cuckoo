@@ -50,6 +50,7 @@ var WdCounts = [WEEKDAYS]CountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}
 var TotalOver = 0
 
+var ErrorText = ""
 var ShowHelp = false
 
 // Context
