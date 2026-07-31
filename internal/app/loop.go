@@ -1,9 +1,7 @@
 package app
 
 import (
-	"fmt"
 	"math"
-	"os"
 	"path/filepath"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
@@ -30,8 +28,8 @@ func DrawLoop(path string) {
 	handleNewFile(path)
 
 	absPath, err := filepath.Abs(path)
-	if err == nil {
-		fmt.Println(err)
+	if err != nil {
+		ErrorText = err.Error()
 	}
 
 	S_FileName.Set(absPath)
@@ -95,8 +93,8 @@ func DrawLoop(path string) {
 
 		// Recalculate coordinates when the file picker gets closed and a new file is chosen
 		// if S_FileName.HasChanged() && S_FilePicker.HasChanged() && S_FilePicker.Val {
-		if S_FileName.HasChanged() {
-			handleNewFile(S_FileName.Val)
+		if S_LastFile.HasChanged() {
+			handleNewFile(S_LastFile.Val)
 		}
 
 		// Recalculate coordinates based on bucket
@@ -139,8 +137,7 @@ func DrawLoop(path string) {
 }
 
 func handleNewFile(path string) {
-	stat, _ := os.Stat(path)
-	if stat.IsDir() {
+	if IsDir(path) {
 		return
 	}
 
@@ -148,11 +145,13 @@ func handleNewFile(path string) {
 	err := ReadPath(path, &sample)
 
 	if err != nil {
-		fmt.Println(err)
+		ErrorText = err.Error()
 	} else {
 		crons = CronsFromStrings(sample)
 		coords = CoordsFromCrons(crons)
 		gridCoords = CoordToGrid(coords)
+
+		ErrorText = ""
 	}
 
 	for wd, dayCoords := range gridCoords {

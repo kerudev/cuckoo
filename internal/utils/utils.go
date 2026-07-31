@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"strconv"
 	"unicode"
 
@@ -105,6 +106,11 @@ func Clamp[T Number](value, min, max T) T {
 	}
 
 	return res
+}
+
+func IsDir(path string) bool {
+	stat, _ := os.Stat(path)
+	return stat.IsDir()
 }
 
 // f <  0.5  -> darken color

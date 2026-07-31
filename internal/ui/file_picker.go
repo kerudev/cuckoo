@@ -14,7 +14,7 @@ import (
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-var S_FileScroll = NewState(int32(0))
+var S_FileScroll = NewState(int32(-1))
 var S_FileActive = NewState(int32(-1))
 var S_FileFocused = NewState(int32(-1))
 
@@ -29,17 +29,18 @@ func DrawFilePicker() {
 	if ErrorText != "" {
 		errorRec := NewRectangleFromInt32(Offset.X, Offset.Y+BoxSize, S_Screen.Val.W-Offset.X*2, BoxSize)
 		rg.DrawRectangle(errorRec, 2, rl.Fade(rl.Red, 0.8), rl.Fade(rl.Red, 0.4))
-		rg.DrawText(ErrorText, errorRec, int32(rg.TEXT_ALIGN_CENTER), rl.Black)
+
+		errorRec.X += float32(BoxBorder) * 4
+		rg.DrawText(fmt.Sprintf("#113# %s", ErrorText), errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
 	}
 
 	fileButton.X += float32(BoxSize) / 2
 
-	stat, _ := os.Stat(S_FileName.Val)
-	isDir := stat.IsDir()
+	isDir := IsDir(S_FileName.Val)
 
 	icon := ""
 	if isDir {
-		icon = "#1#"
+		icon = "#217#"
 	} else {
 		icon = "#10#"
 	}
@@ -72,14 +73,14 @@ func DrawFilePicker() {
 	// Navigate to the previous directory
 	if backButtonClicked {
 		S_FileName.Set(filepath.Dir(dirName))
+		S_FileScroll.Set(-1)
 	}
 
 	// Read and show all files in directory
 	// TODO read directory only when its timestamp changes
 	dirFiles, err := os.ReadDir(dirName)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		ErrorText = err.Error()
 	}
 
 	dirs := []string{}
@@ -89,7 +90,7 @@ func DrawFilePicker() {
 		name := file.Name()
 
 		if file.IsDir() {
-			dirs = append(dirs, fmt.Sprintf("#1# %s", name))
+			dirs = append(dirs, fmt.Sprintf("#217# %s", name))
 		} else if slices.Contains(allowed, filepath.Ext(name)) {
 			data = append(data, fmt.Sprintf("#10# %s", name))
 		}
@@ -112,16 +113,17 @@ func DrawFilePicker() {
 		// #10# file -> #10#, file
 		_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
 
-		newPath := ""
 		if isDir {
-			newPath = filepath.Join(S_FileName.Val, newName)
+			S_FileName.Set(filepath.Join(S_FileName.Val, newName))
 		} else {
-			newPath = filepath.Join(filepath.Dir(S_FileName.Val), newName)
-			S_LastFile.Set(newPath)
-			ErrorText = ""
+			S_FileName.Set(filepath.Join(filepath.Dir(S_FileName.Val), newName))
 		}
 
-		S_FileName.Set(newPath)
+		if IsDir(S_FileName.Val) {
+			S_FileScroll.Set(-1)
+		} else {
+			S_LastFile.Set(S_FileName.Val)
+		}
 	}
 
 	// Draw white background over grid
