@@ -30,7 +30,11 @@ func DrawFilePicker() {
 
 	fileButton.X += float32(BoxSize) / 2
 
-	isDir := IsDir(S_FileName.Val)
+	isDir, err := IsDir(S_FileName.Val)
+	if err != nil {
+		ErrorText = fmt.Sprintf("Path %s doesn't exist", S_FileName.Val)
+		return
+	}
 
 	icon := ""
 	if isDir {
@@ -113,7 +117,8 @@ func DrawFilePicker() {
 			S_FileName.Set(filepath.Join(filepath.Dir(S_FileName.Val), newName))
 		}
 
-		if IsDir(S_FileName.Val) {
+		isDir, _ := IsDir(S_FileName.Val)
+		if isDir {
 			S_FileScroll.Set(-1)
 		} else {
 			S_LastFile.Set(S_FileName.Val)

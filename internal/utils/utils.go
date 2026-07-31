@@ -108,9 +108,12 @@ func Clamp[T Number](value, min, max T) T {
 	return res
 }
 
-func IsDir(path string) bool {
-	stat, _ := os.Stat(path)
-	return stat.IsDir()
+func IsDir(path string) (bool, error) {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	return stat.IsDir(), nil
 }
 
 // f <  0.5  -> darken color

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"math"
 	"path/filepath"
 
@@ -15,12 +16,17 @@ import (
 
 func DrawLoop(path string) {
 	// Init cuckoo internals and state
+
 	if path == "" {
-		path = "."
 		ErrorText = "Select a valid file to parse"
+	} else {
+		handleNewFile(path)
 	}
 
-	handleNewFile(path)
+	// If the current path doesn't exist, use the current directory
+	if path == "" || ErrorText != "" {
+		path = "."
+	}
 
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -132,14 +138,19 @@ func DrawLoop(path string) {
 }
 
 func handleNewFile(path string) {
-	if IsDir(path) {
+	isDir, err := IsDir(path)
+	if err != nil {
+		absPath, _ := filepath.Abs(path)
+		ErrorText = fmt.Sprintf("Path %s doesn't exist", absPath)
+		return
+	}
+
+	if isDir {
 		return
 	}
 
 	Sample = map[string]string{}
-	err := ReadPath(path, &Sample)
-
-	if err != nil {
+	if err := ReadPath(path, &Sample); err != nil {
 		ErrorText = err.Error()
 	} else {
 		Crons = CronsFromStrings(Sample)
