@@ -43,7 +43,7 @@ func DrawGrid() {
 			continue
 		}
 
-		bgRec := NewRectangleFromInt32(int32(bgX) + BoxBorder*2, Grid.Y, int32(Cell.W) - BoxBorder*2, Grid.Height)
+		bgRec := NewRectangleFromInt32(int32(bgX)+BoxBorder*2, Grid.Y, int32(Cell.W)-BoxBorder*2, Grid.Height)
 		rl.DrawRectangleRec(bgRec, GridBGColor)
 
 		break
@@ -101,7 +101,7 @@ func DrawGrid() {
 		scrollW := Grid.Width - GridBorder*2
 		rg.SetStyle(rg.SLIDER, rg.SLIDER_WIDTH, rg.PropertyValue(float32(scrollW)/C_Zoom.Scale))
 
-		zoomSliderRec := NewRectangleFromInt32(Offset.X + GridBorder, Footer.Y - ZoomSliderH - GridBorder, scrollW, ZoomSliderH)
+		zoomSliderRec := NewRectangleFromInt32(Offset.X+GridBorder, Footer.Y-ZoomSliderH-GridBorder, scrollW, ZoomSliderH)
 		rg.Slider(zoomSliderRec, "", "", &S_ZoomSlider.Val, 0, float32(Grid.Width))
 	}
 

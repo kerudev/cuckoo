@@ -31,6 +31,7 @@ const HelpLineEmptyH = int32(14)
 const CoordRadius = float32(4.0)
 
 const GridBorder = int32(2)
+
 var GridBGColor = rl.NewColor(200, 230, 250, 80)
 
 const ZoomSliderH = int32(10)

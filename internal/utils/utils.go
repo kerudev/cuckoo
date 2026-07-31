@@ -13,7 +13,7 @@ import (
 
 // https://stackoverflow.com/a/70370013
 type Number interface {
-    constraints.Integer | constraints.Float
+	constraints.Integer | constraints.Float
 }
 
 // SortAlphabetically sorts alphabetically, including numbers.

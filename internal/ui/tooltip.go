@@ -236,10 +236,10 @@ func drawTooltipRec() {
 		rg.SetStyle(rg.BUTTON, rg.BASE_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BASE_COLOR_NORMAL))
 
 		tooltipScrollRec := NewRectangleFromInt32(
-			Tooltip.X + Tooltip.Width - TooltipScrollW,
-			Tooltip.Y + int32(BoxRadius),
+			Tooltip.X+Tooltip.Width-TooltipScrollW,
+			Tooltip.Y+int32(BoxRadius),
 			TooltipScrollW,
-			Tooltip.Height - int32(BoxDiameter),
+			Tooltip.Height-int32(BoxDiameter),
 		)
 
 		// Allow scroll just when mouse is over tooltip

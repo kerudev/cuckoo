@@ -13,7 +13,7 @@ import (
 func DrawUIOptions() {
 	// Draw option - GroupBy
 	rl.DrawText("Group by", Offset.X, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
-	groupByRec := NewRectangleFromInt32(Offset.X, Footer.Y + Offset.Y*2, 100, ListViewItemH*2 + 2)
+	groupByRec := NewRectangleFromInt32(Offset.X, Footer.Y+Offset.Y*2, 100, ListViewItemH*2+2)
 	groupByIdx := int32(S_GroupBy.Val)
 	rg.ListView(groupByRec, "Wd+Hour;Wd+Hour+Min", nil, &groupByIdx)
 
@@ -85,7 +85,7 @@ func DrawUIOptions() {
 
 		active := status.Bool()
 
-		button := NewRectangleFromInt32(120 + Offset.X + BoxPad*int32(wd), Footer.Y + Offset.Y*2,BoxSize, BoxSize)
+		button := NewRectangleFromInt32(120+Offset.X+BoxPad*int32(wd), Footer.Y+Offset.Y*2, BoxSize, BoxSize)
 		rg.Toggle(button, strconv.Itoa(wd), &active)
 
 		if status != StatusDisabled {
@@ -109,7 +109,7 @@ func DrawUIOptions() {
 	// Draw option - StepMin
 	if S_GroupBy.Eq(GroupByWdHourMin) {
 		rl.DrawText("Minutes step", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
-		stepMinRec := NewRectangleFromInt32(120 + Offset.X, Footer.Y + Offset.Y*4, BoxSize, BoxSize)
+		stepMinRec := NewRectangleFromInt32(120+Offset.X, Footer.Y+Offset.Y*4, BoxSize, BoxSize)
 
 		stepMinIdx := int32(S_StepMin.Val)
 		rg.ToggleGroup(stepMinRec, "1;5;10;15;20;30", &stepMinIdx)
@@ -121,7 +121,7 @@ func DrawUIOptions() {
 func DrawUserOptions() {
 	// User option - TooltipPosition
 	rl.DrawText("Tooltip position", Offset.X, Footer.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
-	positionRec := NewRectangleFromInt32(Offset.X, Footer.Y + Offset.Y*7, 100, ListViewItemH*2 + 2)
+	positionRec := NewRectangleFromInt32(Offset.X, Footer.Y+Offset.Y*7, 100, ListViewItemH*2+2)
 
 	positionIdx := int32(Position)
 	rg.ListView(positionRec, "Grid;Coordinate", nil, &positionIdx)
@@ -146,7 +146,7 @@ func DrawUserOptions() {
 		{"#97#", &UserOpt.DrawGrid},
 	}
 
-	toggleRec := NewRectangleFromInt32(120 + Offset.X, Footer.Y + Offset.Y*7, BoxSize, BoxSize)
+	toggleRec := NewRectangleFromInt32(120+Offset.X, Footer.Y+Offset.Y*7, BoxSize, BoxSize)
 
 	for _, params := range options {
 		rg.Toggle(toggleRec, params.Icon, params.Ptr)
