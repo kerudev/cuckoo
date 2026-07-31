@@ -13,11 +13,6 @@ import (
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-var sample = map[string]string{}
-var crons = []Cron{}
-var coords = [][]Coord{}
-var gridCoords = [][]GridCoord{}
-
 func DrawLoop(path string) {
 	// Init cuckoo internals and state
 	if path == "" {
@@ -63,7 +58,7 @@ func DrawLoop(path string) {
 
 			S_IsMouseLocked.Set(false)
 
-			gridCoords = CoordToGrid(coords)
+			GridCoords = CoordToGrid(Coords)
 		}
 
 		// Check if a file was dropped and reload coords
@@ -78,10 +73,10 @@ func DrawLoop(path string) {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
 
-		ui.DrawGrid(gridCoords)
+		ui.DrawGrid()
 
 		ui.DrawFooter()
-		ui.DrawTooltip(gridCoords)
+		ui.DrawTooltip()
 
 		ui.DrawFilePicker()
 
@@ -99,14 +94,14 @@ func DrawLoop(path string) {
 
 		// Recalculate coordinates based on bucket
 		if S_StepMin.HasChanged() {
-			coords = CoordsFromCrons(crons)
-			gridCoords = CoordToGrid(coords)
+			Coords = CoordsFromCrons(Crons)
+			GridCoords = CoordToGrid(Coords)
 		}
 
 		// Recalculate coordinates based on group by
 		if S_GroupBy.HasChanged() {
-			coords = CoordsFromCrons(crons)
-			gridCoords = CoordToGrid(coords)
+			Coords = CoordsFromCrons(Crons)
+			GridCoords = CoordToGrid(Coords)
 		}
 
 		// Reset zoom and coordinates
@@ -117,8 +112,8 @@ func DrawLoop(path string) {
 
 			C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
 
-			coords = CoordsFromCrons(crons)
-			gridCoords = CoordToGrid(coords)
+			Coords = CoordsFromCrons(Crons)
+			GridCoords = CoordToGrid(Coords)
 		}
 
 		// Reset tooltip scroll
@@ -141,20 +136,20 @@ func handleNewFile(path string) {
 		return
 	}
 
-	sample = map[string]string{}
-	err := ReadPath(path, &sample)
+	Sample = map[string]string{}
+	err := ReadPath(path, &Sample)
 
 	if err != nil {
 		ErrorText = err.Error()
 	} else {
-		crons = CronsFromStrings(sample)
-		coords = CoordsFromCrons(crons)
-		gridCoords = CoordToGrid(coords)
+		Crons = CronsFromStrings(Sample)
+		Coords = CoordsFromCrons(Crons)
+		GridCoords = CoordToGrid(Coords)
 
 		ErrorText = ""
 	}
 
-	for wd, dayCoords := range gridCoords {
+	for wd, dayCoords := range GridCoords {
 		if len(dayCoords) <= 0 {
 			S_Weekdays.Val[wd].Status = StatusDisabled
 		} else {

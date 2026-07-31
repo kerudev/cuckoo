@@ -38,11 +38,6 @@ var HelpLines = []string{
 	"  - Draw grid lines",
 }
 
-var HelpLineH = int32(24)
-var HelpLineEmptyH = int32(14)
-
-var HelpWindow = rl.RectangleInt32{}
-
 func DrawHelp() {
 	// Inspired from: https://github.com/raysan5/rguistyler/blob/3be4d40/src/gui_window_help.h
 

@@ -10,7 +10,7 @@ import (
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-func DrawGrid(gridCoords [][]GridCoord) {
+func DrawGrid() {
 	// Set all values that depend on the previous frame
 	cols := C_Grid.Cols
 	if S_GroupBy.Eq(GroupByWdHour) {
@@ -55,7 +55,7 @@ func DrawGrid(gridCoords [][]GridCoord) {
 	}
 
 	// Draw coordinates in layers by weekday
-	for wd, dayCoords := range gridCoords {
+	for wd, dayCoords := range GridCoords {
 		if S_Weekdays.Val[wd].Status != StatusOn {
 			continue
 		}

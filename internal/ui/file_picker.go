@@ -14,12 +14,6 @@ import (
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-var S_FileScroll = NewState(int32(-1))
-var S_FileActive = NewState(int32(-1))
-var S_FileFocused = NewState(int32(-1))
-
-var allowed = []string{".json"}
-
 func DrawFilePicker() {
 	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
 
@@ -91,7 +85,7 @@ func DrawFilePicker() {
 
 		if file.IsDir() {
 			dirs = append(dirs, fmt.Sprintf("#217# %s", name))
-		} else if slices.Contains(allowed, filepath.Ext(name)) {
+		} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
 			data = append(data, fmt.Sprintf("#10# %s", name))
 		}
 	}

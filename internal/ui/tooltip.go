@@ -14,7 +14,7 @@ import (
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
-func DrawTooltip(gridCoords [][]GridCoord) {
+func DrawTooltip() {
 	stateChanged := S_IsMouseLocked.HasChanged() ||
 		S_Weekdays.HasChanged() ||
 		S_Zoom.HasChanged() ||
@@ -25,7 +25,7 @@ func DrawTooltip(gridCoords [][]GridCoord) {
 		TotalOver = 0
 
 		// Get coords where Mouse is over
-		for wd, dayCoords := range gridCoords {
+		for wd, dayCoords := range GridCoords {
 			// If a day is not on, there are no coordinates to check
 			if S_Weekdays.Val[wd].Status != StatusOn {
 				continue

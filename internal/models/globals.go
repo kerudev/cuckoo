@@ -14,29 +14,34 @@ var Font = rl.Font{}
 var ListViewItemH = int32(0)
 
 // UI (constants)
-var FontSize = int32(12)
-var FontRadius = FontSize / 2
-var TextPad = int32(8)
+const FontSize = int32(12)
+const FontRadius = FontSize / 2
+const TextPad = int32(8)
 
-var BoxRadius = float32(8.0)
-var BoxDiameter = 2 * BoxRadius
-var BoxSegments = int32(8)
-var BoxSize = int32(20)
-var BoxBorder = int32(1)
-var BoxPad = BoxSize + BoxBorder*2
+const BoxRadius = float32(8.0)
+const BoxDiameter = 2 * BoxRadius
+const BoxSegments = int32(8)
+const BoxSize = int32(20)
+const BoxBorder = int32(1)
+const BoxPad = BoxSize + BoxBorder*2
 
-var CoordRadius = float32(4.0)
+const HelpLineH = int32(24)
+const HelpLineEmptyH = int32(14)
 
-var GridBorder = int32(2)
+const CoordRadius = float32(4.0)
+
+const GridBorder = int32(2)
 var GridBGColor = rl.NewColor(200, 230, 250, 80)
 
-var ZoomSliderH = int32(10)
+const ZoomSliderH = int32(10)
 
-var TooltipTimeFontSize = int32(16)
-var TooltipScrollW = int32(10)
+const TooltipTimeFontSize = int32(16)
+const TooltipScrollW = int32(10)
 
-var FooterW = int32(120)
-var FooterFontSize = int32(16)
+const FooterW = int32(120)
+const FooterFontSize = int32(16)
+
+var AllowedExt = []string{".json"}
 
 // Internal
 var Offset = Vector2Int32{X: 20, Y: 20}
@@ -45,6 +50,12 @@ var Cell = Rec[float32]{}
 var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y * 3}
 var Footer = rl.RectangleInt32{}
 var Tooltip = rl.RectangleInt32{}
+var HelpWindow = rl.RectangleInt32{}
+
+var Sample = map[string]string{}
+var Crons = []Cron{}
+var Coords = [][]Coord{}
+var GridCoords = [][]GridCoord{}
 
 var WdCounts = [WEEKDAYS]CountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}
@@ -82,6 +93,10 @@ var S_ZoomSlider = NewState(float32(0.0))
 var S_TooltipScroll = NewState(int32(0))
 var S_TooltipScrollMax = NewState(int32(0))
 var S_TooltipHasOverflow = NewState(false)
+
+var S_FileScroll = NewState(int32(-1))
+var S_FileActive = NewState(int32(-1))
+var S_FileFocused = NewState(int32(-1))
 
 var S_FileName = NewState("")
 var S_LastFile = NewState("")
