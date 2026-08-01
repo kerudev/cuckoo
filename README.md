@@ -55,6 +55,21 @@ cuckoo's dependencies:
 dev dependencies:
 - [air](https://github.com/air-verse/air): hot module reloading for Go.
 
+## About raylib-go
+
+When running `go build` or `go run` on development, you may need to pass the
+`tags` argument. This tells the bindings how to handle windows and keyboard and
+mouse events.
+
+Example:
+
+```sh
+go run -tags x11 . -path ...
+```
+
+- List of tags: https://github.com/gen2brain/raylib-go/blob/master/README.md#build-tags
+- Related discussion: https://github.com/gen2brain/raylib-go/discussions/554
+
 ## About WASM
 
 This project is currently being developed just for desktop. A WASM port is in
