@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"math"
 	"path/filepath"
 
@@ -38,7 +37,7 @@ func DrawLoop(path string) {
 
 	// Init raylib
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
-	rl.InitWindow(800, 800, "Cuckoo")
+	rl.InitWindow(800, 800, "cuckoo")
 	rl.SetWindowMinSize(800, 800)
 	rl.SetExitKey(rl.KeyNull)
 
@@ -141,7 +140,7 @@ func handleNewFile(path string) {
 	isDir, err := IsDir(path)
 	if err != nil {
 		absPath, _ := filepath.Abs(path)
-		ErrorText = fmt.Sprintf("Path %s doesn't exist", absPath)
+		ErrorText = "Path" + absPath + "doesn't exist"
 		return
 	}
 

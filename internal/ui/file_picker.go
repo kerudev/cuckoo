@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -15,7 +14,15 @@ import (
 )
 
 func DrawFilePicker() {
+	if !S_FilePicker.Val {
+		rg.SetState(rg.STATE_DISABLED)
+	}
+
 	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
+
+	if !S_FilePicker.Val {
+		rg.SetState(rg.STATE_NORMAL)
+	}
 
 	fileButton := NewRectangleFromInt32(Offset.X+BoxPad, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxPad, BoxSize)
 	fileButtonClicked := rg.Button(fileButton, "")
@@ -25,14 +32,14 @@ func DrawFilePicker() {
 		rg.DrawRectangle(errorRec, 2, rl.Fade(rl.Red, 0.8), rl.Fade(rl.Red, 0.4))
 
 		errorRec.X += float32(BoxBorder) * 4
-		rg.DrawText(fmt.Sprintf("#113# %s", ErrorText), errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
+		rg.DrawText("#113#"+ErrorText, errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
 	}
 
 	fileButton.X += float32(BoxSize) / 2
 
 	isDir, err := IsDir(S_FileName.Val)
 	if err != nil {
-		ErrorText = fmt.Sprintf("Path %s doesn't exist", S_FileName.Val)
+		ErrorText = "Path" + S_FileName.Val + "doesn't exist"
 		return
 	}
 
@@ -44,7 +51,7 @@ func DrawFilePicker() {
 	}
 
 	rg.DrawText(
-		fmt.Sprintf("%s %s", icon, S_FileName.Val),
+		icon+" "+S_FileName.Val,
 		fileButton,
 		int32(rg.TEXT_ALIGN_LEFT),
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
@@ -88,9 +95,9 @@ func DrawFilePicker() {
 		name := file.Name()
 
 		if file.IsDir() {
-			dirs = append(dirs, fmt.Sprintf("#217# %s", name))
+			dirs = append(dirs, "#217#"+name)
 		} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
-			data = append(data, fmt.Sprintf("#10# %s", name))
+			data = append(data, "#10#"+name)
 		}
 	}
 
