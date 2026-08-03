@@ -132,7 +132,7 @@ func DrawTooltip() {
 
 	// Resize tooltip when mouse is unlocked or weekdays changed
 	if !S_IsMouseLocked.Val || S_Weekdays.HasChanged() {
-		S_TooltipHasOverflow.Set(false)
+		TooltipHasOverflow = false
 
 		// Prepare Tooltip
 		Tooltip.Width = maxW + TextPad*2
@@ -156,11 +156,11 @@ func DrawTooltip() {
 				Tooltip.Height = Grid.Height - padYInner
 
 				S_TooltipScrollMax.Val -= Tooltip.Height
-				S_TooltipHasOverflow.Set(true)
+				TooltipHasOverflow = true
 			}
 
 			// Move to the right when coordinates are on the left side
-			if Tooltip.Width > int32(S_Mouse.Val.X)-padX-Offset.X {
+			if Tooltip.Width > int32(S_MouseWithLock.Val.X)-padX-Offset.X {
 				Tooltip.X = S_Screen.Val.W - padX - Tooltip.Width
 			}
 
@@ -193,7 +193,7 @@ func DrawTooltip() {
 					Tooltip.Height = Grid.Height - padYInner
 
 					S_TooltipScrollMax.Val -= Tooltip.Height
-					S_TooltipHasOverflow.Set(true)
+					TooltipHasOverflow = true
 				}
 			}
 
@@ -225,7 +225,7 @@ func drawTooltipRec() {
 	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
 	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)
 
-	if S_TooltipHasOverflow.Val {
+	if TooltipHasOverflow {
 		rg.SetStyle(rg.SCROLLBAR, rg.BORDER_WIDTH, rg.GetStyle(rg.SLIDER, rg.BORDER_WIDTH))
 
 		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_NORMAL))

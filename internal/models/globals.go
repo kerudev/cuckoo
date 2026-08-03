@@ -61,6 +61,7 @@ var GridCoords = [][]GridCoord{}
 var WdCounts = [WEEKDAYS]CountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}
 var TotalOver = 0
+var TooltipHasOverflow = false
 
 var ErrorText = ""
 var ShowHelp = false
@@ -93,7 +94,6 @@ var S_ZoomSlider = NewState(float32(0.0))
 
 var S_TooltipScroll = NewState(int32(0))
 var S_TooltipScrollMax = NewState(int32(0))
-var S_TooltipHasOverflow = NewState(false)
 
 var S_FileScroll = NewState(int32(-1))
 var S_FileActive = NewState(int32(-1))
