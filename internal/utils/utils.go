@@ -71,8 +71,7 @@ func CountDuplicates[T comparable](arr []T) map[T]int {
 	res := map[T]int{}
 
 	for _, item := range arr {
-		_, ok := res[item]
-		if !ok {
+		if _, ok := res[item]; !ok {
 			res[item] = 1
 		} else {
 			res[item]++

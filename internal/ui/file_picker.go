@@ -124,8 +124,7 @@ func DrawFilePicker() {
 			S_FileName.Set(filepath.Join(filepath.Dir(S_FileName.Val), newName))
 		}
 
-		isDir, _ := IsDir(S_FileName.Val)
-		if isDir {
+		if pathIsDir, _ := IsDir(S_FileName.Val); pathIsDir {
 			S_FileScroll.Set(-1)
 		} else {
 			S_LastFile.Set(S_FileName.Val)
