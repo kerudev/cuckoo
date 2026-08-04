@@ -67,20 +67,6 @@ func CalcBucket(value int, segment int) int {
 	return (value/segment)*segment + (segment - 1)
 }
 
-func CountDuplicates[T comparable](arr []T) map[T]int {
-	res := map[T]int{}
-
-	for _, item := range arr {
-		if _, ok := res[item]; !ok {
-			res[item] = 1
-		} else {
-			res[item]++
-		}
-	}
-
-	return res
-}
-
 func All[T comparable](arr []T, pred func(T) bool) bool {
 	for _, el := range arr {
 		if pred(el) {

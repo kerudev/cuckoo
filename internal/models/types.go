@@ -189,7 +189,7 @@ func (j Job) AsTime() string {
 func JobsFromCrons(crons []Cron) []Job {
 	result := []Job{}
 
-	WdCounts = [WEEKDAYS]CountsByWd{}
+	WdCounts = [WEEKDAYS]CronCountsByWd{}
 
 	for _, cron := range crons {
 		result = append(result, cron.Jobs()...)
@@ -493,9 +493,19 @@ func (wds *Weekdays) SetStatus(idx int, active bool) {
 	}
 }
 
-type CountsByWd struct {
+type CronCountsByWd struct {
 	Crons int
 	Jobs  int
+}
+
+type JobsByWd struct {
+	Jobs map[string]int
+	Wds  []int
+}
+
+type JobsCountsByWd struct {
+	Jobs []string
+	Wds  []int
 }
 
 type ToggleParams struct {

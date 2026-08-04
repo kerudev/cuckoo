@@ -58,7 +58,7 @@ var Crons = []Cron{}
 var Coords = [][]Coord{}
 var GridCoords = [][]GridCoord{}
 
-var WdCounts = [WEEKDAYS]CountsByWd{}
+var WdCounts = [WEEKDAYS]CronCountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}
 var TotalOver = 0
 var TooltipHasOverflow = false

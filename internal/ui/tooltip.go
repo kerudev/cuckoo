@@ -5,7 +5,6 @@ import (
 	"maps"
 	"slices"
 	"sort"
-	"strings"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -13,6 +12,9 @@ import (
 	. "github.com/kerudev/cuckoo/internal/models"
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
+
+// TODO optimize or refactor the whole thing at some point. It's getting too
+// complex and hard to follow. There are too many loops and custom types.
 
 func DrawTooltip() {
 	stateChanged := S_IsMouseLocked.HasChanged() ||
@@ -83,47 +85,67 @@ func DrawTooltip() {
 	maxW := int32(0)
 
 	// Extract data from MouseOver
-	// Time (HH:MM) -> Cron string -> Job names
-	crons := map[string]map[string][]string{}
-	for _, coords := range MouseOver {
+	// Time (HH:MM) -> Cron string -> Job names & weekdays
+	cronsByTime := map[string]map[string]JobsByWd{}
+	for wd, coords := range MouseOver {
 		for _, coord := range coords {
 			for _, job := range coord.Jobs {
 				time := fmt.Sprintf("%s (%d)", job.AsTime(), int32(coord.OrigY))
 
-				if _, ok := crons[time]; !ok {
-					crons[time] = make(map[string][]string)
+				if _, ok := cronsByTime[time]; !ok {
+					cronsByTime[time] = make(map[string]JobsByWd)
 				}
 
-				crons[time][job.Cron] = append(crons[time][job.Cron], job.Name)
+				j, ok := cronsByTime[time][job.Cron]
+				if !ok {
+					j = JobsByWd{
+						Jobs: make(map[string]int),
+						Wds:  []int{},
+					}
+				}
+
+				j.Jobs[job.Name]++
+				j.Wds = append(cronsByTime[time][job.Cron].Wds, wd)
+
+				cronsByTime[time][job.Cron] = j
 			}
 		}
 	}
 
-	schedule := map[string]map[string][]string{}
-	for time, crons := range crons {
-		for cron, jobs := range crons {
+	schedule := map[string]map[string]JobsCountsByWd{}
+	for time, crons := range cronsByTime {
+		for cron, jobsByWd := range crons {
 			if w := rl.MeasureText(cron, FontSize) + TextPad + FontRadius; w > maxW {
 				maxW = w
 			}
 
-			counts := CountDuplicates(jobs)
-
-			for job, count := range counts {
+			for job, count := range maps.All(jobsByWd.Jobs) {
 				s := fmt.Sprintf("%s (%d)", job, count)
-
-				if _, ok := schedule[time]; !ok {
-					schedule[time] = make(map[string][]string)
-				}
-
-				schedule[time][cron] = append(schedule[time][cron], s)
 
 				if w := rl.MeasureText(s, FontSize); w > maxW {
 					maxW = w
 				}
+
+				if _, ok := schedule[time]; !ok {
+					schedule[time] = make(map[string]JobsCountsByWd)
+				}
+
+				j, ok := schedule[time][cron]
+				if !ok {
+					j = JobsCountsByWd{
+						Jobs: []string{},
+						Wds:  []int{},
+					}
+				}
+
+				j.Jobs = append(j.Jobs, s)
+				j.Wds = jobsByWd.Wds
+
+				schedule[time][cron] = j
 			}
 
 			// Add one line for the cron string and another for spacing
-			nRows += len(counts) + 1 + 1
+			nRows += len(jobsByWd.Jobs) + 1 + 1
 		}
 
 		// Spacing
@@ -256,7 +278,7 @@ func drawTooltipRec() {
 	}
 }
 
-func drawTooltipText(data map[string]map[string][]string) {
+func drawTooltipText(data map[string]map[string]JobsCountsByWd) {
 	row := int32(0)
 
 	// Sort HH:MM keys
@@ -293,7 +315,9 @@ func drawTooltipText(data map[string]map[string][]string) {
 		})
 
 		for _, cron := range crons {
-			wds := ParseCronField(strings.Split(cron, " ")[4], 0, 6)
+			jobsCount := data[time][cron]
+
+			wds := jobsCount.Wds
 
 			segments := float32(len(wds))
 			for _, wd := range wds {
@@ -334,7 +358,7 @@ func drawTooltipText(data map[string]map[string][]string) {
 				rl.Black,
 			)
 
-			jobs := data[time][cron]
+			jobs := jobsCount.Jobs
 
 			// Sort job names
 			sort.Slice(jobs, func(i, j int) bool {
