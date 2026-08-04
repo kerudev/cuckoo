@@ -184,8 +184,10 @@ func handleKeyEvents() {
 		return
 	}
 
+	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
+
 	// Lock or unlock coordinates
-	if rl.IsKeyPressed(rl.KeyL) {
+	if TotalOver > 0 && isOverGrid && rl.IsKeyPressed(rl.KeyL){
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
