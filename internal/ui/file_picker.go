@@ -95,9 +95,9 @@ func DrawFilePicker() {
 		name := file.Name()
 
 		if file.IsDir() {
-			dirs = append(dirs, "#217#"+name)
+			dirs = append(dirs, "#217# "+name)
 		} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
-			data = append(data, "#10#"+name)
+			data = append(data, "#10# "+name)
 		}
 	}
 
