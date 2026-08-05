@@ -76,19 +76,6 @@ var S_Mouse = NewState(rl.Vector2{})
 var S_MouseWithLock = NewState(rl.Vector2{})
 var S_IsMouseLocked = NewState(false)
 
-var S_Weekdays = NewState(Weekdays{
-	NewWeekday(rl.Red),
-	NewWeekday(rl.Orange),
-	NewWeekday(rl.Gold),
-	NewWeekday(rl.Green),
-	NewWeekday(rl.Blue),
-	NewWeekday(rl.Purple),
-	NewWeekday(rl.Pink),
-})
-
-var S_GroupBy = NewState(GroupByWdHourMin)
-var S_StepMin = NewState(StepMin1)
-
 var S_Zoom = NewState(float32(1.0))
 var S_ZoomSlider = NewState(float32(0.0))
 
@@ -104,6 +91,19 @@ var S_LastFile = NewState("")
 var S_FilePicker = NewState(false)
 
 // User options
+var S_Weekdays = NewState(Weekdays{
+	NewWeekday(rl.Red),
+	NewWeekday(rl.Orange),
+	NewWeekday(rl.Gold),
+	NewWeekday(rl.Green),
+	NewWeekday(rl.Blue),
+	NewWeekday(rl.Purple),
+	NewWeekday(rl.Pink),
+})
+
+var S_GroupBy = NewState(GroupByWdHourMin)
+var S_StepMin = NewState(StepMin1)
+
 var UserOpt = UserOptions{
 	DrawCoords: true,
 	DrawLines:  true,
@@ -111,4 +111,4 @@ var UserOpt = UserOptions{
 	DrawFade:   true,
 }
 
-var Position = PositionGrid
+var S_Position = NewState(PositionGrid)

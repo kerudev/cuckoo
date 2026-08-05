@@ -112,6 +112,7 @@ func DrawTooltip() {
 		}
 	}
 
+	// Transform data to strings
 	schedule := map[string]map[string]JobsCountsByWd{}
 	for time, crons := range cronsByTime {
 		for cron, jobsByWd := range crons {
@@ -153,7 +154,7 @@ func DrawTooltip() {
 	}
 
 	// Resize tooltip when mouse is unlocked or weekdays changed
-	if !S_IsMouseLocked.Val || S_Weekdays.HasChanged() {
+	if !S_IsMouseLocked.Val || S_Weekdays.HasChanged() || S_Position.HasChanged() {
 		TooltipHasOverflow = false
 
 		// Prepare Tooltip
@@ -167,7 +168,7 @@ func DrawTooltip() {
 
 		padYInner := Offset.Y * 2
 
-		switch Position {
+		switch S_Position.Val {
 		case PositionGrid:
 			Tooltip.X = padX
 			Tooltip.Y = padY

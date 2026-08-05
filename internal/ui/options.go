@@ -123,12 +123,12 @@ func DrawUserOptions() {
 	rl.DrawText("Tooltip position", Offset.X, Footer.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
 	positionRec := NewRectangleFromInt32(Offset.X, Footer.Y+Offset.Y*7, 100, ListViewItemH*2+2)
 
-	positionIdx := int32(Position)
+	positionIdx := int32(S_Position.Val)
 	rg.ListView(positionRec, "Grid;Coordinate", nil, &positionIdx)
 
 	// Prevent ListView from having nothing selected
 	if positionIdx >= 0 {
-		Position = TooltipPosition(positionIdx)
+		S_Position.Set(TooltipPosition(positionIdx))
 	}
 
 	// User option - Draw options
@@ -140,10 +140,10 @@ func DrawUserOptions() {
 	}
 
 	options := []ToggleParams{
-		{drawCoordsIcon, &UserOpt.DrawCoords},
-		{"#127#", &UserOpt.DrawLines},
-		{"#94#", &UserOpt.DrawFade},
-		{"#97#", &UserOpt.DrawGrid},
+		{Icon: drawCoordsIcon, Ptr: &UserOpt.DrawCoords},
+		{Icon: "#127#", Ptr: &UserOpt.DrawLines},
+		{Icon: "#94#", Ptr: &UserOpt.DrawFade},
+		{Icon: "#97#", Ptr: &UserOpt.DrawGrid},
 	}
 
 	toggleRec := NewRectangleFromInt32(120+Offset.X, Footer.Y+Offset.Y*7, BoxSize, BoxSize)
