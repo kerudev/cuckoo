@@ -17,46 +17,6 @@ import (
 // complex and hard to follow. There are too many loops and custom types.
 
 func DrawTooltip() {
-	stateChanged := S_IsMouseLocked.HasChanged() ||
-		S_Weekdays.HasChanged() ||
-		S_Zoom.HasChanged() ||
-		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
-
-	if stateChanged && S_IsOverGrid.Val && !rg.IsLocked() {
-		MouseOver = [WEEKDAYS][]GridCoord{}
-		TotalOver = 0
-
-		// Get coords where Mouse is over
-		for wd, dayCoords := range GridCoords {
-			// If a day is not on, there are no coordinates to check
-			if S_Weekdays.Val[wd].Status != StatusOn {
-				continue
-			}
-
-			for _, coord := range dayCoords {
-				// If the coordinate is not on the same Y range, skip it
-				if !(S_MouseWithLock.Val.Y >= coord.Y-CoordRadius && S_MouseWithLock.Val.Y <= coord.Y+CoordRadius) {
-					continue
-				}
-
-				// If the coordinate is behind the Mouse, don't check collisions
-				if S_MouseWithLock.Val.X > coord.X+CoordRadius {
-					continue
-				}
-
-				// If the coordinate is ahead the Mouse, don't keep iterating
-				if S_MouseWithLock.Val.X+20 <= coord.X {
-					break
-				}
-
-				if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
-					MouseOver[wd] = append(MouseOver[wd], coord)
-					TotalOver++
-				}
-			}
-		}
-	}
-
 	// If Mouse is not over any coordinate, return
 	if TotalOver == 0 {
 		return
