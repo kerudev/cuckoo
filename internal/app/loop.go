@@ -49,6 +49,7 @@ func DrawLoop(path string) {
 		S_Screen.Val.H = int32(rl.GetScreenHeight())
 
 		S_Mouse.Set(rl.GetMousePosition())
+		S_IsOverGrid.Set(rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32()))
 
 		if !S_IsMouseLocked.Val {
 			S_MouseWithLock.Set(S_Mouse.Val)
@@ -92,7 +93,6 @@ func DrawLoop(path string) {
 		rl.EndDrawing()
 
 		// Recalculate coordinates when the file picker gets closed and a new file is chosen
-		// if S_FileName.HasChanged() && S_FilePicker.HasChanged() && S_FilePicker.Val {
 		if S_LastFile.HasChanged() {
 			handleNewFile(S_LastFile.Val)
 		}
@@ -184,10 +184,8 @@ func handleKeyEvents() {
 		return
 	}
 
-	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
-
 	// Lock or unlock coordinates
-	if TotalOver > 0 && isOverGrid && rl.IsKeyPressed(rl.KeyL){
+	if TotalOver > 0 && S_IsOverGrid.Val && rl.IsKeyPressed(rl.KeyL) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
@@ -226,7 +224,6 @@ func handleMouseEvents() {
 		return
 	}
 
-	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
 	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
 	if isOverTooltip && S_IsMouseLocked.Val {
@@ -234,12 +231,12 @@ func handleMouseEvents() {
 	}
 
 	// Lock mouse position when clicking coordinates
-	if TotalOver > 0 && isOverGrid && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	if TotalOver > 0 && S_IsOverGrid.Val && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
 	// Move zoom slider by dragging over grid
-	if S_Zoom.Val > 1 && isOverGrid && rl.IsMouseButtonDown(rl.MouseButtonRight) {
+	if S_Zoom.Val > 1 && S_IsOverGrid.Val && rl.IsMouseButtonDown(rl.MouseButtonRight) {
 		mouseX := rl.GetMouseDelta().X
 
 		if mouseX != 0 {
@@ -257,13 +254,11 @@ func handleMixedEvents() {
 		return
 	}
 
-	// Move zoom slider with mouse and key events
-	isOverGrid := rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32())
-
-	if !isOverGrid {
+	if !S_IsOverGrid.Val {
 		return
 	}
 
+	// Move zoom slider with mouse and key events
 	if !(TotalOver > 0 && S_IsMouseLocked.Val) {
 		scroll := rl.GetMouseWheelMove()
 

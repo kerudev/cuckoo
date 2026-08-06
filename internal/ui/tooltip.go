@@ -22,7 +22,7 @@ func DrawTooltip() {
 		S_Zoom.HasChanged() ||
 		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
 
-	if stateChanged && !rg.IsLocked() {
+	if stateChanged && S_IsOverGrid.Val && !rg.IsLocked() {
 		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
 
@@ -93,13 +93,13 @@ func DrawTooltip() {
 				time := fmt.Sprintf("%s (%d)", job.AsTime(), int32(coord.OrigY))
 
 				if _, ok := cronsByTime[time]; !ok {
-					cronsByTime[time] = make(map[string]JobsByWd)
+					cronsByTime[time] = map[string]JobsByWd{}
 				}
 
 				j, ok := cronsByTime[time][job.Cron]
 				if !ok {
 					j = JobsByWd{
-						Jobs: make(map[string]int),
+						Jobs: map[string]int{},
 						Wds:  []int{},
 					}
 				}
@@ -128,7 +128,7 @@ func DrawTooltip() {
 				}
 
 				if _, ok := schedule[time]; !ok {
-					schedule[time] = make(map[string]JobsCountsByWd)
+					schedule[time] = map[string]JobsCountsByWd{}
 				}
 
 				j, ok := schedule[time][cron]

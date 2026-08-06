@@ -75,6 +75,7 @@ var S_Screen = NewState(Rec[int32]{})
 var S_Mouse = NewState(rl.Vector2{})
 var S_MouseWithLock = NewState(rl.Vector2{})
 var S_IsMouseLocked = NewState(false)
+var S_IsOverGrid = NewState(false)
 
 var S_Zoom = NewState(float32(1.0))
 var S_ZoomSlider = NewState(float32(0.0))
