@@ -127,6 +127,12 @@ func DrawLoop(path string) {
 			S_Mouse.Set(rl.Vector2{})
 		}
 
+		// Reset MouseOver when mouse goes out of the grid
+		if !S_IsMouseLocked.Val && S_IsOverGrid.HasChanged() && !S_IsOverGrid.Val {
+			MouseOver = [WEEKDAYS][]GridCoord{}
+			TotalOver = 0
+		}
+
 		// Save each state for next frame
 		for _, state := range AllStates {
 			state.Update()
