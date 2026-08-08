@@ -14,14 +14,19 @@ import (
 )
 
 func DrawFilePicker() {
-	if !S_FilePicker.Val {
+	if ShowHelp || !S_FilePicker.Val {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
 	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "#118#")
 
-	if !S_FilePicker.Val {
+	if ShowHelp || !S_FilePicker.Val {
 		rg.SetState(rg.STATE_NORMAL)
+	}
+
+	if ShowHelp {
+		rg.SetState(rg.STATE_DISABLED)
+		defer rg.SetState(rg.STATE_NORMAL)
 	}
 
 	fileButton := NewRectangleFromInt32(Offset.X+BoxPad, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxPad, BoxSize)
@@ -116,6 +121,10 @@ func DrawFilePicker() {
 	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
 	rg.ListViewEx(filePicker, files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
 	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
+
+	if ShowHelp {
+		rg.SetState(rg.STATE_NORMAL)
+	}
 
 	// Change file name when the picker is open
 	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {

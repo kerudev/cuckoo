@@ -65,6 +65,7 @@ var TooltipHasOverflow = false
 
 var ErrorText = ""
 var ShowHelp = false
+var BlockUI = false
 
 // Context
 var C_Grid = GridContext{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}

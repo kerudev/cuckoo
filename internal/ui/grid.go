@@ -308,7 +308,7 @@ func drawMouseOver() {
 		S_Zoom.HasChanged() ||
 		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
 
-	if stateChanged && S_IsOverGrid.Val && !rg.IsLocked() {
+	if !BlockUI && stateChanged && S_IsOverGrid.Val {
 		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
 

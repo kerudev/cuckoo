@@ -10,14 +10,14 @@ import (
 )
 
 func DrawFooter() {
-	if S_FilePicker.Val || S_LastFile.Val == "" {
+	if BlockUI {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
 	DrawUIOptions()
 	DrawUserOptions()
 
-	if S_FilePicker.Val || S_LastFile.Val == "" {
+	if BlockUI {
 		rg.SetState(rg.STATE_NORMAL)
 	}
 

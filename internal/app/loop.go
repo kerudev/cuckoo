@@ -75,9 +75,18 @@ func DrawLoop(path string) {
 			handleNewFile(rl.LoadDroppedFiles()[0])
 		}
 
-		handleKeyEvents()
-		handleMouseEvents()
-		handleMixedEvents()
+		// Show or hide help window
+		if rl.IsKeyPressed(rl.KeyH) {
+			ShowHelp = !ShowHelp
+		}
+
+		BlockUI = ShowHelp || S_FilePicker.Val || S_LastFile.Val == ""
+
+		if !BlockUI {
+			handleKeyEvents()
+			handleMouseEvents()
+			handleMixedEvents()
+		}
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
@@ -131,7 +140,7 @@ func DrawLoop(path string) {
 		}
 
 		// Reset MouseOver when mouse goes out of the grid
-		if !S_IsMouseLocked.Val && S_IsOverGrid.HasChanged() && !S_IsOverGrid.Val {
+		if !BlockUI && !S_IsMouseLocked.Val && S_IsOverGrid.HasChanged() && !S_IsOverGrid.Val {
 			MouseOver = [WEEKDAYS][]GridCoord{}
 			TotalOver = 0
 		}
@@ -178,21 +187,6 @@ func handleNewFile(path string) {
 }
 
 func handleKeyEvents() {
-	// Show or hide help window
-	if rl.IsKeyPressed(rl.KeyH) {
-		ShowHelp = !ShowHelp
-
-		if ShowHelp {
-			rg.Lock()
-		} else {
-			rg.Unlock()
-		}
-	}
-
-	if rg.IsLocked() {
-		return
-	}
-
 	// Lock or unlock coordinates
 	if TotalOver > 0 && S_IsOverGrid.Val && rl.IsKeyPressed(rl.KeyL) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
@@ -229,10 +223,6 @@ func handleKeyEvents() {
 }
 
 func handleMouseEvents() {
-	if rg.IsLocked() {
-		return
-	}
-
 	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
 	if isOverTooltip && S_IsMouseLocked.Val {
@@ -259,10 +249,6 @@ func handleMouseEvents() {
 }
 
 func handleMixedEvents() {
-	if rg.IsLocked() {
-		return
-	}
-
 	if !S_IsOverGrid.Val {
 		return
 	}

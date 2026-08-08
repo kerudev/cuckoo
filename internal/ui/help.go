@@ -62,7 +62,7 @@ func DrawHelp() {
 
 	lineY := HelpLineH + 4
 
-	rg.WindowBox(HelpWindow.ToFloat32(), "#193#Help and user guide")
+	ShowHelp = !rg.WindowBox(HelpWindow.ToFloat32(), "#193#Help and user guide")
 
 	for _, line := range HelpLines {
 		if line == "-" {
