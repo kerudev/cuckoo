@@ -18,7 +18,7 @@ func DrawFilePicker() {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
-	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "<")
+	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "#118#")
 
 	if !S_FilePicker.Val {
 		rg.SetState(rg.STATE_NORMAL)
@@ -32,14 +32,14 @@ func DrawFilePicker() {
 		rg.DrawRectangle(errorRec, 2, rl.Fade(rl.Red, 0.8), rl.Fade(rl.Red, 0.4))
 
 		errorRec.X += float32(BoxBorder) * 4
-		rg.DrawText("#113#"+ErrorText, errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
+		rg.DrawText("#113# "+ErrorText, errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
 	}
 
 	fileButton.X += float32(BoxSize) / 2
 
 	isDir, err := IsDir(S_FileName.Val)
 	if err != nil {
-		ErrorText = "Path" + S_FileName.Val + "doesn't exist"
+		ErrorText = "Path " + S_FileName.Val + " doesn't exist"
 		return
 	}
 
@@ -64,7 +64,11 @@ func DrawFilePicker() {
 
 	// Return early if the file picker is not active
 	if !S_FilePicker.Val {
-		S_FileName.Set(S_LastFile.Val)
+		// Reset S_FileName when File Picker was open previously
+		if S_FilePicker.HasChanged() && S_LastFile.Val != "" {
+			S_FileName.Set(S_LastFile.Val)
+		}
+
 		return
 	}
 

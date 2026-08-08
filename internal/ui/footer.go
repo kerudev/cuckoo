@@ -3,19 +3,27 @@ package ui
 import (
 	"fmt"
 
+	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	. "github.com/kerudev/cuckoo/internal/models"
 )
 
 func DrawFooter() {
+	if S_FilePicker.Val || S_LastFile.Val == "" {
+		rg.SetState(rg.STATE_DISABLED)
+	}
+
 	DrawUIOptions()
+	DrawUserOptions()
+
+	if S_FilePicker.Val || S_LastFile.Val == "" {
+		rg.SetState(rg.STATE_NORMAL)
+	}
 
 	// Horizontal line
 	lineY := Footer.Y + Offset.Y*6 - TextPad/2
 	rl.DrawLine(Offset.X, lineY, 290, lineY, rl.Gray)
-
-	DrawUserOptions()
 
 	// Vertical line
 	lineX := 150 + Offset.X + BoxPad*6

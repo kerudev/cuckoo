@@ -15,8 +15,8 @@ import (
 
 func DrawLoop(path string) {
 	// Init cuckoo internals and state
-
-	if path == "" {
+	isDir, _ := IsDir(path)
+	if path == "" || isDir {
 		ErrorText = "Select a valid file to parse"
 	} else {
 		handleNewFile(path)
@@ -33,7 +33,10 @@ func DrawLoop(path string) {
 	}
 
 	S_FileName.Set(absPath)
-	S_LastFile.Set(absPath)
+
+	if !isDir {
+		S_LastFile.Set(absPath)
+	}
 
 	// Init raylib
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
@@ -146,7 +149,7 @@ func handleNewFile(path string) {
 	isDir, err := IsDir(path)
 	if err != nil {
 		absPath, _ := filepath.Abs(path)
-		ErrorText = "Path" + absPath + "doesn't exist"
+		ErrorText = "Path " + absPath + " doesn't exist"
 		return
 	}
 
