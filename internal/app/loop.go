@@ -206,7 +206,7 @@ func handleKeyEvents() {
 		mod = rl.KeyOne
 	}
 
-	if key >= rl.KeyKp1 && key <= rl.KeyKp8 {
+	if key >= rl.KeyKp1 && key <= rl.KeyKp7 {
 		mod = rl.KeyKp1
 	}
 
@@ -249,32 +249,30 @@ func handleMouseEvents() {
 }
 
 func handleMixedEvents() {
-	if !S_IsOverGrid.Val {
+	if !S_IsOverGrid.Val && !S_IsMouseLocked.Val && TotalOver == 0 {
 		return
 	}
 
 	// Move zoom slider with mouse and key events
-	if !(TotalOver > 0 && S_IsMouseLocked.Val) {
-		scroll := rl.GetMouseWheelMove()
+	scroll := rl.GetMouseWheelMove()
 
-		if rl.IsKeyDown(rl.KeyLeftShift) {
-			// Move zoom slider (horizontal scroll)
-			calc := Cell.W / (C_Zoom.Scale * C_Zoom.Factor * 2)
+	if rl.IsKeyDown(rl.KeyLeftShift) {
+		// Move zoom slider (horizontal scroll)
+		calc := Cell.W / (C_Zoom.Scale * C_Zoom.Factor * 2)
 
-			if scroll > 0 {
-				S_ZoomSlider.Val += calc
-			} else if scroll < 0 {
-				S_ZoomSlider.Val -= calc
-			}
-		} else {
-			// Zoom in (vertical scroll)
-			S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
-			C_Zoom.Base = float32(Grid.Width) / float32(C_Grid.Cols)
-
-			C_Zoom.Factor = (S_Zoom.Val - 1) / 8.0
-			C_Zoom.Scale = float32(math.Pow(float64(Grid.Width)/float64(C_Zoom.Base), float64(C_Zoom.Factor)))
-
-			C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
+		if scroll > 0 {
+			S_ZoomSlider.Val += calc
+		} else if scroll < 0 {
+			S_ZoomSlider.Val -= calc
 		}
+	} else {
+		// Zoom in (vertical scroll)
+		S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
+		C_Zoom.Base = float32(Grid.Width) / float32(C_Grid.Cols)
+
+		C_Zoom.Factor = (S_Zoom.Val - 1) / 8.0
+		C_Zoom.Scale = float32(math.Pow(float64(Grid.Width)/float64(C_Zoom.Base), float64(C_Zoom.Factor)))
+
+		C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
 	}
 }

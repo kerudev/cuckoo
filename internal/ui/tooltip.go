@@ -196,47 +196,49 @@ func DrawTooltip() {
 }
 
 func drawTooltipRec() {
-	rec := Tooltip.ToFloat32()
+	tooltip := Tooltip.ToFloat32()
 
 	// Raylib computes the radius using the formula:
 	// float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
 	//
 	// The radius depends on the "roundness", which must be known beforehand so
 	// the radius is always the same.
-	boxRoundness := BoxDiameter / min(rec.Height, rec.Width)
+	boxRoundness := BoxDiameter / min(tooltip.Height, tooltip.Width)
 
-	rl.DrawRectangleRounded(rec, boxRoundness, BoxSegments, rl.White)
-	rl.DrawRectangleRoundedLinesEx(rec, boxRoundness, BoxSegments, 2, rl.Black)
+	rl.DrawRectangleRounded(tooltip, boxRoundness, BoxSegments, rl.White)
+	rl.DrawRectangleRoundedLinesEx(tooltip, boxRoundness, BoxSegments, 2, rl.Black)
 
-	if TooltipHasOverflow {
-		rg.SetStyle(rg.SCROLLBAR, rg.BORDER_WIDTH, rg.GetStyle(rg.SLIDER, rg.BORDER_WIDTH))
-
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_NORMAL))
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_FOCUSED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_FOCUSED))
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_PRESSED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_PRESSED))
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_DISABLED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_DISABLED))
-
-		rg.SetStyle(rg.BUTTON, rg.BASE_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BASE_COLOR_NORMAL))
-
-		tooltipScrollRec := NewRectangleFromInt32(
-			Tooltip.X+Tooltip.Width-TooltipScrollW,
-			Tooltip.Y+int32(BoxRadius),
-			TooltipScrollW,
-			Tooltip.Height-int32(BoxDiameter),
-		)
-
-		// Allow scroll just when mouse is over tooltip
-		if rl.CheckCollisionPointRec(S_Mouse.Val, rec) {
-			scroll := int32(rl.GetMouseWheelMove()) * int32(16)
-
-			if scroll != 0 {
-				S_TooltipScroll.Val -= scroll
-				S_TooltipScroll.Set(Clamp(S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
-			}
-		}
-
-		S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec, S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
+	if !TooltipHasOverflow {
+		return
 	}
+
+	rg.SetStyle(rg.SCROLLBAR, rg.BORDER_WIDTH, rg.GetStyle(rg.SLIDER, rg.BORDER_WIDTH))
+
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_NORMAL))
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_FOCUSED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_FOCUSED))
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_PRESSED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_PRESSED))
+	rg.SetStyle(rg.LISTVIEW, rg.BORDER_COLOR_DISABLED, rg.GetStyle(rg.SLIDER, rg.BORDER_COLOR_DISABLED))
+
+	rg.SetStyle(rg.BUTTON, rg.BASE_COLOR_NORMAL, rg.GetStyle(rg.SLIDER, rg.BASE_COLOR_NORMAL))
+
+	tooltipScrollRec := rl.NewRectangle(
+		tooltip.X+tooltip.Width-float32(TooltipScrollW),
+		tooltip.Y+BoxRadius,
+		float32(TooltipScrollW),
+		tooltip.Height-BoxDiameter,
+	)
+
+	// Allow scroll just when mouse is over tooltip
+	if rl.CheckCollisionPointRec(S_Mouse.Val, tooltip) {
+		scroll := int32(rl.GetMouseWheelMove()) * int32(16)
+
+		if scroll != 0 {
+			S_TooltipScroll.Val -= scroll
+			S_TooltipScroll.Set(Clamp(S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
+		}
+	}
+
+	S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec, S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
 }
 
 func drawTooltipText(data map[string]map[string]JobsCountsByWd) {

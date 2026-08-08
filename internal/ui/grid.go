@@ -64,7 +64,7 @@ func DrawGrid() {
 			drawCoordsLines(dayCoords, S_Weekdays.Val[wd].Color)
 		}
 
-		if !UserOpt.DrawCoords && !UserOpt.DrawFade {
+		if !UserOpt.DrawFade && !UserOpt.DrawCoords {
 			continue
 		}
 
@@ -114,20 +114,20 @@ func DrawGrid() {
 
 		// Clamp number to the left side
 		if textX < float32(Offset.X) {
-			if textX+Cell.W > float32(Offset.X+TextPad) {
-				textX = float32(Offset.X)
-			} else {
+			if textX+Cell.W <= float32(Offset.X+TextPad) {
 				continue
 			}
+
+			textX = float32(Offset.X)
 		}
 
 		// Clamp number to the right side
 		if textX > float32(Grid.Width+Offset.X)-textW/2 {
-			if textX-Cell.W < float32(Grid.Width+Offset.X-TextPad*3) {
-				textX = float32(Grid.Width+Offset.X) - textW/2
-			} else {
+			if textX-Cell.W >= float32(Grid.Width+Offset.X-TextPad*3) {
 				continue
 			}
+
+			textX = float32(Grid.Width+Offset.X) - textW/2
 		}
 
 		rl.DrawText(text, int32(textX), Footer.Y+2, FontSize, rl.Black)
@@ -309,36 +309,38 @@ func drawMouseOver() {
 		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
 
 	if !BlockUI && stateChanged && S_IsOverGrid.Val {
-		MouseOver = [WEEKDAYS][]GridCoord{}
-		TotalOver = 0
+		return
+	}
 
-		// Get coords where Mouse is over
-		for wd, dayCoords := range GridCoords {
-			// If a day is not on, there are no coordinates to check
-			if S_Weekdays.Val[wd].Status != StatusOn {
+	MouseOver = [WEEKDAYS][]GridCoord{}
+	TotalOver = 0
+
+	// Get coords where Mouse is over
+	for wd, dayCoords := range GridCoords {
+		// If a day is not on, there are no coordinates to check
+		if S_Weekdays.Val[wd].Status != StatusOn {
+			continue
+		}
+
+		for _, coord := range dayCoords {
+			// If the coordinate is not on the same Y range, skip it
+			if !(S_MouseWithLock.Val.Y >= coord.Y-CoordRadius && S_MouseWithLock.Val.Y <= coord.Y+CoordRadius) {
 				continue
 			}
 
-			for _, coord := range dayCoords {
-				// If the coordinate is not on the same Y range, skip it
-				if !(S_MouseWithLock.Val.Y >= coord.Y-CoordRadius && S_MouseWithLock.Val.Y <= coord.Y+CoordRadius) {
-					continue
-				}
+			// If the coordinate is behind the Mouse, don't check collisions
+			if S_MouseWithLock.Val.X > coord.X+CoordRadius {
+				continue
+			}
 
-				// If the coordinate is behind the Mouse, don't check collisions
-				if S_MouseWithLock.Val.X > coord.X+CoordRadius {
-					continue
-				}
+			// If the coordinate is ahead the Mouse, don't keep iterating
+			if S_MouseWithLock.Val.X+20 <= coord.X {
+				break
+			}
 
-				// If the coordinate is ahead the Mouse, don't keep iterating
-				if S_MouseWithLock.Val.X+20 <= coord.X {
-					break
-				}
-
-				if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
-					MouseOver[wd] = append(MouseOver[wd], coord)
-					TotalOver++
-				}
+			if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
+				MouseOver[wd] = append(MouseOver[wd], coord)
+				TotalOver++
 			}
 		}
 	}
