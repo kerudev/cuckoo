@@ -65,6 +65,9 @@ func DrawLoop(path string) {
 
 			Footer.Y = Grid.Height + Grid.Y
 
+			FileButton.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
+			FileButtonText.Width = FileButton.Width
+
 			S_IsMouseLocked.Set(false)
 
 			GridCoords = CoordToGrid(Coords)

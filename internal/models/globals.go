@@ -48,6 +48,23 @@ var AllowedExt = []string{".json"}
 var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = Rec[float32]{}
 
+var BackButton = rl.Rectangle{
+	X:      float32(Offset.X),
+	Y:      float32(Offset.Y),
+	Width:  float32(BoxSize),
+	Height: float32(BoxSize),
+}
+var FileButton = rl.Rectangle{
+	X:      float32(Offset.X + BoxPad),
+	Y:      float32(Offset.Y),
+	Height: float32(BoxSize),
+}
+var FileButtonText = rl.Rectangle{
+	X:      FileButton.X + float32(BoxSize)/2,
+	Y:      FileButton.Y,
+	Height: FileButton.Height,
+}
+
 var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y * 3}
 var Footer = rl.RectangleInt32{}
 var Tooltip = rl.RectangleInt32{}

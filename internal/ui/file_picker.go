@@ -18,7 +18,7 @@ func DrawFilePicker() {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
-	backButtonClicked := rg.Button(NewRectangleFromInt32(Offset.X, Offset.Y, BoxSize, BoxSize), "#118#")
+	backButtonClicked := rg.Button(BackButton, "#118#")
 
 	if ShowHelp || !S_FilePicker.Val {
 		rg.SetState(rg.STATE_NORMAL)
@@ -29,8 +29,7 @@ func DrawFilePicker() {
 		defer rg.SetState(rg.STATE_NORMAL)
 	}
 
-	fileButton := NewRectangleFromInt32(Offset.X+BoxPad, Offset.Y, S_Screen.Val.W-Offset.X*2-BoxPad, BoxSize)
-	fileButtonClicked := rg.Button(fileButton, "")
+	fileButtonClicked := rg.Button(FileButton, "")
 
 	if ErrorText != "" {
 		errorRec := NewRectangleFromInt32(Offset.X, Offset.Y+BoxSize, S_Screen.Val.W-Offset.X*2, BoxSize)
@@ -39,8 +38,6 @@ func DrawFilePicker() {
 		errorRec.X += float32(BoxBorder) * 4
 		rg.DrawText("#113# "+ErrorText, errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
 	}
-
-	fileButton.X += float32(BoxSize) / 2
 
 	isDir, err := IsDir(S_FileName.Val)
 	if err != nil {
@@ -57,7 +54,7 @@ func DrawFilePicker() {
 
 	rg.DrawText(
 		icon+" "+S_FileName.Val,
-		fileButton,
+		FileButtonText,
 		int32(rg.TEXT_ALIGN_LEFT),
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
 	)
