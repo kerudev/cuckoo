@@ -18,6 +18,7 @@ func DrawFilePicker() {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
+	// Icon: ARROW_LEFT_FILL
 	backButtonClicked := rg.Button(BackButton, "#118#")
 
 	if ShowHelp || !S_FilePicker.Val {
@@ -39,8 +40,10 @@ func DrawFilePicker() {
 
 	icon := ""
 	if isDir {
+		// Icon: FOLDER
 		icon = "#217#"
 	} else {
+		// Icon: FILETYPE_TEXT
 		icon = "#10#"
 	}
 
@@ -93,8 +96,10 @@ func DrawFilePicker() {
 		name := file.Name()
 
 		if file.IsDir() {
+			// Icon: FOLDER
 			dirs = append(dirs, "#217# "+name)
 		} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
+			// Icon: FILETYPE_TEXT
 			data = append(data, "#10# "+name)
 		}
 	}

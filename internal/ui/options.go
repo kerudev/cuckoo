@@ -134,15 +134,22 @@ func DrawUserOptions() {
 	// User option - Draw options
 	rl.DrawText("Draw options", 120+Offset.X, Footer.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
 
-	drawCoordsIcon := "#213#"
+	drawCoordsIcon := ""
 	if UserOpt.DrawCoords {
+		// Icon: BREAKPOINT_ON
+		drawCoordsIcon = "#212#"
+	} else {
+		// Icon: BREAKPOINT_OFF
 		drawCoordsIcon = "#212#"
 	}
 
 	options := []ToggleParams{
 		{Icon: drawCoordsIcon, Ptr: &UserOpt.DrawCoords},
+		// Icon: WAVE_TRIANGULAR
 		{Icon: "#127#", Ptr: &UserOpt.DrawLines},
+		// Icon: DITHERING
 		{Icon: "#94#", Ptr: &UserOpt.DrawFade},
+		// Icon: GRID
 		{Icon: "#97#", Ptr: &UserOpt.DrawGrid},
 	}
 

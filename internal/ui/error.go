@@ -50,6 +50,7 @@ func DrawError() {
 	}
 
 	// Draw back button
+	// ICON: CROSS
 	if rg.Button(CloseErrorButton, "#113#") {
 		ErrorText = ""
 	}
