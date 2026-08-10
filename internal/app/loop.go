@@ -32,10 +32,10 @@ func DrawLoop(path string) {
 		ErrorText = err.Error()
 	}
 
-	S_FileName.Set(absPath)
+	S_FilePath.Set(absPath)
 
 	if !isDir {
-		S_LastFile.Set(absPath)
+		S_FileName.Set(absPath)
 	}
 
 	// Init raylib
@@ -78,7 +78,7 @@ func DrawLoop(path string) {
 			GridCoords = CoordToGrid(Coords)
 		}
 
-		// Check if a file was dropped and reload coords
+		// Drag&Drop: check if a file was dropped and reload coords
 		if rl.IsFileDropped() {
 			handleNewFile(rl.LoadDroppedFiles()[0])
 		}
@@ -88,7 +88,7 @@ func DrawLoop(path string) {
 			ShowHelp = !ShowHelp
 		}
 
-		BlockUI = ShowHelp || S_FilePicker.Val || S_LastFile.Val == ""
+		BlockUI = ShowHelp || S_FilePicker.Val || S_FileName.Val == ""
 
 		if !BlockUI {
 			handleKeyEvents()
@@ -113,8 +113,8 @@ func DrawLoop(path string) {
 		rl.EndDrawing()
 
 		// Recalculate coordinates when the file picker gets closed and a new file is chosen
-		if S_LastFile.HasChanged() {
-			handleNewFile(S_LastFile.Val)
+		if S_FileName.HasChanged() {
+			handleNewFile(S_FileName.Val)
 		}
 
 		// Recalculate coordinates based on bucket
@@ -175,16 +175,17 @@ func handleNewFile(path string) {
 		return
 	}
 
-	Sample = map[string]string{}
-	if err := ReadPath(path, &Sample); err != nil {
+	sample := map[string]string{}
+	if err := ReadPath(path, &sample); err != nil {
 		ErrorText = err.Error()
-	} else {
-		Crons = CronsFromStrings(Sample)
-		Coords = CoordsFromCrons(Crons)
-		GridCoords = CoordToGrid(Coords)
-
-		ErrorText = ""
+		return
 	}
+
+	Crons = CronsFromStrings(sample)
+	Coords = CoordsFromCrons(Crons)
+	GridCoords = CoordToGrid(Coords)
+
+	ErrorText = ""
 
 	for wd, dayCoords := range GridCoords {
 		if len(dayCoords) <= 0 {
@@ -193,6 +194,9 @@ func handleNewFile(path string) {
 			S_Weekdays.Val[wd].Status = StatusOn
 		}
 	}
+
+	S_FilePath.Set(path)
+	S_FileName.Set(path)
 }
 
 func handleKeyEvents() {

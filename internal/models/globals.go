@@ -90,7 +90,6 @@ var Footer = rl.RectangleInt32{}
 var Tooltip = rl.RectangleInt32{}
 var HelpWindow = rl.RectangleInt32{}
 
-var Sample = map[string]string{}
 var Crons = []Cron{}
 var Coords = [][]Coord{}
 var GridCoords = [][]GridCoord{}
@@ -125,8 +124,8 @@ var S_FileScroll = NewState(int32(-1))
 var S_FileActive = NewState(int32(-1))
 var S_FileFocused = NewState(int32(-1))
 
+var S_FilePath = NewState("")
 var S_FileName = NewState("")
-var S_LastFile = NewState("")
 var S_FilePicker = NewState(false)
 
 // User options

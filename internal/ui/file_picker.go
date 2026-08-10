@@ -31,9 +31,9 @@ func DrawFilePicker() {
 
 	fileButtonClicked := rg.Button(FileButton, "")
 
-	isDir, err := IsDir(S_FileName.Val)
+	isDir, err := IsDir(S_FilePath.Val)
 	if err != nil {
-		ErrorText = "Path " + S_FileName.Val + " doesn't exist"
+		ErrorText = "Path " + S_FilePath.Val + " doesn't exist"
 		return
 	}
 
@@ -45,7 +45,7 @@ func DrawFilePicker() {
 	}
 
 	rg.DrawText(
-		icon+" "+S_FileName.Val,
+		icon+" "+S_FilePath.Val,
 		FileButtonText,
 		int32(rg.TEXT_ALIGN_LEFT),
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
@@ -59,8 +59,8 @@ func DrawFilePicker() {
 	// Return early if the file picker is not active
 	if !S_FilePicker.Val {
 		// Reset S_FileName when File Picker was open previously
-		if S_FilePicker.HasChanged() && S_LastFile.Val != "" {
-			S_FileName.Set(S_LastFile.Val)
+		if S_FilePicker.HasChanged() && S_FileName.Val != "" {
+			S_FilePath.Set(S_FileName.Val)
 		}
 
 		return
@@ -68,14 +68,14 @@ func DrawFilePicker() {
 
 	dirName := ""
 	if isDir {
-		dirName = S_FileName.Val
+		dirName = S_FilePath.Val
 	} else {
-		dirName = filepath.Dir(S_FileName.Val)
+		dirName = filepath.Dir(S_FilePath.Val)
 	}
 
 	// Navigate to the previous directory
 	if backButtonClicked {
-		S_FileName.Set(filepath.Dir(dirName))
+		S_FilePath.Set(filepath.Dir(dirName))
 		S_FileScroll.Set(-1)
 	}
 
@@ -121,15 +121,15 @@ func DrawFilePicker() {
 		_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
 
 		if isDir {
-			S_FileName.Set(filepath.Join(S_FileName.Val, newName))
+			S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
 		} else {
-			S_FileName.Set(filepath.Join(filepath.Dir(S_FileName.Val), newName))
+			S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
 		}
 
-		if pathIsDir, _ := IsDir(S_FileName.Val); pathIsDir {
+		if pathIsDir, _ := IsDir(S_FilePath.Val); pathIsDir {
 			S_FileScroll.Set(-1)
 		} else {
-			S_LastFile.Set(S_FileName.Val)
+			S_FileName.Set(S_FilePath.Val)
 		}
 	}
 
