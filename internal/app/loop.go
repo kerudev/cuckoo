@@ -68,6 +68,11 @@ func DrawLoop(path string) {
 			FileButton.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
 			FileButtonText.Width = FileButton.Width
 
+			ErrorBox.X = FileButton.X
+			ErrorBox.Width = FileButton.Width
+
+			ErrorMessageText.Width = ErrorBox.Width
+
 			S_IsMouseLocked.Set(false)
 
 			GridCoords = CoordToGrid(Coords)
@@ -95,10 +100,10 @@ func DrawLoop(path string) {
 		rl.ClearBackground(rl.RayWhite)
 
 		ui.DrawGrid()
-
 		ui.DrawFooter()
 		ui.DrawTooltip()
 
+		ui.DrawError()
 		ui.DrawFilePicker()
 
 		if ShowHelp {
@@ -166,6 +171,7 @@ func handleNewFile(path string) {
 	}
 
 	if isDir {
+		ErrorText = "Path " + path + " is not a file"
 		return
 	}
 

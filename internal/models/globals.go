@@ -57,12 +57,32 @@ var BackButton = rl.Rectangle{
 var FileButton = rl.Rectangle{
 	X:      float32(Offset.X + BoxPad),
 	Y:      float32(Offset.Y),
+	Width:  0, // Depends on S_Screen.Val.W
 	Height: float32(BoxSize),
 }
 var FileButtonText = rl.Rectangle{
 	X:      FileButton.X + float32(BoxSize)/2,
 	Y:      FileButton.Y,
+	Width:  0, // Depends on S_Screen.Val.W
 	Height: FileButton.Height,
+}
+var CloseErrorButton = rl.Rectangle{
+	X:      BackButton.X,
+	Y:      BackButton.Y + float32(Offset.Y),
+	Width:  BackButton.Width,
+	Height: BackButton.Height,
+}
+var ErrorBox = rl.Rectangle{
+	X:      CloseErrorButton.X,
+	Y:      float32(Offset.Y + BoxSize),
+	Width:  0, // Depends on S_Screen.Val.W
+	Height: float32(BoxSize),
+}
+var ErrorMessageText = rl.Rectangle{
+	X:      CloseErrorButton.X + float32(BoxPad) + float32(BoxBorder)*12,
+	Y:      ErrorBox.Y,
+	Width:  0, // Depends on S_Screen.Val.W
+	Height: ErrorBox.Height,
 }
 
 var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y * 3}

@@ -31,14 +31,6 @@ func DrawFilePicker() {
 
 	fileButtonClicked := rg.Button(FileButton, "")
 
-	if ErrorText != "" {
-		errorRec := NewRectangleFromInt32(Offset.X, Offset.Y+BoxSize, S_Screen.Val.W-Offset.X*2, BoxSize)
-		rg.DrawRectangle(errorRec, 2, rl.Fade(rl.Red, 0.8), rl.Fade(rl.Red, 0.4))
-
-		errorRec.X += float32(BoxBorder) * 4
-		rg.DrawText("#113# "+ErrorText, errorRec, int32(rg.TEXT_ALIGN_LEFT), rl.Black)
-	}
-
 	isDir, err := IsDir(S_FileName.Val)
 	if err != nil {
 		ErrorText = "Path " + S_FileName.Val + " doesn't exist"
