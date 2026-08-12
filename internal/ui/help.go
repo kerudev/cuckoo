@@ -38,6 +38,19 @@ var HelpLines = []string{
 	"  - Draw grid lines",
 }
 
+func DrawHelpButton() {
+	if ShowHelp {
+		rg.SetState(rg.STATE_DISABLED)
+		defer rg.SetState(rg.STATE_NORMAL)
+	}
+
+	// Icon: HELP
+	if rg.Button(HelpButton, "#193#") {
+		// Set to true as the button can only be pressed when the state is STATE_NORMAL
+		ShowHelp = true
+	}
+}
+
 func DrawHelp() {
 	// Inspired from: https://github.com/raysan5/rguistyler/blob/3be4d40/src/gui_window_help.h
 

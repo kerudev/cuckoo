@@ -11,10 +11,12 @@ func DrawLockButton() {
 	if S_IsMouseLocked.Val {
 		// Icon: LOCK_CLOSE
 		icon = "#137#"
-		rg.SetState(rg.STATE_NORMAL)
 	} else {
 		// Icon: LOCK_OPEN
 		icon = "#138#"
+	}
+
+	if ShowHelp || !S_IsMouseLocked.Val {
 		rg.SetState(rg.STATE_DISABLED)
 		defer rg.SetState(rg.STATE_NORMAL)
 	}
