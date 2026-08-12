@@ -52,6 +52,7 @@ func DrawLoop(path string) {
 		S_Screen.Val.H = int32(rl.GetScreenHeight())
 
 		S_Mouse.Set(rl.GetMousePosition())
+		S_IsOnWindow.Set(rl.IsCursorOnScreen())
 		S_IsOverGrid.Set(rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32()))
 
 		if !S_IsMouseLocked.Val {

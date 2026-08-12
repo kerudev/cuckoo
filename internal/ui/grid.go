@@ -27,26 +27,24 @@ func DrawGrid() {
 	rl.BeginScissorMode(Offset.X, Grid.Y, Grid.Width, Grid.Height)
 
 	// Draw background line on Mouse over
-	bgX := float32(Offset.X) - C_Zoom.Offset
+	if S_IsOnWindow.Val {
+		bgX := float32(Offset.X) - C_Zoom.Offset
 
-	for range cols {
-		mouseInX := bgX < S_Mouse.Val.X && S_Mouse.Val.X <= bgX+Cell.W
-		mouseInY := float32(Grid.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Footer.Y)
+		for range cols {
+			mouseInX := bgX < S_Mouse.Val.X && S_Mouse.Val.X <= bgX+Cell.W
+			mouseInY := float32(Grid.Y) < S_Mouse.Val.Y && S_Mouse.Val.Y <= float32(Footer.Y)
 
-		if !(mouseInX && mouseInY) {
-			bgX += Cell.W
+			if !(mouseInX && mouseInY) {
+				bgX += Cell.W
 
-			if bgX >= float32(Grid.Width+Offset.X) {
-				break
+				if bgX >= float32(Grid.Width+Offset.X) {
+					break
+				}
 			}
-
-			continue
 		}
 
 		bgRec := NewRectangleFromInt32(int32(bgX)+BoxBorder*2, Grid.Y, int32(Cell.W)-BoxBorder*2, Grid.Height)
 		rl.DrawRectangleRec(bgRec, GridBGColor)
-
-		break
 	}
 
 	// Change slider based on mouse position to "follow" the cursor
