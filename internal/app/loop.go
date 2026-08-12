@@ -59,20 +59,22 @@ func DrawLoop(path string) {
 			S_MouseWithLock.Set(S_Mouse.Val)
 		}
 
-		// Recalculate Grid and coordinates only when Screen changes size
+		// Recalculate UI, Grid and coordinates only when Screen changes size
 		if S_Screen.HasChanged() {
 			Grid.Width = S_Screen.Val.W - Offset.X*2
 			Grid.Height = S_Screen.Val.H - Grid.Y - Offset.Y - 200
 
 			Footer.Y = Grid.Height + Grid.Y
 
-			FileButton.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
+			FileButton.Width = float32(S_Screen.Val.W-Offset.X*2-BoxPad-BoxBorder*2) - BackButton.Width
 			FileButtonText.Width = FileButton.Width
 
 			ErrorBox.X = FileButton.X
-			ErrorBox.Width = FileButton.Width
+			ErrorBox.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
 
 			ErrorMessageText.Width = ErrorBox.Width
+
+			LockButton.X = FileButton.X + FileButton.Width + float32(BoxBorder)*2
 
 			S_IsMouseLocked.Set(false)
 
@@ -106,6 +108,7 @@ func DrawLoop(path string) {
 
 		ui.DrawError()
 		ui.DrawFilePicker()
+		ui.DrawLockButton()
 
 		if ShowHelp {
 			ui.DrawHelp()

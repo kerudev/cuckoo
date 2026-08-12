@@ -55,10 +55,10 @@ var BackButton = rl.Rectangle{
 	Height: float32(BoxSize),
 }
 var FileButton = rl.Rectangle{
-	X:      float32(Offset.X + BoxPad),
-	Y:      float32(Offset.Y),
+	X:      BackButton.X + float32(BoxPad),
+	Y:      BackButton.Y,
 	Width:  0, // Depends on S_Screen.Val.W
-	Height: float32(BoxSize),
+	Height: BackButton.Height,
 }
 var FileButtonText = rl.Rectangle{
 	X:      FileButton.X + float32(BoxSize)/2,
@@ -66,6 +66,14 @@ var FileButtonText = rl.Rectangle{
 	Width:  0, // Depends on S_Screen.Val.W
 	Height: FileButton.Height,
 }
+
+var LockButton = rl.Rectangle{
+	X:      0, // Depends on S_Screen.Val.W
+	Y:      float32(Offset.Y),
+	Width:  float32(BoxSize),
+	Height: float32(BoxSize),
+}
+
 var CloseErrorButton = rl.Rectangle{
 	X:      BackButton.X,
 	Y:      BackButton.Y + float32(Offset.Y),
