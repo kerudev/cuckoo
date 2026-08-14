@@ -9,7 +9,8 @@ import (
 
 var HelpLines = []string{
 	"Drag&Drop file: changes grid coordinates",
-	"H - Toggle help window",
+	"#138# - Locked state indicator. Click to unlock",
+	"#193#/H - Toggle help window",
 
 	"-",
 
@@ -25,17 +26,17 @@ var HelpLines = []string{
 	"-",
 
 	"-UI options",
-	"Group by: ",
-	"Minutes step: group coordinates by bucket",
+	"Group by: groups coordinates by minute",
 	"1-7 - Toggle weekdays (0-6)",
+	"Minutes step: group coordinates by bucket",
 
 	"-User options",
 	"Tooltip position: change where the tooltip is",
 	"Draw options:",
-	"  - Draw coordinates",
-	"  - Draw lines that join coordinates",
-	"  - Draw fade under coordinates",
-	"  - Draw grid lines",
+	"#212# Draw coordinates",
+	"#127# Draw lines that join coordinates",
+	"#94# Draw fade under coordinates",
+	"#97# Draw grid lines",
 }
 
 func DrawHelpButton() {
