@@ -215,6 +215,7 @@ func drawCoordsLines(coords []GridCoord, color rl.Color) {
 	}
 }
 
+// TODO optimize this function, as it notably reduces FPS
 func drawFade(coord GridCoord, next GridCoord, wd int) {
 	mid := Vector2Int32{}
 

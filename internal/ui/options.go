@@ -107,15 +107,18 @@ func DrawUIOptions() {
 	}
 
 	// Draw option - StepMin
-	if S_GroupBy.Eq(GroupByWdHourMin) {
-		rl.DrawText("Minutes step", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
-		stepMinRec := NewRectangleFromInt32(120+Offset.X, Footer.Y+Offset.Y*4, BoxSize, BoxSize)
-
-		stepMinIdx := int32(S_StepMin.Val)
-		rg.ToggleGroup(stepMinRec, "1;5;10;15;20;30", &stepMinIdx)
-
-		S_StepMin.Set(StepMin(stepMinIdx))
+	if S_GroupBy.Val == GroupByWdHour {
+		rg.SetState(rg.STATE_DISABLED)
+		defer rg.SetState(rg.STATE_NORMAL)
 	}
+
+	rl.DrawText("Minutes step", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
+	stepMinRec := NewRectangleFromInt32(120+Offset.X, Footer.Y+Offset.Y*4, BoxSize, BoxSize)
+
+	stepMinIdx := int32(S_StepMin.Val)
+	rg.ToggleGroup(stepMinRec, "1;5;10;15;20;30", &stepMinIdx)
+
+	S_StepMin.Set(StepMin(stepMinIdx))
 }
 
 func DrawUserOptions() {
@@ -140,7 +143,7 @@ func DrawUserOptions() {
 		drawCoordsIcon = "#212#"
 	} else {
 		// Icon: BREAKPOINT_OFF
-		drawCoordsIcon = "#212#"
+		drawCoordsIcon = "#213#"
 	}
 
 	options := []ToggleParams{
