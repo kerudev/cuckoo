@@ -8,6 +8,8 @@ const INITIAL_COLS = 24
 const ROWS_CAP = 30
 const ROWS_RATIO = ROWS_CAP / INITIAL_ROWS
 const WEEKDAYS = 7
+const MIN_ZOOM = 1
+const MAX_ZOOM = 9
 
 // UI (runtime)
 var Font = rl.Font{}
@@ -119,7 +121,7 @@ var BlockUI = false
 
 // Context
 var C_Grid = GridContext{Cols: INITIAL_COLS, Rows: INITIAL_ROWS}
-var C_Zoom = ZoomContext{Factor: 1, Scale: 1}
+var C_Zoom = ZoomContext{Scale: 1}
 
 // State
 var S_Screen = NewState(Rec[int32]{})

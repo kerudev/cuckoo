@@ -274,8 +274,8 @@ func handleMixedEvents() {
 	// Move zoom slider with mouse and key events
 	scroll := rl.GetMouseWheelMove()
 
+	// Move zoom slider (horizontal scroll)
 	if rl.IsKeyDown(rl.KeyLeftShift) {
-		// Move zoom slider (horizontal scroll)
 		calc := Cell.W / (C_Zoom.Scale * C_Zoom.Factor * 2)
 
 		if scroll > 0 {
@@ -283,12 +283,16 @@ func handleMixedEvents() {
 		} else if scroll < 0 {
 			S_ZoomSlider.Val -= calc
 		}
-	} else {
-		// Zoom in (vertical scroll)
-		S_Zoom.Set(Clamp(S_Zoom.Val+scroll, 1, 9))
+
+		return
+	}
+
+	// Zoom in (vertical scroll)
+	if scroll > 0 && S_Zoom.Val < MAX_ZOOM || scroll < 0 && S_Zoom.Val > MIN_ZOOM {
+		S_Zoom.Set(Clamp(S_Zoom.Val+scroll, MIN_ZOOM, MAX_ZOOM))
 		C_Zoom.Base = float32(Grid.Width) / float32(C_Grid.Cols)
 
-		C_Zoom.Factor = (S_Zoom.Val - 1) / 8.0
+		C_Zoom.Factor = (S_Zoom.Val - 1) / (MAX_ZOOM - 1)
 		C_Zoom.Scale = float32(math.Pow(float64(Grid.Width)/float64(C_Zoom.Base), float64(C_Zoom.Factor)))
 
 		C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
