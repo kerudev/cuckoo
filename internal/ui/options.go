@@ -109,7 +109,6 @@ func DrawUIOptions() {
 	// Draw option - StepMin
 	if S_GroupBy.Val == GroupByWdHour {
 		rg.SetState(rg.STATE_DISABLED)
-		defer rg.SetState(rg.STATE_NORMAL)
 	}
 
 	rl.DrawText("Minutes step", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
@@ -119,6 +118,10 @@ func DrawUIOptions() {
 	rg.ToggleGroup(stepMinRec, "1;5;10;15;20;30", &stepMinIdx)
 
 	S_StepMin.Set(StepMin(stepMinIdx))
+
+	if S_GroupBy.Val == GroupByWdHour && !BlockUI {
+		rg.SetState(rg.STATE_NORMAL)
+	}
 }
 
 func DrawUserOptions() {
