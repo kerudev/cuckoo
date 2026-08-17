@@ -84,7 +84,7 @@ func DrawFilePicker() {
 
 	// Read and show all files in directory
 	// TODO read directory only when its timestamp changes
-	dirFiles, err := os.ReadDir(dirName)
+	dirContent, err := os.ReadDir(dirName)
 	if err != nil {
 		ErrorText = err.Error()
 	}
@@ -92,15 +92,30 @@ func DrawFilePicker() {
 	dirs := []string{}
 	data := []string{}
 
-	for _, file := range dirFiles {
-		name := file.Name()
+	for _, path := range dirContent {
+		name := path.Name()
 
-		if file.IsDir() {
-			// Icon: FOLDER
-			dirs = append(dirs, "#217# "+name)
+		icon := ""
+		if path.IsDir() {
+			if content, _ := os.ReadDir(name); len(content) > 0 {
+				// Icon: FOLDER_FILE_OPEN
+				icon = "#1#"
+			} else {
+				// Icon: FOLDER
+				icon = "#217#"
+			}
+
+			dirs = append(dirs, icon+" "+name)
 		} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
-			// Icon: FILETYPE_TEXT
-			data = append(data, "#10# "+name)
+			if info, _ := path.Info(); info.Size() > 0 {
+				// Icon: FILETYPE_TEXT
+				icon = "#10#"
+			} else {
+				// Icon: FILE
+				icon = "#218#"
+			}
+
+			data = append(data, icon+" "+name)
 		}
 	}
 
