@@ -8,8 +8,12 @@ const INITIAL_COLS = 24
 const ROWS_CAP = 30
 const ROWS_RATIO = ROWS_CAP / INITIAL_ROWS
 const WEEKDAYS = 7
+
 const MIN_ZOOM = 1
 const MAX_ZOOM = 9
+
+const MIN_FILES = 0
+const MAX_FILES = 6
 
 // UI (runtime)
 var Font = rl.Font{}

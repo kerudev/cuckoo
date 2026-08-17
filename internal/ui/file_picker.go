@@ -105,36 +105,48 @@ func DrawFilePicker() {
 	}
 
 	files := append(dirs, data...)
-	count := Clamp(int32(len(files)), 0, 6)
+	count := Clamp(int32(len(files)), MIN_FILES, MAX_FILES)
 
 	filePicker := Grid.ToFloat32()
-	filePicker.Height = float32(count * ListViewItemH)
 
-	def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
+	if count == 0 {
+		filePicker.Height = float32(ListViewItemH) * 1.5
+		backButtonClicked = rg.Button(filePicker, "Nothing here!\nClick to go back or add contents to this directory (it will update automatically)")
 
-	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
-	rg.ListViewEx(filePicker, files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
-	rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
+		// Navigate to the previous directory
+		if backButtonClicked {
+			S_FilePath.Set(filepath.Dir(dirName))
+			S_FileScroll.Set(-1)
+		}
+	} else {
+		filePicker.Height = float32(ListViewItemH * count)
+		def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
 
-	if ShowHelp {
-		rg.SetState(rg.STATE_NORMAL)
-	}
+		// Draw file and dir list
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
+		rg.ListViewEx(filePicker, files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
 
-	// Change file name when the picker is open
-	if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
-		// #10# file -> #10#, file
-		_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
-
-		if isDir {
-			S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
-		} else {
-			S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
+		if ShowHelp {
+			rg.SetState(rg.STATE_NORMAL)
 		}
 
-		if pathIsDir, _ := IsDir(S_FilePath.Val); pathIsDir {
-			S_FileScroll.Set(-1)
-		} else {
-			S_FileName.Set(S_FilePath.Val)
+		// Change file name when the picker is open
+		if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
+			// #10# file -> #10#, file
+			_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
+
+			if isDir {
+				S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
+			} else {
+				S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
+			}
+
+			if pathIsDir, _ := IsDir(S_FilePath.Val); pathIsDir {
+				S_FileScroll.Set(-1)
+			} else {
+				S_FileName.Set(S_FilePath.Val)
+			}
 		}
 	}
 
@@ -143,5 +155,5 @@ func DrawFilePicker() {
 	filePickerBG.Y = filePicker.Y + filePicker.Height
 	filePickerBG.Height = float32(Grid.Height) - filePicker.Height
 
-	rg.DrawRectangle(filePickerBG, 0, rl.Black, rl.Fade(rl.White, 0.8))
+	rg.DrawRectangle(filePickerBG, 0, rl.Blank, rl.Fade(rl.White, 0.8))
 }
