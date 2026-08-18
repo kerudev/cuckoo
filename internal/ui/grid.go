@@ -165,7 +165,9 @@ func DrawGrid() {
 	rl.DrawRectangleLinesEx(Grid.ToFloat32(), 2, rl.Black)
 
 	// Draw and save mouse over coordinates
-	drawMouseOver()
+	if !BlockUI {
+		drawMouseOver()
+	}
 }
 
 func drawGridLines() {
@@ -307,7 +309,7 @@ func drawMouseOver() {
 		S_Zoom.HasChanged() ||
 		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
 
-	if !BlockUI && stateChanged && S_IsOverGrid.Val {
+	if stateChanged && S_IsOverGrid.Val {
 		return
 	}
 
@@ -318,6 +320,10 @@ func drawMouseOver() {
 	for wd, dayCoords := range GridCoords {
 		// If a day is not on, there are no coordinates to check
 		if S_Weekdays.Val[wd].Status != StatusOn {
+			continue
+		}
+
+		if len(dayCoords) == 0 {
 			continue
 		}
 
@@ -340,6 +346,13 @@ func drawMouseOver() {
 			if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
 				MouseOver[wd] = append(MouseOver[wd], coord)
 				TotalOver++
+
+				// Draw a ring on those coordinates that have the mouse over them
+				faded := rl.ColorLerp(S_Weekdays.Val[wd].Color, rl.White, 0.3)
+				rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, faded)
+
+				// https://github.com/raysan5/raylib/blob/6735907/src/rshapes.c#L1463
+				rl.DrawRing(coord.Vector2(), CoordRadius-1, CoordRadius+1, 0, 360, 36, rl.Black)
 			}
 		}
 	}
