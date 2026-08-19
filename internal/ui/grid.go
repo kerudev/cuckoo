@@ -304,56 +304,58 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 }
 
 func drawMouseOver() {
-	stateChanged := S_IsMouseLocked.HasChanged() ||
-		S_Weekdays.HasChanged() ||
-		S_Zoom.HasChanged() ||
-		!S_IsMouseLocked.Val && S_Mouse.HasChanged()
+	if S_Zoom.HasChanged() || !S_IsMouseLocked.Val && S_Mouse.HasChanged() {
+		MouseOver = [WEEKDAYS][]GridCoord{}
+		TotalOver = 0
 
-	if stateChanged && S_IsOverGrid.Val {
-		return
+		// Get coords where Mouse is over
+		for wd, dayCoords := range GridCoords {
+			// If a day is not on, there are no coordinates to check
+			if S_Weekdays.Val[wd].Status != StatusOn {
+				continue
+			}
+
+			if len(dayCoords) == 0 {
+				continue
+			}
+
+			for _, coord := range dayCoords {
+				// If the coordinate is not on the same Y range, skip it
+				if !(S_MouseWithLock.Val.Y >= coord.Y-CoordRadius && S_MouseWithLock.Val.Y <= coord.Y+CoordRadius) {
+					continue
+				}
+
+				// If the coordinate is behind the Mouse, don't check collisions
+				if S_MouseWithLock.Val.X > coord.X+CoordRadius {
+					continue
+				}
+
+				// If the coordinate is ahead the Mouse, don't keep iterating
+				if S_MouseWithLock.Val.X+20 <= coord.X {
+					break
+				}
+
+				if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
+					MouseOver[wd] = append(MouseOver[wd], coord)
+					TotalOver++
+				}
+			}
+		}
 	}
 
-	MouseOver = [WEEKDAYS][]GridCoord{}
-	TotalOver = 0
-
-	// Get coords where Mouse is over
-	for wd, dayCoords := range GridCoords {
+	for wd, dayCoords := range MouseOver {
 		// If a day is not on, there are no coordinates to check
 		if S_Weekdays.Val[wd].Status != StatusOn {
 			continue
 		}
 
-		if len(dayCoords) == 0 {
-			continue
-		}
-
 		for _, coord := range dayCoords {
-			// If the coordinate is not on the same Y range, skip it
-			if !(S_MouseWithLock.Val.Y >= coord.Y-CoordRadius && S_MouseWithLock.Val.Y <= coord.Y+CoordRadius) {
-				continue
-			}
+			// Draw a ring on those coordinates that have the mouse over them
+			faded := rl.ColorLerp(S_Weekdays.Val[wd].Color, rl.White, 0.3)
+			rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, faded)
 
-			// If the coordinate is behind the Mouse, don't check collisions
-			if S_MouseWithLock.Val.X > coord.X+CoordRadius {
-				continue
-			}
-
-			// If the coordinate is ahead the Mouse, don't keep iterating
-			if S_MouseWithLock.Val.X+20 <= coord.X {
-				break
-			}
-
-			if rl.CheckCollisionPointCircle(S_MouseWithLock.Val, coord.Vector2(), CoordRadius) {
-				MouseOver[wd] = append(MouseOver[wd], coord)
-				TotalOver++
-
-				// Draw a ring on those coordinates that have the mouse over them
-				faded := rl.ColorLerp(S_Weekdays.Val[wd].Color, rl.White, 0.3)
-				rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, faded)
-
-				// https://github.com/raysan5/raylib/blob/6735907/src/rshapes.c#L1463
-				rl.DrawRing(coord.Vector2(), CoordRadius-1, CoordRadius+1, 0, 360, 36, rl.Black)
-			}
+			// https://github.com/raysan5/raylib/blob/6735907/src/rshapes.c#L1463
+			rl.DrawRing(coord.Vector2(), CoordRadius-1, CoordRadius+1, 0, 360, 36, rl.Black)
 		}
 	}
 }
