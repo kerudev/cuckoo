@@ -50,7 +50,7 @@ const FooterFontSize = int32(16)
 
 var AllowedExt = []string{".json"}
 
-// Internal
+// UI (components)
 var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = Rec[float32]{}
 
@@ -110,9 +110,11 @@ var Footer = rl.RectangleInt32{}
 var Tooltip = rl.RectangleInt32{}
 var HelpWindow = rl.RectangleInt32{}
 
+// Internal data
 var Crons = []Cron{}
 var Coords = [][]Coord{}
 var GridCoords = [][]GridCoord{}
+var TooltipLines = map[string]map[string]JobsCountsByWd{}
 
 var WdCounts = [WEEKDAYS]CronCountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}

@@ -22,80 +22,85 @@ func DrawTooltip() {
 		return
 	}
 
-	nRows := 0
-	maxW := int32(0)
+	// Resize tooltip when mouse is unlocked or weekdays changed
+	// NOTE: check if UI is blocked, as the tooltip should not move when mouse moves around
+	if !BlockUI && (!S_IsMouseLocked.Val && S_Mouse.HasChanged() || S_Weekdays.HasChanged() || S_Position.HasChanged()) {
+		nRows := 0
+		maxW := int32(0)
 
-	// Extract data from MouseOver
-	// Time (HH:MM) -> Cron string -> Job names & weekdays
-	cronsByTime := map[string]map[string]JobsByWd{}
-	for wd, coords := range MouseOver {
-		for _, coord := range coords {
-			for _, job := range coord.Jobs {
-				time := fmt.Sprintf("%s (%d)", job.AsTime(), int32(coord.OrigY))
+		// Extract data from MouseOver
+		// Time (HH:MM) -> Cron string -> Job names & weekdays
+		cronsByTime := map[string]map[string]JobsByWd{}
+		for wd, coords := range MouseOver {
+			if S_Weekdays.Val[wd].Status != StatusOn {
+				continue
+			}
 
-				if _, ok := cronsByTime[time]; !ok {
-					cronsByTime[time] = map[string]JobsByWd{}
-				}
+			for _, coord := range coords {
+				for _, job := range coord.Jobs {
+					time := fmt.Sprintf("%s (%d)", job.AsTime(), int32(coord.OrigY))
 
-				j, ok := cronsByTime[time][job.Cron]
-				if !ok {
-					j = JobsByWd{
-						Jobs: map[string]int{},
-						Wds:  []int{},
+					if _, ok := cronsByTime[time]; !ok {
+						cronsByTime[time] = map[string]JobsByWd{}
 					}
+
+					j, ok := cronsByTime[time][job.Cron]
+					if !ok {
+						j = JobsByWd{
+							Jobs: map[string]int{},
+							Wds:  []int{},
+						}
+					}
+
+					j.Jobs[job.Name]++
+					j.Wds = append(cronsByTime[time][job.Cron].Wds, wd)
+
+					cronsByTime[time][job.Cron] = j
 				}
-
-				j.Jobs[job.Name]++
-				j.Wds = append(cronsByTime[time][job.Cron].Wds, wd)
-
-				cronsByTime[time][job.Cron] = j
 			}
 		}
-	}
 
-	// Transform data to strings
-	schedule := map[string]map[string]JobsCountsByWd{}
-	for time, crons := range cronsByTime {
-		for cron, jobsByWd := range crons {
-			if w := rl.MeasureText(cron, FontSize) + TextPad + FontRadius; w > maxW {
-				maxW = w
-			}
-
-			for job, count := range maps.All(jobsByWd.Jobs) {
-				s := fmt.Sprintf("%s (%d)", job, count)
-
-				if w := rl.MeasureText(s, FontSize); w > maxW {
+		// Transform data to strings
+		TooltipLines = map[string]map[string]JobsCountsByWd{}
+		for time, crons := range cronsByTime {
+			for cron, jobsByWd := range crons {
+				if w := rl.MeasureText(cron, FontSize) + TextPad + FontRadius; w > maxW {
 					maxW = w
 				}
 
-				if _, ok := schedule[time]; !ok {
-					schedule[time] = map[string]JobsCountsByWd{}
-				}
+				for job, count := range maps.All(jobsByWd.Jobs) {
+					s := fmt.Sprintf("%s (%d)", job, count)
 
-				j, ok := schedule[time][cron]
-				if !ok {
-					j = JobsCountsByWd{
-						Jobs: []string{},
-						Wds:  []int{},
+					if w := rl.MeasureText(s, FontSize); w > maxW {
+						maxW = w
 					}
+
+					if _, ok := TooltipLines[time]; !ok {
+						TooltipLines[time] = map[string]JobsCountsByWd{}
+					}
+
+					j, ok := TooltipLines[time][cron]
+					if !ok {
+						j = JobsCountsByWd{
+							Jobs: []string{},
+							Wds:  []int{},
+						}
+					}
+
+					j.Jobs = append(j.Jobs, s)
+					j.Wds = jobsByWd.Wds
+
+					TooltipLines[time][cron] = j
 				}
 
-				j.Jobs = append(j.Jobs, s)
-				j.Wds = jobsByWd.Wds
-
-				schedule[time][cron] = j
+				// Add one line for the cron string and another for spacing
+				nRows += len(jobsByWd.Jobs) + 1 + 1
 			}
 
-			// Add one line for the cron string and another for spacing
-			nRows += len(jobsByWd.Jobs) + 1 + 1
+			// Spacing
+			nRows += 2
 		}
 
-		// Spacing
-		nRows += 2
-	}
-
-	// Resize tooltip when mouse is unlocked or weekdays changed
-	if !BlockUI && (!S_IsMouseLocked.Val || S_Weekdays.HasChanged() || S_Position.HasChanged()) {
 		TooltipHasOverflow = false
 
 		// Prepare Tooltip
@@ -172,7 +177,7 @@ func DrawTooltip() {
 
 	// TODO optimize to reduce draw calls when text is out of the tooltip
 	rl.BeginScissorMode(Tooltip.X, Tooltip.Y, Tooltip.Width, Tooltip.Height)
-	drawTooltipText(schedule)
+	drawTooltipText()
 	rl.EndScissorMode()
 }
 
@@ -222,11 +227,11 @@ func drawTooltipRec() {
 	S_TooltipScroll.Set(rg.ScrollBar(tooltipScrollRec, S_TooltipScroll.Val, 0, S_TooltipScrollMax.Val))
 }
 
-func drawTooltipText(data map[string]map[string]JobsCountsByWd) {
+func drawTooltipText() {
 	row := int32(0)
 
 	// Sort HH:MM keys
-	times := slices.Collect(maps.Keys(data))
+	times := slices.Collect(maps.Keys(TooltipLines))
 	sort.Slice(times, func(i, j int) bool {
 		return SortAlphabetically(times[i], times[j])
 	})
@@ -253,13 +258,13 @@ func drawTooltipText(data map[string]map[string]JobsCountsByWd) {
 		row += 2
 
 		// Sort cron strings
-		crons := slices.Collect(maps.Keys(data[time]))
+		crons := slices.Collect(maps.Keys(TooltipLines[time]))
 		sort.Slice(crons, func(i, j int) bool {
 			return SortAlphabetically(crons[i], crons[j])
 		})
 
 		for _, cron := range crons {
-			jobsCount := data[time][cron]
+			jobsCount := TooltipLines[time][cron]
 
 			wds := jobsCount.Wds
 
