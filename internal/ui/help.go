@@ -14,6 +14,11 @@ var HelpLines = []string{
 
 	"-",
 
+	"-File Picker",
+	"Click on any file to change the contents on the grid",
+
+	"-",
+
 	"-Grid",
 	"LClick/L - Lock coordinates where mouse is over",
 	"Wheel[Up/Down] - Zoom in/out",
@@ -31,7 +36,7 @@ var HelpLines = []string{
 	"Minutes step: group coordinates by bucket",
 
 	"-User options",
-	"Tooltip position: change where the tooltip is",
+	"Tooltip position: where you want to draw the tooltip",
 	"Draw options:",
 	"#212# Draw coordinates",
 	"#127# Draw lines that join coordinates",

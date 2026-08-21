@@ -119,7 +119,7 @@ func DrawUIOptions() {
 
 	S_StepMin.Set(StepMin(stepMinIdx))
 
-	if S_GroupBy.Val == GroupByWdHour && !BlockUI {
+	if !BlockUI && S_GroupBy.Val == GroupByWdHour {
 		rg.SetState(rg.STATE_NORMAL)
 	}
 }
