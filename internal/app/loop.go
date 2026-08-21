@@ -125,14 +125,8 @@ func DrawLoop(path string) {
 			handleNewFile(S_FileName.Val)
 		}
 
-		// Recalculate coordinates based on bucket
-		if S_StepMin.HasChanged() {
-			Coords = CoordsFromCrons(Crons)
-			GridCoords = CoordToGrid(Coords)
-		}
-
-		// Recalculate coordinates based on group by
-		if S_GroupBy.HasChanged() {
+		// Recalculate coordinates based on bucket or group
+		if S_StepMin.HasChanged() || S_GroupBy.HasChanged() {
 			Coords = CoordsFromCrons(Crons)
 			GridCoords = CoordToGrid(Coords)
 		}
@@ -145,7 +139,6 @@ func DrawLoop(path string) {
 
 			C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
 
-			Coords = CoordsFromCrons(Crons)
 			GridCoords = CoordToGrid(Coords)
 		}
 
