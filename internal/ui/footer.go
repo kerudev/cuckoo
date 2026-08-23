@@ -33,19 +33,19 @@ func DrawFooter() {
 }
 
 func drawFooterData() {
-	footerX := S_Screen.Val.W - Offset.X - FooterW
+	footerX := 150 + Offset.X + BoxPad*6
 	footerY := Footer.Y + Offset.Y + FontSize*2
 
-	// text := "Drop file to change sample"
-	// textW := rl.MeasureText(text, FooterFontSize)
-
 	text := "Count of crons & jobs"
-	textW := rl.MeasureText(text, FontSize)
-
-	rl.DrawText(text, S_Screen.Val.W-textW-Offset.X, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
+	rl.DrawText(text, footerX+TextPad*2, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
 
 	totalCrons := 0
 	totalJobs := 0
+
+	wdCircle := rl.Vector2{
+		X: float32(footerX + TextPad*2 + int32(CoordRadius)),
+		Y: float32(footerY + FontRadius),
+	}
 
 	for wd, count := range WdCounts {
 		var s string
@@ -58,11 +58,59 @@ func drawFooterData() {
 			s = "0 (0)"
 		}
 
-		rl.DrawCircle(footerX-TextPad, footerY+TextPad*2*int32(wd)+FontRadius, float32(FontRadius), S_Weekdays.Val[wd].Color)
-		rl.DrawText(s, footerX+TextPad, footerY+TextPad*2*int32(wd), FontSize, rl.Black)
+		var color rl.Color
+		if S_Weekdays.Val[wd].Status == StatusOn {
+			color = S_Weekdays.Val[wd].Color
+		} else {
+			color = rl.White
+		}
+
+		rl.DrawCircle(int32(wdCircle.X), int32(wdCircle.Y), float32(FontRadius), color)
+		rl.DrawRing(wdCircle, float32(FontRadius)-1, float32(FontRadius)+1, 0, 360, 16, rl.Black)
+		rl.DrawText(s, footerX+TextPad*4+int32(CoordDiameter), footerY+TextPad*2*int32(wd), FontSize, rl.Black)
+
+		wdCircle.Y += float32(TextPad * 2)
 	}
 
-	rl.DrawText(fmt.Sprintf("%d (%d)", totalCrons, totalJobs), footerX+TextPad, footerY+TextPad*2*WEEKDAYS, FontSize, rl.Black)
+	// Draw sum of all coords & jobs
+	var wds []int
+	for wd := range WEEKDAYS {
+		if S_Weekdays.Val[wd].Status == StatusOn {
+			wds = append(wds, wd)
+		}
+	}
+
+	segments := float32(len(wds))
+
+	angleFactor := float32(360) / segments
+	angle := float32(270)
+
+	for _, wd := range wds {
+		if S_Weekdays.Val[wd].Status != StatusOn {
+			continue
+		}
+
+		rl.DrawCircleSector(
+			wdCircle,
+			float32(FontRadius),
+			angle,
+			angle+angleFactor,
+			8,
+			S_Weekdays.Val[wd].Color,
+		)
+
+		angle += angleFactor
+	}
+
+	rl.DrawRing(wdCircle, float32(FontRadius)-1, float32(FontRadius)+1, 0, 360, 16, rl.Black)
+
+	rl.DrawText(
+		fmt.Sprintf("%d (%d)", totalCrons, totalJobs),
+		footerX+TextPad*4+int32(CoordDiameter),
+		footerY+TextPad*2*WEEKDAYS,
+		FontSize,
+		rl.Black,
+	)
 
 	// texts := []string{
 	// 	fmt.Sprintf("Scale: x%.2f", C_Zoom.Scale),

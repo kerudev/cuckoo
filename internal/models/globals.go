@@ -35,6 +35,7 @@ const HelpLineH = int32(24)
 const HelpLineEmptyH = int32(14)
 
 const CoordRadius = float32(4.0)
+const CoordDiameter = CoordRadius * 2
 
 const GridBorder = int32(2)
 
