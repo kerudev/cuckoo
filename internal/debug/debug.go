@@ -6,7 +6,13 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"runtime"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+func DrawFPS() {
+	rl.DrawText(fmt.Sprintf("FPS: %d", rl.GetFPS()), 0, 0, 20, rl.Black)
+}
 
 func PrintMem(label string) {
 	var m runtime.MemStats
