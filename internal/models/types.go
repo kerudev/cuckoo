@@ -73,14 +73,13 @@ func (c Cron) String() string {
 }
 
 func (c Cron) Jobs() []Job {
-	jobs := []Job{}
-
 	weekdays := ParseCronField(c.Weekday, 0, 6)
 	hours := ParseCronField(c.Hour, 0, 23)
 	mins := ParseCronField(c.Min, 0, 59)
 
 	s := c.String()
 
+	var jobs []Job
 	for _, wd := range weekdays {
 		for _, h := range hours {
 			for _, m := range mins {
@@ -103,8 +102,7 @@ func (c Cron) Jobs() []Job {
 }
 
 func ParseCronField(field string, min int, max int) []int {
-	list := []int{}
-
+	var list []int
 	for value := range strings.SplitSeq(field, ",") {
 		// wildcard ("*")
 		if value == "*" {
@@ -163,8 +161,7 @@ func ParseCronField(field string, min int, max int) []int {
 }
 
 func CronsFromStrings(strings map[string]string) []Cron {
-	result := []Cron{}
-
+	var result []Cron
 	for name, cron := range strings {
 		result = append(result, NewCron(name, cron))
 	}
@@ -187,8 +184,7 @@ func (j Job) AsTime() string {
 }
 
 func JobsFromCrons(crons []Cron) []Job {
-	result := []Job{}
-
+	var result []Job
 	WdCounts = [WEEKDAYS]CronCountsByWd{}
 
 	for _, cron := range crons {

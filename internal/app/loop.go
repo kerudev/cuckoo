@@ -164,9 +164,9 @@ func DrawLoop(path string) {
 }
 
 func handleNewFile(path string) {
-	isDir, err := IsDir(path)
 	absPath, _ := filepath.Abs(path)
 
+	isDir, err := IsDir(path)
 	if err != nil {
 		ErrorText = "Path " + absPath + " doesn't exist"
 		return
@@ -177,7 +177,7 @@ func handleNewFile(path string) {
 		return
 	}
 
-	sample := map[string]string{}
+	var sample map[string]string
 	if err := ReadPath(absPath, &sample); err != nil {
 		ErrorText = err.Error()
 		return

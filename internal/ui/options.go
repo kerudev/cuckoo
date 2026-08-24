@@ -140,7 +140,7 @@ func DrawUserOptions() {
 	// User option - Draw options
 	rl.DrawText("Draw options", 120+Offset.X, Footer.Y+Offset.Y*6+TextPad, FontSize, rl.Black)
 
-	drawCoordsIcon := ""
+	var drawCoordsIcon string
 	if UserOpt.DrawCoords {
 		// Icon: BREAKPOINT_ON
 		drawCoordsIcon = "#212#"

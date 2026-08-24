@@ -7,7 +7,7 @@ import (
 )
 
 func DrawLockButton() {
-	icon := ""
+	var icon string
 	if S_IsMouseLocked.Val {
 		// Icon: LOCK_CLOSE
 		icon = "#137#"

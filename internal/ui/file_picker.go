@@ -38,7 +38,7 @@ func DrawFilePicker() {
 		return
 	}
 
-	icon := ""
+	var icon string
 	if isDir {
 		// Icon: FOLDER
 		icon = "#217#"
@@ -69,7 +69,7 @@ func DrawFilePicker() {
 		return
 	}
 
-	dirName := ""
+	var dirName string
 	if isDir {
 		dirName = S_FilePath.Val
 	} else {
@@ -89,13 +89,13 @@ func DrawFilePicker() {
 		ErrorText = err.Error()
 	}
 
-	dirs := []string{}
-	data := []string{}
+	var dirs []string
+	var data []string
 
 	for _, path := range dirContent {
 		name := path.Name()
 
-		icon := ""
+		var icon string
 		if path.IsDir() {
 			if content, _ := os.ReadDir(name); len(content) > 0 {
 				// Icon: FOLDER_FILE_OPEN

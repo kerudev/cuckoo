@@ -276,7 +276,7 @@ func drawTooltipText() {
 			}
 
 			angleFactor := float32(360) / segments
-			angle := float32(0)
+			angle := float32(270)
 
 			for _, wd := range wds {
 				if S_Weekdays.Val[wd].Status != StatusOn {

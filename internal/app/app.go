@@ -3,7 +3,7 @@ package app
 import "flag"
 
 func Run() {
-	path := ""
+	var path string
 	flag.StringVar(&path, "path", "", "Path where the data is")
 
 	flag.Parse()

@@ -219,8 +219,6 @@ func drawCoordsLines(coords []GridCoord, color rl.Color) {
 
 // TODO optimize this function, as it notably reduces FPS
 func drawFade(coord GridCoord, next GridCoord, wd int) {
-	mid := Vector2Int32{}
-
 	alpha0 := float32(255)
 	alpha1 := float32(255)
 	alpha2 := float32(255)
@@ -229,6 +227,13 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 	recY := int32(0)
 	recAlpha := float32(0)
 
+	coordX := int32(coord.X)
+	coordY := int32(coord.Y)
+	nextX := int32(next.X)
+	nextY := int32(next.Y)
+	HighestY := float32(C_Grid.HighestY)
+
+	var mid Vector2Int32
 	if coord.Y < next.Y {
 		/**
 		 * (0) x
@@ -242,15 +247,15 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		 * - 2: next
 		 */
 
-		mid.X = int32(coord.X)
-		mid.Y = int32(next.Y)
+		mid.X = coordX
+		mid.Y = nextY
 
-		alpha0 *= coord.OrigY / float32(C_Grid.HighestY)
-		alpha1 *= next.OrigY / float32(C_Grid.HighestY)
-		alpha2 *= next.OrigY / float32(C_Grid.HighestY)
+		alpha0 *= coord.OrigY / HighestY
+		alpha1 *= next.OrigY / HighestY
+		alpha2 *= next.OrigY / HighestY
 
-		recX = int32(mid.X)
-		recY = int32(mid.Y)
+		recX = mid.X
+		recY = mid.Y
 		recAlpha = next.OrigY
 	} else {
 		/**
@@ -265,15 +270,15 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 		 * - 2: next
 		 */
 
-		mid.X = int32(next.X)
-		mid.Y = int32(coord.Y)
+		mid.X = nextX
+		mid.Y = coordY
 
-		alpha0 *= coord.OrigY / float32(C_Grid.HighestY)
-		alpha1 *= coord.OrigY / float32(C_Grid.HighestY)
-		alpha2 *= next.OrigY / float32(C_Grid.HighestY)
+		alpha0 *= coord.OrigY / HighestY
+		alpha1 *= coord.OrigY / HighestY
+		alpha2 *= next.OrigY / HighestY
 
-		recX = int32(coord.X)
-		recY = int32(coord.Y)
+		recX = coordX
+		recY = coordY
 		recAlpha = coord.OrigY
 	}
 
@@ -286,19 +291,19 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 	// Draw triangle with faded vertices
 	rl.Begin(rl.Triangles)
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha0))
-	rl.Vertex2i(int32(coord.X), int32(coord.Y))
+	rl.Vertex2i(coordX, coordY)
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha1))
 	rl.Vertex2i(mid.X, mid.Y)
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha2))
-	rl.Vertex2i(int32(next.X), int32(next.Y))
+	rl.Vertex2i(nextX, nextY)
 	rl.End()
 
 	// Draw gradient below graph
-	w := int32(next.X) - int32(coord.X)
-	h := Footer.Y - int32(mid.Y)
+	w := nextX - coordX
+	h := Footer.Y - mid.Y
 
 	// Calculate rectangle fade based on highest coordinate
-	recColor := rl.Fade(color, recAlpha*Cell.H/(float32(C_Grid.HighestY)*Cell.H))
+	recColor := rl.Fade(color, recAlpha/HighestY)
 
 	rl.DrawRectangleGradientV(recX, recY, w, h, recColor, S_Weekdays.Val[wd].Faded)
 }
@@ -355,7 +360,7 @@ func drawMouseOver() {
 			rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, faded)
 
 			// https://github.com/raysan5/raylib/blob/6735907/src/rshapes.c#L1463
-			rl.DrawRing(coord.Vector2(), CoordRadius-1, CoordRadius+1, 0, 360, 36, rl.Black)
+			rl.DrawRing(coord.Vector2(), CoordRadius-1, CoordRadius+1, 0, 360, 16, rl.Black)
 		}
 	}
 }
