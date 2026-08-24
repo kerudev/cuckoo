@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -11,6 +12,11 @@ import (
 
 	. "github.com/kerudev/cuckoo/internal/models"
 	. "github.com/kerudev/cuckoo/internal/utils"
+)
+
+var EmptyPickerMessage = fmt.Sprintf(`Nothing here!
+	Click to go back or add contents to this directory (it will update automatically)
+	Allowed file extensions: %s`, strings.Join(AllowedExt, ", "),
 )
 
 func DrawFilePicker() {
@@ -126,7 +132,7 @@ func DrawFilePicker() {
 
 	if count == 0 {
 		filePicker.Height = float32(ListViewItemH) * 1.5
-		backButtonClicked = rg.Button(filePicker, "Nothing here!\nClick to go back or add contents to this directory (it will update automatically)")
+		backButtonClicked = rg.Button(filePicker, EmptyPickerMessage)
 
 		// Navigate to the previous directory
 		if backButtonClicked {

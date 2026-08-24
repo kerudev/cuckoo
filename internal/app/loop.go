@@ -177,7 +177,7 @@ func handleNewFile(path string) {
 		return
 	}
 
-	var sample map[string]string
+	sample := map[string]string{}
 	if err := ReadPath(absPath, &sample); err != nil {
 		ErrorText = err.Error()
 		return

@@ -49,8 +49,6 @@ const TooltipScrollW = int32(10)
 const FooterW = int32(120)
 const FooterFontSize = int32(16)
 
-var AllowedExt = []string{".json"}
-
 // UI (components)
 var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = Rec[float32]{}
