@@ -115,6 +115,9 @@ var Coords = [][]Coord{}
 var GridCoords = [][]GridCoord{}
 var TooltipLines = map[string]map[string]JobsCountsByWd{}
 
+var DirFiles = []string{}
+var DirFilesCount = int32(0)
+
 var WdCounts = [WEEKDAYS]CronCountsByWd{}
 var MouseOver = [WEEKDAYS][]GridCoord{}
 var TotalOver = 0
@@ -149,6 +152,8 @@ var S_FileFocused = NewState(int32(-1))
 var S_FilePath = NewState("")
 var S_FileName = NewState("")
 var S_FilePicker = NewState(false)
+
+var S_DirLastUpdate = NewState(int64(0))
 
 // User options
 var S_Weekdays = NewState(Weekdays{

@@ -36,8 +36,6 @@ func DrawFilePicker() {
 		defer rg.SetState(rg.STATE_NORMAL)
 	}
 
-	fileButtonClicked := rg.Button(FileButton, "")
-
 	isDir, err := IsDir(S_FilePath.Val)
 	if err != nil {
 		ErrorText = "Path " + S_FilePath.Val + " doesn't exist"
@@ -52,6 +50,8 @@ func DrawFilePicker() {
 		// Icon: FILETYPE_TEXT
 		icon = "#10#"
 	}
+
+	fileButtonClicked := rg.Button(FileButton, "")
 
 	rg.DrawText(
 		icon+" "+S_FilePath.Val,
@@ -89,63 +89,66 @@ func DrawFilePicker() {
 	}
 
 	// Read and show all files in directory
-	// TODO read directory only when its timestamp changes
-	dirContent, err := os.ReadDir(dirName)
-	if err != nil {
-		ErrorText = err.Error()
-	}
+	stat, err := os.Stat(dirName)
+	S_DirLastUpdate.Set(stat.ModTime().UnixNano())
 
-	var dirs []string
-	var data []string
-
-	for _, path := range dirContent {
-		name := path.Name()
-
-		var icon string
-		if path.IsDir() {
-			if content, _ := os.ReadDir(name); len(content) > 0 {
-				// Icon: FOLDER_FILE_OPEN
-				icon = "#1#"
-			} else {
-				// Icon: FOLDER
-				icon = "#217#"
-			}
-
-			dirs = append(dirs, icon+" "+name)
-		} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
-			if info, _ := path.Info(); info.Size() > 0 {
-				// Icon: FILETYPE_TEXT
-				icon = "#10#"
-			} else {
-				// Icon: FILE
-				icon = "#218#"
-			}
-
-			data = append(data, icon+" "+name)
+	// Read the directory only when it has changes
+	if S_DirLastUpdate.HasChanged() {
+		dirContent, err := os.ReadDir(dirName)
+		if err != nil {
+			ErrorText = err.Error()
 		}
-	}
 
-	files := append(dirs, data...)
-	count := Clamp(int32(len(files)), MIN_FILES, MAX_FILES)
+		var dirs []string
+		var data []string
+		for _, path := range dirContent {
+			name := path.Name()
+
+			var icon string
+			if path.IsDir() {
+				if content, _ := os.ReadDir(name); len(content) > 0 {
+					// Icon: FOLDER_FILE_OPEN
+					icon = "#1#"
+				} else {
+					// Icon: FOLDER
+					icon = "#217#"
+				}
+
+				dirs = append(dirs, icon+" "+name)
+			} else if slices.Contains(AllowedExt, filepath.Ext(name)) {
+				if info, _ := path.Info(); info.Size() > 0 {
+					// Icon: FILETYPE_TEXT
+					icon = "#10#"
+				} else {
+					// Icon: FILE
+					icon = "#218#"
+				}
+
+				data = append(data, icon+" "+name)
+			}
+		}
+
+		DirFiles = append(dirs, data...)
+		DirFilesCount = Clamp(int32(len(DirFiles)), MIN_FILES, MAX_FILES)
+	}
 
 	filePicker := Grid.ToFloat32()
 
-	if count == 0 {
+	if DirFilesCount == 0 {
 		filePicker.Height = float32(ListViewItemH) * 1.5
-		backButtonClicked = rg.Button(filePicker, EmptyPickerMessage)
 
 		// Navigate to the previous directory
-		if backButtonClicked {
+		if rg.Button(filePicker, EmptyPickerMessage) {
 			S_FilePath.Set(filepath.Dir(dirName))
 			S_FileScroll.Set(-1)
 		}
 	} else {
-		filePicker.Height = float32(ListViewItemH * count)
+		filePicker.Height = float32(ListViewItemH * DirFilesCount)
 		def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
 
 		// Draw file and dir list
 		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
-		rg.ListViewEx(filePicker, files, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
+		rg.ListViewEx(filePicker, DirFiles, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
 		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
 
 		if ShowHelp {
@@ -155,7 +158,7 @@ func DrawFilePicker() {
 		// Change file name when the picker is open
 		if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
 			// #10# file -> #10#, file
-			_, newName, _ := strings.Cut(files[S_FileScroll.Val], " ")
+			_, newName, _ := strings.Cut(DirFiles[S_FileScroll.Val], " ")
 
 			if isDir {
 				S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
