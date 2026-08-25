@@ -10,6 +10,9 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+var Frame = 0
+var Iter = 0
+
 func DrawFPS() {
 	rl.DrawText(fmt.Sprintf("FPS: %d", rl.GetFPS()), 0, 0, 20, rl.Black)
 }
