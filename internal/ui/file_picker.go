@@ -51,7 +51,10 @@ func DrawFilePicker() {
 		icon = "#10#"
 	}
 
-	fileButtonClicked := rg.Button(FileButton, "")
+	// Toggle file picker
+	if rg.Button(FileButton, "") {
+		S_FilePicker.Set(!S_FilePicker.Val)
+	}
 
 	rg.DrawText(
 		icon+" "+S_FilePath.Val,
@@ -59,11 +62,6 @@ func DrawFilePicker() {
 		int32(rg.TEXT_ALIGN_LEFT),
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
 	)
-
-	// Toggle file picker
-	if fileButtonClicked {
-		S_FilePicker.Set(!S_FilePicker.Val)
-	}
 
 	// Return early if the file picker is not active
 	if !S_FilePicker.Val {
@@ -135,14 +133,13 @@ func DrawFilePicker() {
 	filePicker := Grid.ToFloat32()
 
 	if DirFilesCount == 0 {
+		// Draw warning message button when there are no files in the directory
 		filePicker.Height = float32(ListViewItemH) * 1.5
 
-		// Navigate to the previous directory
-		if rg.Button(filePicker, EmptyPickerMessage) {
-			S_FilePath.Set(filepath.Dir(dirName))
-			S_FileScroll.Set(-1)
-		}
+		rg.DrawRectangle(filePicker, 2, rl.Black, rl.RayWhite)
+		rg.DrawText(EmptyPickerMessage, filePicker, int32(rg.TEXT_ALIGN_CENTER), rl.Black)
 	} else {
+		// Draw file picker
 		filePicker.Height = float32(ListViewItemH * DirFilesCount)
 		def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
 
@@ -157,12 +154,14 @@ func DrawFilePicker() {
 
 		// Change file name when the picker is open
 		if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
-			// #10# file -> #10#, file
+			// Extract name: #10# file -> #10#, file
 			_, newName, _ := strings.Cut(DirFiles[S_FileScroll.Val], " ")
 
 			if isDir {
+				// Append name when the selected path is a dir
 				S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
 			} else {
+				// Append name to the parent path when the selected path is a file
 				S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
 			}
 
