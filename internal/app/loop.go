@@ -50,6 +50,27 @@ func DrawLoop(path string) {
 	Font = rl.GetFontDefault()
 	ListViewItemH = int32(rg.GetStyle(rg.LISTVIEW, rg.LIST_ITEMS_HEIGHT) + rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)*2 + 1)
 
+	// Save raylib styles to remove rg.GetStyle overhead
+	Style["DEF_TEXT_COLOR_NORMAL"] = rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_NORMAL)
+	Style["DEF_BASE_COLOR_NORMAL"] = rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL)
+	Style["DEF_BORDER_COLOR_NORMAL"] = rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL)
+
+	Style["DEF_TEXT_COLOR_PRESSED"] = rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED)
+	Style["DEF_BASE_COLOR_FOCUSED"] = rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
+	Style["DEF_BORDER_COLOR_FOCUSED"] = rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
+
+	Style["DEF_TEXT_COLOR_FOCUSED"] = rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED)
+	Style["DEF_BASE_COLOR_PRESSED"] = rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED)
+	Style["DEF_BORDER_COLOR_PRESSED"] = rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
+
+	Style["BUTTON_BORDER_WIDTH"] = rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
+	Style["LISTVIEW_BORDER_WIDTH"] = rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
+
+	// Save custom styles to reduce unnecessary castings
+	Style["RAYWHITE"] = rg.NewColorPropertyValue(rl.RayWhite)
+	Style["BLACK"] = rg.NewColorPropertyValue(rl.Black)
+	Style["RED"] = rg.NewColorPropertyValue(rl.Red)
+
 	for !rl.WindowShouldClose() {
 		S_Screen.Val.W = int32(rl.GetScreenWidth())
 		S_Screen.Val.H = int32(rl.GetScreenHeight())

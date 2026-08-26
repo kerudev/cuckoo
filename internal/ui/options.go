@@ -29,21 +29,10 @@ func DrawUIOptions() {
 
 	rl.DrawText("Weekdays", 120+Offset.X, Footer.Y+Offset.Y+TextPad, FontSize, rl.Black)
 
-	def_BORDER_WIDTH := rg.GetStyle(rg.BUTTON, rg.BORDER_WIDTH)
-
-	def_TEXT_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED)
-	def_TEXT_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED)
-
-	def_BORDER_COLOR_NORMAL := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL)
-	def_BASE_COLOR_NORMAL := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL)
-	def_BORDER_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED)
-	def_BASE_COLOR_FOCUSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED)
-	def_BORDER_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED)
-	def_BASE_COLOR_PRESSED := rg.GetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED)
-
 	rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, 1)
 
-	black := rg.NewColorPropertyValue(rl.Black)
+	black := Style["BLACK"]
+	base := Style["RAYWHITE"]
 
 	for wd := range WEEKDAYS {
 		status := S_Weekdays.Val[wd].Status
@@ -52,16 +41,14 @@ func DrawUIOptions() {
 		// Set styles based on status
 		switch status {
 		case StatusDisabled:
-			base := rg.NewColorPropertyValue(rl.RayWhite)
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, Style["DEF_BORDER_COLOR_NORMAL"])
+			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, Style["DEF_BORDER_COLOR_NORMAL"])
 
-			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, def_BORDER_COLOR_NORMAL)
-			rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, def_BORDER_COLOR_NORMAL)
-
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL, Style["DEF_BORDER_COLOR_NORMAL"])
 			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL, base)
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, Style["DEF_BORDER_COLOR_NORMAL"])
 			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, base)
-			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_NORMAL)
+			rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, Style["DEF_BORDER_COLOR_NORMAL"])
 			rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, base)
 
 		case StatusOff:
@@ -93,17 +80,17 @@ func DrawUIOptions() {
 		}
 
 		// Reset style to defaults
-		rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, def_BORDER_WIDTH)
+		rg.SetStyle(rg.BUTTON, rg.BORDER_WIDTH, Style["BUTTON_BORDER_WIDTH"])
 
-		rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, def_TEXT_COLOR_PRESSED)
-		rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, def_TEXT_COLOR_FOCUSED)
+		rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_PRESSED, Style["DEF_TEXT_COLOR_PRESSED"])
+		rg.SetStyle(rg.DEFAULT, rg.TEXT_COLOR_FOCUSED, Style["DEF_TEXT_COLOR_FOCUSED"])
 
-		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL, def_BORDER_COLOR_NORMAL)
-		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL, def_BASE_COLOR_NORMAL)
-		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, def_BORDER_COLOR_FOCUSED)
-		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, def_BASE_COLOR_FOCUSED)
-		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, def_BORDER_COLOR_PRESSED)
-		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, def_BASE_COLOR_PRESSED)
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_NORMAL, Style["DEF_BORDER_COLOR_NORMAL"])
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_NORMAL, Style["DEF_BASE_COLOR_NORMAL"])
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_FOCUSED, Style["DEF_BORDER_COLOR_FOCUSED"])
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_FOCUSED, Style["DEF_BASE_COLOR_FOCUSED"])
+		rg.SetStyle(rg.DEFAULT, rg.BORDER_COLOR_PRESSED, Style["DEF_BORDER_COLOR_PRESSED"])
+		rg.SetStyle(rg.DEFAULT, rg.BASE_COLOR_PRESSED, Style["DEF_BASE_COLOR_PRESSED"])
 	}
 
 	// Draw option - StepMin

@@ -1,6 +1,9 @@
 package models
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rg "github.com/gen2brain/raylib-go/raygui"
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 // Constants
 const INITIAL_ROWS = 10
@@ -52,6 +55,7 @@ const FooterFontSize = int32(16)
 // UI (components)
 var Offset = Vector2Int32{X: 20, Y: 20}
 var Cell = Rec[float32]{}
+var Style = map[string]rg.PropertyValue{}
 
 var BackButton = rl.Rectangle{
 	X:      float32(Offset.X),

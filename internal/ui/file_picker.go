@@ -141,12 +141,11 @@ func DrawFilePicker() {
 	} else {
 		// Draw file picker
 		filePicker.Height = float32(ListViewItemH * DirFilesCount)
-		def_LISTVIEW_BORDER_WIDTH := rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)
 
 		// Draw file and dir list
 		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
 		rg.ListViewEx(filePicker, DirFiles, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, def_LISTVIEW_BORDER_WIDTH)
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, Style["LISTVIEW_BORDER_WIDTH"])
 
 		if ShowHelp {
 			rg.SetState(rg.STATE_NORMAL)
