@@ -27,6 +27,11 @@ func IsDir(path string) (bool, error) {
 	return stat.IsDir(), nil
 }
 
+func GetUnix(path string) int64 {
+	stat, _ := os.Stat(path)
+	return stat.ModTime().UnixNano()
+}
+
 func ReadPath(path string, payload *map[string]string) error {
 	content, err := os.ReadFile(path)
 	if err != nil {

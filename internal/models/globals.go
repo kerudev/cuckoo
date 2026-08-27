@@ -158,6 +158,7 @@ var S_FileName = NewState("")
 var S_FilePicker = NewState(false)
 
 var S_DirLastUpdate = NewState(int64(0))
+var S_FileLastUpdate = NewState(int64(0))
 
 // User options
 var S_Weekdays = NewState(Weekdays{

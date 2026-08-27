@@ -63,6 +63,13 @@ func DrawFilePicker() {
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
 	)
 
+	// Warn the user when the file has changed
+	S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
+
+	if S_FileLastUpdate.HasChanged() && S_FileLastUpdate.Old > 0 {
+		ErrorText = "The contents of " + S_FileName.Val + " have changed"
+	}
+
 	// Return early if the file picker is not active
 	if !S_FilePicker.Val {
 		// Reset S_FileName when File Picker was open previously
@@ -80,15 +87,13 @@ func DrawFilePicker() {
 		dirName = filepath.Dir(S_FilePath.Val)
 	}
 
+	S_DirLastUpdate.Set(GetUnix(dirName))
+
 	// Navigate to the previous directory
 	if backButtonClicked {
 		S_FilePath.Set(filepath.Dir(dirName))
 		S_FileScroll.Set(-1)
 	}
-
-	// Read and show all files in directory
-	stat, err := os.Stat(dirName)
-	S_DirLastUpdate.Set(stat.ModTime().UnixNano())
 
 	// Read the directory only when it has changes
 	if S_DirLastUpdate.HasChanged() {
@@ -168,6 +173,7 @@ func DrawFilePicker() {
 				S_FileScroll.Set(-1)
 			} else {
 				S_FileName.Set(S_FilePath.Val)
+				S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
 			}
 		}
 	}
