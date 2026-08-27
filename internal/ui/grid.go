@@ -165,9 +165,7 @@ func DrawGrid() {
 	rl.DrawRectangleLinesEx(Grid.ToFloat32(), 2, rl.Black)
 
 	// Draw and save mouse over coordinates
-	if !BlockUI {
-		drawMouseOver()
-	}
+	drawMouseOver()
 }
 
 func drawGridLines() {
@@ -309,7 +307,7 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 }
 
 func drawMouseOver() {
-	if S_Zoom.HasChanged() || !S_IsMouseLocked.Val && S_Mouse.HasChanged() {
+	if !BlockUI && S_Zoom.HasChanged() || !S_IsMouseLocked.Val && S_Mouse.HasChanged() {
 		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
 

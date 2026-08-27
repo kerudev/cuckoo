@@ -144,6 +144,10 @@ func DrawLoop(path string) {
 		// Recalculate coordinates when the file picker gets closed and a new file is chosen
 		if S_FileName.HasChanged() {
 			handleNewFile(S_FileName.Val)
+
+			// Reset all the mouse over stuff as data has changed
+			MouseOver = [WEEKDAYS][]GridCoord{}
+			TotalOver = 0
 		}
 
 		// Recalculate coordinates based on bucket or group
