@@ -13,8 +13,25 @@ import (
 var Frame = 0
 var Iter = 0
 
+var MinFPS = int32(-1)
+var MaxFPS = int32(0)
+
 func DrawFPS() {
 	rl.DrawText(fmt.Sprintf("FPS: %d", rl.GetFPS()), 0, 0, 20, rl.Black)
+}
+
+func WatchMaxFPS() {
+	fps := rl.GetFPS()
+	if MaxFPS < fps {
+		MaxFPS = fps
+	}
+}
+
+func WatchMinFPS() {
+	fps := rl.GetFPS()
+	if MinFPS < 0 || MinFPS > fps {
+		MinFPS = fps
+	}
 }
 
 func PrintMem(label string) {
