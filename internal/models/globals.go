@@ -53,7 +53,7 @@ const FooterW = int32(120)
 const FooterFontSize = int32(16)
 
 // UI (components)
-var Offset = Vector2Int32{X: 20, Y: 20}
+var Offset = Vector2Int32{X: 30, Y: 20}
 var Cell = Rec[float32]{}
 var Style = map[string]rg.PropertyValue{}
 

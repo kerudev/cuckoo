@@ -132,7 +132,7 @@ func DrawGrid() {
 	}
 
 	// Draw numbers on Y axis
-	textRect := rl.MeasureTextEx(Font, strconv.Itoa(cols), float32(FontSize), 1)
+	textDims := rl.MeasureTextEx(Font, strconv.Itoa(cols), float32(FontSize), 1)
 
 	nRow := 0
 	step := C_Grid.HighestRow / C_Grid.Rows
@@ -151,14 +151,14 @@ func DrawGrid() {
 		textSize := rl.MeasureTextEx(Font, strconv.Itoa(row), float32(FontSize), 1)
 
 		textPos := rl.Vector2{
-			X: textRect.X + rl.Lerp(0.0, textRect.X-textSize.X, 1),
-			Y: textRect.Y + rl.Lerp(0.0, textRect.Y-textSize.Y, 0.5),
+			X: textDims.X + rl.Lerp(0.0, textDims.X-textSize.X, 1),
+			Y: textDims.Y + rl.Lerp(0.0, textDims.Y-textSize.Y, 0.5),
 		}
 
 		textY := float32(Footer.Y) - Cell.H*float32(nRow) - textPos.Y/2
 		nRow++
 
-		rl.DrawText(text, int32(textPos.X-float32(Offset.X)/2), int32(textY), FontSize, rl.Black)
+		rl.DrawText(text, int32(textPos.X), int32(textY), FontSize, rl.Black)
 	}
 
 	// Draw Grid container
@@ -198,7 +198,7 @@ func drawGridLines() {
 		rowY += Cell.H
 		rl.DrawLineEx(
 			rl.Vector2{X: float32(Offset.X), Y: rowY},
-			rl.Vector2{X: float32(Grid.Width + Offset.Y), Y: rowY},
+			rl.Vector2{X: float32(Grid.Width + Offset.X), Y: rowY},
 			float32(GridBorder),
 			rl.LightGray,
 		)
