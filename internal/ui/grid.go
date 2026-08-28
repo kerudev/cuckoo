@@ -215,95 +215,34 @@ func drawCoordsLines(coords []GridCoord, color rl.Color) {
 	}
 }
 
-// TODO optimize this function, as it notably reduces FPS
 func drawFade(coord GridCoord, next GridCoord, wd int) {
-	alpha0 := float32(255)
-	alpha1 := float32(255)
-	alpha2 := float32(255)
+	HighestY := float32(C_Grid.HighestY)
 
-	recX := int32(0)
-	recY := int32(0)
-	recAlpha := float32(0)
+	alpha0 := float32(255) * coord.OrigY / HighestY
+	alpha1 := float32(255) * next.OrigY / HighestY
 
 	coordX := int32(coord.X)
 	coordY := int32(coord.Y)
 	nextX := int32(next.X)
 	nextY := int32(next.Y)
-	HighestY := float32(C_Grid.HighestY)
-
-	var mid Vector2Int32
-	if coord.Y < next.Y {
-		/**
-		 * (0) x
-		 *     |\
-		 *     | \
-		 *     |  \
-		 * (1) x---x (2)
-		 *
-		 * - 0: coord
-		 * - 1: mid
-		 * - 2: next
-		 */
-
-		mid.X = coordX
-		mid.Y = nextY
-
-		alpha0 *= coord.OrigY / HighestY
-		alpha1 *= next.OrigY / HighestY
-		alpha2 *= next.OrigY / HighestY
-
-		recX = mid.X
-		recY = mid.Y
-		recAlpha = next.OrigY
-	} else {
-		/**
-		 *         x (2)
-		 *        /|
-		 *       / |
-		 *      /  |
-		 * (0) x---x (1)
-		 *
-		 * - 0: coord
-		 * - 1: mid
-		 * - 2: next
-		 */
-
-		mid.X = nextX
-		mid.Y = coordY
-
-		alpha0 *= coord.OrigY / HighestY
-		alpha1 *= coord.OrigY / HighestY
-		alpha2 *= next.OrigY / HighestY
-
-		recX = coordX
-		recY = coordY
-		recAlpha = coord.OrigY
-	}
 
 	color := S_Weekdays.Val[wd].Color
 
-	// All draw calls use integers to avoid:
-	// - Drawing the same pixel twice (darker color)
-	// - Not drawing a pixel (white pixel)
+	rl.Begin(rl.Quads)
 
-	// Draw triangle with faded vertices
-	rl.Begin(rl.Triangles)
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha0))
 	rl.Vertex2i(coordX, coordY)
+
+	rl.Color4ub(color.R, color.G, color.B, 0)
+	rl.Vertex2i(coordX, Grid.Height+Grid.Y)
+
+	rl.Color4ub(color.R, color.G, color.B, 0)
+	rl.Vertex2i(nextX, Grid.Height+Grid.Y)
+
 	rl.Color4ub(color.R, color.G, color.B, uint8(alpha1))
-	rl.Vertex2i(mid.X, mid.Y)
-	rl.Color4ub(color.R, color.G, color.B, uint8(alpha2))
 	rl.Vertex2i(nextX, nextY)
+
 	rl.End()
-
-	// Draw gradient below graph
-	w := nextX - coordX
-	h := Footer.Y - mid.Y
-
-	// Calculate rectangle fade based on highest coordinate
-	recColor := rl.Fade(color, recAlpha/HighestY)
-
-	rl.DrawRectangleGradientV(recX, recY, w, h, recColor, S_Weekdays.Val[wd].Faded)
 }
 
 func drawMouseOver() {
