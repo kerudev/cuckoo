@@ -68,6 +68,16 @@ func DrawGrid() {
 
 		// Draw coordinates
 		for i, coord := range dayCoords {
+			// Skip if coord is off the Grid (left)
+			if coord.X < -Cell.W {
+				continue
+			}
+
+			// Stop if coord is off the Grid (right)
+			if coord.X > float32(Grid.Width+Grid.X) {
+				break
+			}
+
 			if UserOpt.DrawFade {
 				// Drawing gradient only before last coordinate
 				if i+1 < len(dayCoords) {
@@ -77,16 +87,6 @@ func DrawGrid() {
 			}
 
 			if UserOpt.DrawCoords {
-				// Skip if coord is off the Grid (left)
-				if coord.X < float32(Offset.X) {
-					continue
-				}
-
-				// Stop if coord is off the Grid (right)
-				if coord.X > float32(Grid.Width+Offset.X) {
-					break
-				}
-
 				rl.DrawCircle(int32(coord.X), int32(coord.Y), CoordRadius, S_Weekdays.Val[wd].Color)
 			}
 		}
