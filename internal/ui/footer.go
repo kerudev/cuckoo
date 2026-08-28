@@ -111,14 +111,4 @@ func drawFooterData() {
 		FontSize,
 		rl.Black,
 	)
-
-	// texts := []string{
-	// 	fmt.Sprintf("Scale: x%.2f", C_Zoom.Scale),
-	// 	fmt.Sprintf("Cell.W: %.2f", Cell.W),
-	// 	fmt.Sprintf("Cell.H: %.2f", Cell.H),
-	// 	fmt.Sprint("[L]ocked: ", S_IsMouseLocked.Val),
-	// }
-
-	// rl.DrawText(strings.Join(texts, "\n"), footerX+TextPad, footerY+TextPad, FooterFontSize, rl.Black)
-	// rl.DrawRectangleLines(footerX, footerY, FooterW, int32(len(texts))*FooterFontSize+TextPad*2, rl.Black)
 }

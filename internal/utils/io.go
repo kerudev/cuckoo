@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -35,7 +35,7 @@ func GetUnix(path string) int64 {
 func ReadPath(path string, payload *map[string]string) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("Error while reading %s", path)
+		return errors.New("Error while reading file")
 	}
 
 	switch filepath.Ext(path) {
@@ -44,12 +44,12 @@ func ReadPath(path string, payload *map[string]string) error {
 
 		lines, _ := csv.NewReader(bytes.NewReader(b)).ReadAll()
 		if len(lines) == 0 {
-			return fmt.Errorf("File doesn't contain headers nor data: %s", path)
+			return errors.New("File doesn't contain headers nor data")
 		}
 
 		lines = lines[1:]
 		if len(lines) == 0 {
-			return fmt.Errorf("File contains just the headers: %s", path)
+			return errors.New("File contains just the headers")
 		}
 
 		// Two fields are expected on each line: name,cron
@@ -61,7 +61,7 @@ func ReadPath(path string, payload *map[string]string) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error while unmarshaling data from %s", path)
+		return errors.New("Error while unmarshaling data (file is empty or JSON has errors)")
 	}
 
 	return nil

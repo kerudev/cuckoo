@@ -193,12 +193,12 @@ func handleNewFile(path string) {
 
 	isDir, err := IsDir(path)
 	if err != nil {
-		ErrorText = "Path " + absPath + " doesn't exist"
+		ErrorText = "Path doesn't exist"
 		return
 	}
 
 	if isDir {
-		ErrorText = "Path " + absPath + " is not a file"
+		ErrorText = "Path is not a file"
 		return
 	}
 

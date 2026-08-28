@@ -38,7 +38,7 @@ func DrawFilePicker() {
 
 	isDir, err := IsDir(S_FilePath.Val)
 	if err != nil {
-		ErrorText = "Path " + S_FilePath.Val + " doesn't exist"
+		ErrorText = "Path doesn't exist"
 		return
 	}
 
@@ -67,7 +67,7 @@ func DrawFilePicker() {
 	S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
 
 	if S_FileLastUpdate.HasChanged() && S_FileLastUpdate.Old > 0 {
-		ErrorText = "The contents of " + S_FileName.Val + " have changed"
+		ErrorText = "The contents of have changed"
 	}
 
 	// Return early if the file picker is not active
