@@ -61,9 +61,9 @@ func extractNumber(s string, start int) (int, int) {
 
 func CalcBucket(value int, segment int) int {
 	if value == 0 {
-		return 0
+		value = 1
 	}
-	return (value/segment)*segment + (segment - 1)
+	return (value/segment)*segment
 }
 
 func All[T comparable](arr []T, pred func(T) bool) bool {
