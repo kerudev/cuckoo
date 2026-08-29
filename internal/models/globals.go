@@ -35,7 +35,7 @@ const BoxBorder = int32(1)
 const BoxPad = BoxSize + BoxBorder*2
 
 const HelpLineH = int32(24)
-const HelpLineEmptyH = int32(14)
+const HelpLineEmptyH = int32(12)
 
 const CoordRadius = float32(4.0)
 const CoordDiameter = CoordRadius * 2

@@ -8,35 +8,34 @@ import (
 )
 
 var HelpLines = []string{
-	"Drag&Drop file: changes grid coordinates",
-	"#138# - Locked state indicator. Click to unlock",
-	"#193#/H - Toggle help window",
+	" ", // First line is reserved to the
 
 	"-",
+
+	"Drag&Drop file > Changes grid coordinates",
+	"#138# > Locked state indicator. Click to unlock",
+	"#193#/H > Toggle help window",
 
 	"-File Picker",
+	"#118# > Go back by one directory",
 	"Click on any file to change the contents on the grid",
 
-	"-",
-
 	"-Grid",
-	"LClick/L - Lock coordinates where mouse is over",
-	"Wheel[Up/Down] - Zoom in/out",
-	"LShift + Wheel[Up/Down] - Scroll right/left",
-	"Hold RMouse - Scroll right/left",
+	"LClick/L > Lock coordinates where mouse is over",
+	"Wheel[U/D] > Zoom in/out",
+	"LShift + Wheel[U/D] > Scroll right/left",
+	"Hold RMouse (while zoomed) > Scroll right/left",
 
 	"-Tooltip",
-	"Wheel[Up/Down] - Scroll up/down",
-
-	"-",
+	"Wheel[U/D] > Scroll up/down",
 
 	"-UI options",
-	"Group by: groups coordinates by minute",
-	"1-7 - Toggle weekdays (0-6)",
-	"Minutes step: group coordinates by bucket",
+	"Group by > Groups coordinates by hour or hour+minute (default)",
+	"1-7 (numbers or keypad) > Toggle weekdays (0-6)",
+	"Minute group > Group coordinates by N minutes",
 
 	"-User options",
-	"Tooltip position: where you want to draw the tooltip",
+	"Tooltip position > Draw on the grid (default) or over coordinates",
 	"Draw options:",
 	"#212# Draw coordinates",
 	"#127# Draw lines that join coordinates",
@@ -74,7 +73,7 @@ func DrawHelp() {
 			}
 		}
 
-		HelpWindow.Width = 300
+		HelpWindow.Width = 360
 		HelpWindow.X = (S_Screen.Val.W - HelpWindow.Width) / 2
 		HelpWindow.Y = (S_Screen.Val.H - HelpWindow.Height) / 2
 	}
@@ -83,6 +82,10 @@ func DrawHelp() {
 
 	// Icon: HELP
 	ShowHelp = !rg.WindowBox(HelpWindow.ToFloat32(), "#193# Help and user guide")
+
+	if rg.LabelButton(NewRectangleFromInt32(HelpWindow.X+12, HelpWindow.Y+lineY, HelpWindow.Width, HelpLineH), "#144# Found a bug or have an idea? Click to open an issue!") {
+		rl.OpenURL("https://github.com/kerudev/cuckoo/issues/new")
+	}
 
 	for _, line := range HelpLines {
 		if line == "-" {

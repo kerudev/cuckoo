@@ -98,7 +98,7 @@ func DrawUIOptions() {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
-	rl.DrawText("Minutes step", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
+	rl.DrawText("Minute group", 120+Offset.X, Footer.Y+Offset.Y*3+TextPad, FontSize, rl.Black)
 	stepMinRec := NewRectangleFromInt32(120+Offset.X, Footer.Y+Offset.Y*4, BoxSize, BoxSize)
 
 	stepMinIdx := int32(S_StepMin.Val)
