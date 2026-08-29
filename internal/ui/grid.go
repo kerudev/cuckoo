@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"math"
 	"strconv"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
@@ -133,30 +134,34 @@ func DrawGrid() {
 
 	// Draw numbers on Y axis
 	textDims := rl.MeasureTextEx(Font, strconv.Itoa(cols), float32(FontSize), 1)
+	step := float32(C_Grid.HighestRow) / float32(C_Grid.Rows)
+
+	overRowCap := C_Grid.HighestRow > ROWS_CAP
+
+	var rows int
+	if overRowCap {
+		rows = C_Grid.Rows + 1
+	} else {
+		rows = C_Grid.HighestRow + 1
+	}
 
 	nRow := 0
-	step := C_Grid.HighestRow / C_Grid.Rows
-	last := (C_Grid.HighestRow / step) * step
-
-	for row := range C_Grid.HighestRow + 1 {
-		if C_Grid.HighestRow > ROWS_CAP && row%step != 0 {
-			continue
+	for row := range rows {
+		if overRowCap {
+			nRow = int(math.Round(float64(step * float32(row))))
+		} else {
+			nRow = row
 		}
 
-		if row == last {
-			row = C_Grid.HighestRow
-		}
-
-		text := strconv.Itoa(row)
-		textSize := rl.MeasureTextEx(Font, strconv.Itoa(row), float32(FontSize), 1)
+		text := strconv.Itoa(nRow)
+		textSize := rl.MeasureTextEx(Font, text, float32(FontSize), 1)
 
 		textPos := rl.Vector2{
-			X: textDims.X + rl.Lerp(0.0, textDims.X-textSize.X, 1),
-			Y: textDims.Y + rl.Lerp(0.0, textDims.Y-textSize.Y, 0.5),
+			X: textDims.X + rl.Lerp(0, textDims.X-textSize.X, 1),
+			Y: textDims.Y + rl.Lerp(0, textDims.Y-textSize.Y, 0.5),
 		}
 
-		textY := float32(Footer.Y) - Cell.H*float32(nRow) - textPos.Y/2
-		nRow++
+		textY := float32(Grid.Y+Grid.Height) - Cell.H*float32(row) - textPos.Y/2
 
 		rl.DrawText(text, int32(textPos.X), int32(textY), FontSize, rl.Black)
 	}
