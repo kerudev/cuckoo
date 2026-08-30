@@ -90,15 +90,16 @@ func DrawLoop(path string) {
 
 			Footer.Y = Grid.Height + Grid.Y
 
-			FileButton.Width = float32(S_Screen.Val.W-Offset.X*2) - BackButton.Width - float32(BoxPad) - float32(BoxSize)*2
+			FileButton.Width = float32(S_Screen.Val.W-Offset.X*2) - BackButton.Width - float32(BoxPad) - float32(BoxSize)*3
 			FileButtonText.Width = FileButton.Width
 
 			ErrorBox.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
 
 			ErrorMessageText.Width = ErrorBox.Width
 
-			LockButton.X = FileButton.X + FileButton.Width + float32(BoxSize)*0.5
-			HelpButton.X = LockButton.X + LockButton.Width + float32(BoxSize)*0.5
+			LockButton.X = FileButton.X + FileButton.Width + float32(BoxSize)*0.33
+			HelpButton.X = LockButton.X + LockButton.Width + float32(BoxSize)*0.33
+			AboutButton.X = HelpButton.X + HelpButton.Width + float32(BoxSize)*0.33
 
 			S_IsMouseLocked.Set(false)
 
@@ -132,11 +133,17 @@ func DrawLoop(path string) {
 
 		ui.DrawError()
 		ui.DrawFilePicker()
+
 		ui.DrawLockButton()
 		ui.DrawHelpButton()
+		ui.DrawAboutButton()
 
 		if ShowHelp {
 			ui.DrawHelp()
+		}
+
+		if ShowAbout {
+			ui.DrawAbout()
 		}
 
 		rl.EndDrawing()

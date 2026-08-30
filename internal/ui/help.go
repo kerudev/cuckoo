@@ -8,7 +8,7 @@ import (
 )
 
 var HelpLines = []string{
-	" ", // First line is reserved to the
+	" ", // Reserved to LabelButton: "Open issue"
 
 	"-",
 
@@ -63,13 +63,13 @@ func DrawHelp() {
 
 	if HelpWindow.Height == 0 || S_Screen.HasChanged() {
 		// Line + margin
-		HelpWindow.Height = HelpLineH + 8
+		HelpWindow.Height = ModalLineH + 8
 
 		for _, line := range HelpLines {
 			if line == "-" {
-				HelpWindow.Height += HelpLineEmptyH
+				HelpWindow.Height += ModalLineEmptyH
 			} else {
-				HelpWindow.Height += HelpLineH
+				HelpWindow.Height += ModalLineH
 			}
 		}
 
@@ -78,28 +78,32 @@ func DrawHelp() {
 		HelpWindow.Y = (S_Screen.Val.H - HelpWindow.Height) / 2
 	}
 
-	lineY := HelpLineH + 4
+	lineY := ModalLineH + 4
 
 	// Icon: HELP
 	ShowHelp = !rg.WindowBox(HelpWindow.ToFloat32(), "#193# Help and user guide")
 
-	if rg.LabelButton(NewRectangleFromInt32(HelpWindow.X+12, HelpWindow.Y+lineY, HelpWindow.Width, HelpLineH), "#144# Found a bug or have an idea? Click to open an issue!") {
+	// Icon: WARNING
+	if rg.LabelButton(
+		NewRectangleFromInt32(HelpWindow.X+12, HelpWindow.Y+lineY, HelpWindow.Width, ModalLineH),
+		"#220# Found a bug or have an idea? Click to open an issue!",
+	) {
 		rl.OpenURL("https://github.com/kerudev/cuckoo/issues/new")
 	}
 
 	for _, line := range HelpLines {
 		if line == "-" {
-			rg.Line(NewRectangleFromInt32(HelpWindow.X, HelpWindow.Y+lineY, HelpWindow.Width, HelpLineEmptyH), "")
+			rg.Line(NewRectangleFromInt32(HelpWindow.X, HelpWindow.Y+lineY, HelpWindow.Width, ModalLineEmptyH), "")
 		} else if line[0] == '-' {
-			rg.Line(NewRectangleFromInt32(HelpWindow.X, HelpWindow.Y+lineY, HelpWindow.Width, HelpLineH), line[1:])
+			rg.Line(NewRectangleFromInt32(HelpWindow.X, HelpWindow.Y+lineY, HelpWindow.Width, ModalLineH), line[1:])
 		} else {
-			rg.Label(NewRectangleFromInt32(HelpWindow.X+12, HelpWindow.Y+lineY, HelpWindow.Width, HelpLineH), line)
+			rg.Label(NewRectangleFromInt32(HelpWindow.X+12, HelpWindow.Y+lineY, HelpWindow.Width, ModalLineH), line)
 		}
 
 		if line == "-" {
-			lineY += HelpLineEmptyH
+			lineY += ModalLineEmptyH
 		} else {
-			lineY += HelpLineH
+			lineY += ModalLineH
 		}
 	}
 }

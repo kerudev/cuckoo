@@ -6,6 +6,8 @@ import (
 )
 
 // Constants
+const VERSION = "1.0.0"
+
 const INITIAL_ROWS = 10
 const INITIAL_COLS = 24
 const ROWS_CAP = 30
@@ -34,8 +36,8 @@ const BoxSize = int32(20)
 const BoxBorder = int32(1)
 const BoxPad = BoxSize + BoxBorder*2
 
-const HelpLineH = int32(24)
-const HelpLineEmptyH = int32(12)
+const ModalLineH = int32(24)
+const ModalLineEmptyH = int32(12)
 
 const CoordRadius = float32(4.0)
 const CoordDiameter = CoordRadius * 2
@@ -88,6 +90,12 @@ var HelpButton = rl.Rectangle{
 	Width:  float32(BoxSize),
 	Height: float32(BoxSize),
 }
+var AboutButton = rl.Rectangle{
+	X:      0, // Depends on S_Screen.Val.W
+	Y:      float32(Offset.Y),
+	Width:  float32(BoxSize),
+	Height: float32(BoxSize),
+}
 
 var CloseErrorButton = rl.Rectangle{
 	X:      BackButton.X,
@@ -112,6 +120,7 @@ var Grid = rl.RectangleInt32{X: Offset.X, Y: Offset.Y * 3}
 var Footer = rl.RectangleInt32{}
 var Tooltip = rl.RectangleInt32{}
 var HelpWindow = rl.RectangleInt32{}
+var AboutWindow = rl.RectangleInt32{}
 
 // Internal data
 var Crons = []Cron{}
@@ -129,6 +138,7 @@ var TooltipHasOverflow = false
 
 var ErrorText = ""
 var ShowHelp = false
+var ShowAbout = false
 var BlockUI = false
 
 // Context
