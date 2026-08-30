@@ -48,7 +48,7 @@ func DrawLoop(path string) {
 	rl.SetExitKey(rl.KeyNull)
 
 	Font = rl.GetFontDefault()
-	ListViewItemH = int32(rg.GetStyle(rg.LISTVIEW, rg.LIST_ITEMS_HEIGHT) + rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)*2 + 1)
+	ListViewItemH = int32(rg.GetStyle(rg.LISTVIEW, rg.LIST_ITEMS_HEIGHT) + rg.GetStyle(rg.LISTVIEW, rg.BORDER_WIDTH)*2)
 
 	// Save raylib styles to remove rg.GetStyle overhead
 	Style["DEF_TEXT_COLOR_NORMAL"] = rg.GetStyle(rg.DEFAULT, rg.TEXT_COLOR_NORMAL)

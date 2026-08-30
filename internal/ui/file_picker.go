@@ -95,8 +95,57 @@ func DrawFilePicker() {
 		S_FileScroll.Set(-1)
 	}
 
+	filePicker := Grid.ToFloat32()
+
+	if DirFilesCount == 0 {
+		// Draw warning message button when there are no files in the directory
+		filePicker.Height = float32(ListViewItemH)*1.5 + 4
+
+		rg.DrawRectangle(filePicker, 2, rl.Black, rl.RayWhite)
+		rg.DrawText(EmptyPickerMessage, filePicker, int32(rg.TEXT_ALIGN_CENTER), rl.Black)
+	} else {
+		// Draw file picker
+		filePicker.Height = float32(ListViewItemH*DirFilesCount) + 4
+
+		// Draw file and dir list
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
+		rg.ListViewEx(filePicker, DirFiles, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
+		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, Style["LISTVIEW_BORDER_WIDTH"])
+
+		if ShowHelp {
+			rg.SetState(rg.STATE_NORMAL)
+		}
+
+		// Change file name when the picker is open
+		if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
+			// Extract name: #10# file -> #10#, file
+			_, newName, _ := strings.Cut(DirFiles[S_FileScroll.Val], " ")
+
+			if isDir {
+				// Append name when the selected path is a dir
+				S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
+			} else {
+				// Append name to the parent path when the selected path is a file
+				S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
+			}
+
+			if pathIsDir, _ := IsDir(S_FilePath.Val); pathIsDir {
+				// Change S_FileScroll so nothing is selected by default
+				S_FileScroll.Set(-1)
+			} else {
+				// If the path is a dir, change S_FileScroll so nothing is selected by default
+				S_FileName.Set(S_FilePath.Val)
+				S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
+			}
+		}
+	}
+
+	if isDir && S_FilePath.HasChanged() {
+		S_DirLastUpdate.Set(GetUnix(dirName))
+	}
+
 	// Read the directory only when it has changes
-	if S_DirLastUpdate.HasChanged() {
+	if S_DirLastUpdate.HasChanged() || isDir {
 		dirContent, err := os.ReadDir(dirName)
 		if err != nil {
 			ErrorText = err.Error()
@@ -133,49 +182,6 @@ func DrawFilePicker() {
 
 		DirFiles = append(dirs, data...)
 		DirFilesCount = Clamp(int32(len(DirFiles)), MIN_FILES, MAX_FILES)
-	}
-
-	filePicker := Grid.ToFloat32()
-
-	if DirFilesCount == 0 {
-		// Draw warning message button when there are no files in the directory
-		filePicker.Height = float32(ListViewItemH) * 1.5
-
-		rg.DrawRectangle(filePicker, 2, rl.Black, rl.RayWhite)
-		rg.DrawText(EmptyPickerMessage, filePicker, int32(rg.TEXT_ALIGN_CENTER), rl.Black)
-	} else {
-		// Draw file picker
-		filePicker.Height = float32(ListViewItemH * DirFilesCount)
-
-		// Draw file and dir list
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, rg.PropertyValue(GridBorder))
-		rg.ListViewEx(filePicker, DirFiles, &S_FileFocused.Val, &S_FileScroll.Val, &S_FileActive.Val)
-		rg.SetStyle(rg.LISTVIEW, rg.BORDER_WIDTH, Style["LISTVIEW_BORDER_WIDTH"])
-
-		if ShowHelp {
-			rg.SetState(rg.STATE_NORMAL)
-		}
-
-		// Change file name when the picker is open
-		if S_FileScroll.HasChanged() && S_FileScroll.Val >= 0 {
-			// Extract name: #10# file -> #10#, file
-			_, newName, _ := strings.Cut(DirFiles[S_FileScroll.Val], " ")
-
-			if isDir {
-				// Append name when the selected path is a dir
-				S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
-			} else {
-				// Append name to the parent path when the selected path is a file
-				S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
-			}
-
-			if pathIsDir, _ := IsDir(S_FilePath.Val); pathIsDir {
-				S_FileScroll.Set(-1)
-			} else {
-				S_FileName.Set(S_FilePath.Val)
-				S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
-			}
-		}
 	}
 
 	// Draw white background over grid
