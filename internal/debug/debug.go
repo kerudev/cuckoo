@@ -34,6 +34,13 @@ func WatchMinFPS() {
 	}
 }
 
+func PrintDebug(label string, v *int, increment bool) {
+	fmt.Println(label, *v)
+	if increment {
+		*v++
+	}
+}
+
 func PrintMem(label string) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
@@ -43,7 +50,7 @@ func PrintMem(label string) {
 	fmt.Printf("  HeapInuse: %.2f MB\n", float64(m.HeapInuse)/1024/1024)
 }
 
-func Debug() {
+func DebugServer() {
 	// Create a separate mux for pprof
 	debugMux := http.NewServeMux()
 
