@@ -1,4 +1,4 @@
-package models
+package shared
 
 import (
 	rg "github.com/gen2brain/raylib-go/raygui"

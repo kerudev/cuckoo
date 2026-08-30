@@ -3,7 +3,7 @@ package ui
 import (
 	rg "github.com/gen2brain/raylib-go/raygui"
 
-	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/shared"
 )
 
 func DrawLockButton() {

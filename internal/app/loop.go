@@ -9,7 +9,7 @@ import (
 
 	ui "github.com/kerudev/cuckoo/internal/ui"
 
-	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/shared"
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
@@ -200,7 +200,7 @@ func handleNewFile(path string) {
 
 	isDir, err := IsDir(path)
 	if err != nil {
-		ErrorText = "Path doesn't exist"
+		ErrorText = "Path doesn't exist: " + absPath
 		return
 	}
 

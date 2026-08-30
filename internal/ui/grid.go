@@ -7,7 +7,7 @@ import (
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/shared"
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 

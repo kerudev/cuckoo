@@ -9,7 +9,7 @@ import (
 	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	. "github.com/kerudev/cuckoo/internal/models"
+	. "github.com/kerudev/cuckoo/internal/shared"
 	. "github.com/kerudev/cuckoo/internal/utils"
 )
 
@@ -109,7 +109,7 @@ func DrawTooltip() {
 
 		S_TooltipScrollMax.Set(Tooltip.Height)
 
-		padX := Offset.X * 2
+		padX := Offset.X + Offset.Y
 		padY := Offset.Y + Grid.Y
 
 		padYInner := Offset.Y * 2
