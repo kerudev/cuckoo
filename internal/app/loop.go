@@ -74,136 +74,140 @@ func DrawLoop(path string) {
 	Style["RED"] = rg.NewColorPropertyValue(rl.Red)
 
 	for !rl.WindowShouldClose() {
-		S_Screen.Val.W = int32(rl.GetScreenWidth())
-		S_Screen.Val.H = int32(rl.GetScreenHeight())
-
-		S_Mouse.Set(rl.GetMousePosition())
-		S_IsOnWindow.Set(rl.IsCursorOnScreen())
-		S_IsOverGrid.Set(rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32()))
-
-		if S_IsMouseLocked.Eq(false) {
-			S_MouseWithLock.Set(S_Mouse.Val)
-		}
-
-		// Recalculate UI, Grid and coordinates only when Screen changes size
-		if S_Screen.HasChanged() {
-			Grid.Width = S_Screen.Val.W - Offset.X*2
-			Grid.Height = S_Screen.Val.H - Grid.Y - Offset.Y - 200
-
-			Footer.Y = Grid.Height + Grid.Y
-
-			FileButton.Width = float32(S_Screen.Val.W-Offset.X*2) - BackButton.Width - float32(BoxPad) - float32(BoxSize)*3
-			FileButtonText.Width = FileButton.Width - FileButtonIcon.X + float32(BoxPad)
-
-			ErrorBox.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
-
-			ErrorMessageText.Width = ErrorBox.Width
-
-			LockButton.X = FileButton.X + FileButton.Width + float32(BoxSize)*0.33
-			HelpButton.X = LockButton.X + LockButton.Width + float32(BoxSize)*0.33
-			AboutButton.X = HelpButton.X + HelpButton.Width + float32(BoxSize)*0.33
-
-			S_IsMouseLocked.Set(false)
-
-			GridCoords = CoordToGrid(Coords)
-		}
-
-		// Drag&Drop: check if a file was dropped and reload coords
-		if rl.IsFileDropped() {
-			handleNewFile(rl.LoadDroppedFiles()[0])
-		}
-
-		// Show or hide help window
-		if rl.IsKeyPressed(rl.KeyD) {
-			ShowFPS = !ShowFPS
-		}
-
-		// Show or hide help window
-		if rl.IsKeyPressed(rl.KeyH) {
-			ShowHelp = !ShowHelp
-		}
-
-		BlockUI = ForceBlockUI || ShowHelp || S_PickerIsOn.Eq(true)
-
-		if !BlockUI {
-			handleKeyEvents()
-			handleMouseEvents()
-			handleMixedEvents()
-		}
-
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
-
-		ui.DrawGrid()
-		ui.DrawFooter()
-		ui.DrawTooltip()
-
-		ui.DrawError()
-		ui.DrawFilePicker()
-
-		ui.DrawLockButton()
-		ui.DrawHelpButton()
-		ui.DrawAboutButton()
-
-		if ShowHelp {
-			ui.DrawHelp()
-		}
-
-		if ShowAbout {
-			ui.DrawAbout()
-		}
-
-		if ShowFPS {
-			rl.DrawText(fmt.Sprintf("FPS: %d", rl.GetFPS()), 0, 0, 20, rl.Black)
-		}
-
-		rl.EndDrawing()
-
-		// Recalculate coordinates when the file picker gets closed and a new file is chosen
-		if S_FilePath.HasChanged() {
-			handleNewFile(S_FilePath.Val)
-
-			// Reset all the mouse over stuff as data has changed
-			MouseOver = [WEEKDAYS][]GridCoord{}
-			TotalOver = 0
-		}
-
-		// Recalculate coordinates based on bucket or group
-		if S_StepMin.HasChanged() || S_GroupBy.HasChanged() {
-			Coords = CoordsFromCrons(Crons)
-			GridCoords = CoordToGrid(Coords)
-		}
-
-		// Reset zoom and coordinates
-		if S_Zoom.HasChanged() || S_ZoomSlider.HasChanged() && S_Zoom.Val > 1 {
-			// NOTE: unlock Mouse as MouseOver as coordinates are recalculated
-			// when Zoom changes. Might be good to change this at some point.
-			S_IsMouseLocked.Set(false)
-
-			C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
-
-			GridCoords = CoordToGrid(Coords)
-		}
-
-		// Reset tooltip scroll
-		if S_IsMouseLocked.HasChanged() {
-			S_TooltipScroll.Set(0)
-			S_Mouse.Set(rl.Vector2{})
-		}
-
-		// Reset MouseOver when mouse goes out of the grid
-		if !BlockUI && S_IsMouseLocked.Eq(false) && S_IsOverGrid.HasChanged() && S_IsOverGrid.Eq(false) {
-			MouseOver = [WEEKDAYS][]GridCoord{}
-			TotalOver = 0
-		}
-
-		// Save each state for next frame
-		for _, state := range AllStates {
-			state.Update()
-		}
+		drawFrame()
 	}
 
 	rl.CloseWindow()
+}
+
+func drawFrame() {
+	S_Screen.Val.W = int32(rl.GetScreenWidth())
+	S_Screen.Val.H = int32(rl.GetScreenHeight())
+
+	S_Mouse.Set(rl.GetMousePosition())
+	S_IsOnWindow.Set(rl.IsCursorOnScreen())
+	S_IsOverGrid.Set(rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32()))
+
+	if S_IsMouseLocked.Eq(false) {
+		S_MouseWithLock.Set(S_Mouse.Val)
+	}
+
+	// Recalculate UI, Grid and coordinates only when Screen changes size
+	if S_Screen.HasChanged() {
+		Grid.Width = S_Screen.Val.W - Offset.X*2
+		Grid.Height = S_Screen.Val.H - Grid.Y - Offset.Y - 200
+
+		Footer.Y = Grid.Height + Grid.Y
+
+		FileButton.Width = float32(S_Screen.Val.W-Offset.X*2) - BackButton.Width - float32(BoxPad) - float32(BoxSize)*3
+		FileButtonText.Width = FileButton.Width - FileButtonIcon.X + float32(BoxPad)
+
+		ErrorBox.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
+
+		ErrorMessageText.Width = ErrorBox.Width
+
+		LockButton.X = FileButton.X + FileButton.Width + float32(BoxSize)*0.33
+		HelpButton.X = LockButton.X + LockButton.Width + float32(BoxSize)*0.33
+		AboutButton.X = HelpButton.X + HelpButton.Width + float32(BoxSize)*0.33
+
+		S_IsMouseLocked.Set(false)
+
+		GridCoords = CoordToGrid(Coords)
+	}
+
+	// Drag&Drop: check if a file was dropped and reload coords
+	if rl.IsFileDropped() {
+		handleNewFile(rl.LoadDroppedFiles()[0])
+	}
+
+	// Show or hide help window
+	if rl.IsKeyPressed(rl.KeyD) {
+		ShowFPS = !ShowFPS
+	}
+
+	// Show or hide help window
+	if rl.IsKeyPressed(rl.KeyH) {
+		ShowHelp = !ShowHelp
+	}
+
+	BlockUI = ForceBlockUI || ShowHelp || S_PickerIsOn.Eq(true)
+
+	if !BlockUI {
+		handleKeyEvents()
+		handleMouseEvents()
+		handleMixedEvents()
+	}
+
+	rl.BeginDrawing()
+	rl.ClearBackground(rl.RayWhite)
+
+	ui.DrawGrid()
+	ui.DrawFooter()
+	ui.DrawTooltip()
+
+	ui.DrawError()
+	ui.DrawFilePicker()
+
+	ui.DrawLockButton()
+	ui.DrawHelpButton()
+	ui.DrawAboutButton()
+
+	if ShowHelp {
+		ui.DrawHelp()
+	}
+
+	if ShowAbout {
+		ui.DrawAbout()
+	}
+
+	if ShowFPS {
+		rl.DrawText(fmt.Sprintf("FPS: %d", rl.GetFPS()), 0, 0, 20, rl.Black)
+	}
+
+	rl.EndDrawing()
+
+	// Recalculate coordinates when the file picker gets closed and a new file is chosen
+	if S_FilePath.HasChanged() {
+		handleNewFile(S_FilePath.Val)
+
+		// Reset all the mouse over stuff as data has changed
+		MouseOver = [WEEKDAYS][]GridCoord{}
+		TotalOver = 0
+	}
+
+	// Recalculate coordinates based on bucket or group
+	if S_StepMin.HasChanged() || S_GroupBy.HasChanged() {
+		Coords = CoordsFromCrons(Crons)
+		GridCoords = CoordToGrid(Coords)
+	}
+
+	// Reset zoom and coordinates
+	if S_Zoom.HasChanged() || S_ZoomSlider.HasChanged() && S_Zoom.Val > 1 {
+		// NOTE: unlock Mouse as MouseOver as coordinates are recalculated
+		// when Zoom changes. Might be good to change this at some point.
+		S_IsMouseLocked.Set(false)
+
+		C_Zoom.Offset = S_ZoomSlider.Val * (C_Zoom.Scale - 1)
+
+		GridCoords = CoordToGrid(Coords)
+	}
+
+	// Reset tooltip scroll
+	if S_IsMouseLocked.HasChanged() {
+		S_TooltipScroll.Set(0)
+		S_Mouse.Set(rl.Vector2{})
+	}
+
+	// Reset MouseOver when mouse goes out of the grid
+	if !BlockUI && S_IsMouseLocked.Eq(false) && S_IsOverGrid.HasChanged() && S_IsOverGrid.Eq(false) {
+		MouseOver = [WEEKDAYS][]GridCoord{}
+		TotalOver = 0
+	}
+
+	// Save each state for next frame
+	for _, state := range AllStates {
+		state.Update()
+	}
 }
 
 func handleNewFile(path string) {
