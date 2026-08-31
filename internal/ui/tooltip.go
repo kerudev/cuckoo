@@ -24,7 +24,7 @@ func DrawTooltip() {
 
 	// Resize tooltip when mouse is unlocked or weekdays changed
 	// NOTE: check if UI is blocked, as the tooltip should not move when mouse moves around
-	if !BlockUI && (!S_IsMouseLocked.Val && S_Mouse.HasChanged() || S_Weekdays.HasChanged() || S_Position.HasChanged()) {
+	if !BlockUI && (S_IsMouseLocked.Eq(false) && S_Mouse.HasChanged() || S_Weekdays.HasChanged() || S_Position.HasChanged()) {
 		nRows := 0
 		maxW := int32(0)
 

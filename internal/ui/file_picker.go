@@ -20,14 +20,14 @@ var EmptyPickerMessage = fmt.Sprintf(`Nothing here!
 )
 
 func DrawFilePicker() {
-	if ShowHelp || !S_FilePicker.Val {
+	if ShowHelp || S_FilePicker.Eq(false) {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
 	// Icon: ARROW_LEFT_FILL
 	backButtonClicked := rg.Button(BackButton, "#118#")
 
-	if ShowHelp || !S_FilePicker.Val {
+	if ShowHelp || S_FilePicker.Eq(false) {
 		rg.SetState(rg.STATE_NORMAL)
 	}
 
@@ -71,9 +71,9 @@ func DrawFilePicker() {
 	}
 
 	// Return early if the file picker is not active
-	if !S_FilePicker.Val {
+	if S_FilePicker.Eq(false) {
 		// Reset S_FileName when File Picker was open previously
-		if S_FilePicker.HasChanged() && S_FileName.Val != "" {
+		if S_FilePicker.HasChanged() && S_FileName.Not("") {
 			S_FilePath.Set(S_FileName.Val)
 		}
 
@@ -86,8 +86,6 @@ func DrawFilePicker() {
 	} else {
 		dirName = filepath.Dir(S_FilePath.Val)
 	}
-
-	S_DirLastUpdate.Set(GetUnix(dirName))
 
 	// Navigate to the previous directory
 	if backButtonClicked {
@@ -140,7 +138,7 @@ func DrawFilePicker() {
 		}
 	}
 
-	if isDir && S_FilePath.HasChanged() {
+	if S_DirLastUpdate.Eq(0) || isDir && S_FilePath.HasChanged() {
 		S_DirLastUpdate.Set(GetUnix(dirName))
 	}
 

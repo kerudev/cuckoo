@@ -444,6 +444,10 @@ func (s *State[T]) Eq(val T) bool {
 	return s.Val == val
 }
 
+func (s *State[T]) Not(val T) bool {
+	return s.Val != val
+}
+
 type GridContext struct {
 	Rows       int
 	Cols       int

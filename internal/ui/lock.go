@@ -8,7 +8,7 @@ import (
 
 func DrawLockButton() {
 	var icon string
-	if S_IsMouseLocked.Val {
+	if S_IsMouseLocked.Eq(true) {
 		// Icon: LOCK_CLOSE
 		icon = "#137#"
 	} else {
@@ -16,7 +16,7 @@ func DrawLockButton() {
 		icon = "#138#"
 	}
 
-	if ShowHelp || !S_IsMouseLocked.Val {
+	if ShowHelp || S_IsMouseLocked.Eq(false) {
 		rg.SetState(rg.STATE_DISABLED)
 		defer rg.SetState(rg.STATE_NORMAL)
 	}

@@ -28,7 +28,7 @@ func DrawGrid() {
 	rl.BeginScissorMode(Offset.X, Grid.Y, Grid.Width, Grid.Height)
 
 	// Draw background line on Mouse over
-	if S_IsOnWindow.Val {
+	if S_IsOnWindow.Eq(true) {
 		bgX := float32(Offset.X) - C_Zoom.Offset
 
 		for range cols {
@@ -251,7 +251,7 @@ func drawFade(coord GridCoord, next GridCoord, wd int) {
 }
 
 func drawMouseOver() {
-	if !BlockUI && S_Zoom.HasChanged() || !S_IsMouseLocked.Val && S_Mouse.HasChanged() {
+	if !BlockUI && S_Zoom.HasChanged() || S_IsMouseLocked.Eq(false) && S_Mouse.HasChanged() {
 		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
 

@@ -79,7 +79,7 @@ func DrawLoop(path string) {
 		S_IsOnWindow.Set(rl.IsCursorOnScreen())
 		S_IsOverGrid.Set(rl.CheckCollisionPointRec(S_Mouse.Val, Grid.ToFloat32()))
 
-		if !S_IsMouseLocked.Val {
+		if S_IsMouseLocked.Eq(false) {
 			S_MouseWithLock.Set(S_Mouse.Val)
 		}
 
@@ -116,7 +116,7 @@ func DrawLoop(path string) {
 			ShowHelp = !ShowHelp
 		}
 
-		BlockUI = ShowHelp || S_FilePicker.Val || S_FileName.Val == ""
+		BlockUI = ShowHelp || S_FilePicker.Eq(true) || S_FileName.Eq("")
 
 		if !BlockUI {
 			handleKeyEvents()
@@ -181,7 +181,7 @@ func DrawLoop(path string) {
 		}
 
 		// Reset MouseOver when mouse goes out of the grid
-		if !BlockUI && !S_IsMouseLocked.Val && S_IsOverGrid.HasChanged() && !S_IsOverGrid.Val {
+		if !BlockUI && S_IsMouseLocked.Eq(false) && S_IsOverGrid.HasChanged() && S_IsOverGrid.Eq(false) {
 			MouseOver = [WEEKDAYS][]GridCoord{}
 			TotalOver = 0
 		}
@@ -235,7 +235,7 @@ func handleNewFile(path string) {
 
 func handleKeyEvents() {
 	// Lock or unlock coordinates
-	if TotalOver > 0 && S_IsOverGrid.Val && rl.IsKeyPressed(rl.KeyL) {
+	if TotalOver > 0 && S_IsOverGrid.Eq(true) && rl.IsKeyPressed(rl.KeyL) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
@@ -272,17 +272,17 @@ func handleKeyEvents() {
 func handleMouseEvents() {
 	isOverTooltip := rl.CheckCollisionPointRec(S_Mouse.Val, Tooltip.ToFloat32())
 
-	if isOverTooltip && S_IsMouseLocked.Val {
+	if isOverTooltip && S_IsMouseLocked.Eq(true) {
 		return
 	}
 
 	// Lock mouse position when clicking coordinates
-	if TotalOver > 0 && S_IsOverGrid.Val && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	if TotalOver > 0 && S_IsOverGrid.Eq(true) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		S_IsMouseLocked.Set(!S_IsMouseLocked.Val)
 	}
 
 	// Move zoom slider by dragging over grid
-	if S_Zoom.Val > 1 && S_IsOverGrid.Val && rl.IsMouseButtonDown(rl.MouseButtonRight) {
+	if S_Zoom.Val > 1 && S_IsOverGrid.Eq(true) && rl.IsMouseButtonDown(rl.MouseButtonRight) {
 		mouseX := rl.GetMouseDelta().X
 
 		if mouseX != 0 {
@@ -296,7 +296,7 @@ func handleMouseEvents() {
 }
 
 func handleMixedEvents() {
-	if !S_IsOverGrid.Val && !S_IsMouseLocked.Val && TotalOver == 0 {
+	if S_IsOverGrid.Eq(false) && S_IsMouseLocked.Eq(false) && TotalOver == 0 {
 		return
 	}
 
