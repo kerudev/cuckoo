@@ -5,6 +5,9 @@
 cuckoo
 tmp
 
+# renderdoc
+*.cap
+
 # WASM
 Raylib-Go-Wasm
 server
