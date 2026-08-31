@@ -146,6 +146,7 @@ var ErrorText = ""
 var ShowFPS = false
 var ShowHelp = false
 var ShowAbout = false
+var ForceBlockUI = false
 var BlockUI = false
 
 // Context

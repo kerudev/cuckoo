@@ -18,7 +18,7 @@ func DrawLoop(path string) {
 	// Init cuckoo internals and state
 	isDir, _ := IsDir(path)
 	if path == "" {
-		ErrorText = "Select a valid file to parse"
+		ErrorText = "Please select a valid file to parse"
 	} else {
 		handleNewFile(path)
 	}
@@ -26,6 +26,7 @@ func DrawLoop(path string) {
 	// If the current path doesn't exist, use the current directory
 	if path == "" || ErrorText != "" {
 		path = "."
+		ForceBlockUI = true
 	}
 
 	absPath, err := filepath.Abs(path)
@@ -46,7 +47,6 @@ func DrawLoop(path string) {
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 	rl.InitWindow(800, 800, "cuckoo")
 	rl.SetWindowMinSize(800, 800)
-	// rl.SetTargetFPS(10)
 	rl.SetExitKey(rl.KeyNull)
 
 	Font = rl.GetFontDefault()
@@ -123,7 +123,7 @@ func DrawLoop(path string) {
 			ShowHelp = !ShowHelp
 		}
 
-		BlockUI = ShowHelp || S_PickerIsOn.Eq(true) || S_FilePath.Eq("")
+		BlockUI = ForceBlockUI || ShowHelp || S_PickerIsOn.Eq(true)
 
 		if !BlockUI {
 			handleKeyEvents()
@@ -216,7 +216,7 @@ func handleNewFile(path string) {
 	}
 
 	if isDir {
-		ErrorText = "Path is not a file"
+		ErrorText = "The selected path is not a file"
 		return
 	}
 

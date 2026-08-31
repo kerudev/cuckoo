@@ -75,10 +75,6 @@ func DrawFilePicker() {
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
 	)
 
-	fmt.Println("===========================")
-	fmt.Println(rl.MeasureText(S_PickerPath.Val, FontSize))
-	fmt.Println(int32(FileButtonText.Width))
-
 	// TODO draw text with ... on the start when text is too long
 	rg.DrawText(
 		S_PickerPath.Val,
@@ -88,7 +84,7 @@ func DrawFilePicker() {
 	)
 
 	// Warn the user when the file has changed
-	if S_PathExists.Eq(true) {
+	if S_PathExists.Eq(true) && !isDir {
 		S_FileLastUpdate.Set(GetUnix(S_FilePath.Val))
 
 		if S_FileLastUpdate.HasChanged() && S_FileLastUpdate.Old > 0 {
@@ -148,6 +144,10 @@ func DrawFilePicker() {
 				// If the path is a dir, change S_FileScroll so nothing is selected by default
 				S_FilePath.Set(S_PickerPath.Val)
 				S_FileLastUpdate.Set(GetUnix(S_FilePath.Val))
+
+				// This is set to true when the UI is launched from a directory
+				// or a path that doesn't exist
+				ForceBlockUI = false
 			}
 		}
 	}
