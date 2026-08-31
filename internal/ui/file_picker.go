@@ -94,7 +94,7 @@ func DrawFilePicker() {
 
 	// Return early if the file picker is not active
 	if S_PickerIsOn.Eq(false) {
-		// Reset S_FileName when File Picker was open previously
+		// Reset S_FilePath when File Picker was open previously
 		if S_PickerIsOn.HasChanged() && S_FilePath.Not("") {
 			S_PickerPath.Set(S_FilePath.Val)
 		}

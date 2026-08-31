@@ -170,6 +170,10 @@ func drawFrame() {
 	if S_FilePath.HasChanged() {
 		handleNewFile(S_FilePath.Val)
 
+		// Reset zoom completely
+		S_Zoom.Set(1)
+		C_Zoom.Scale = 1
+
 		// Reset all the mouse over stuff as data has changed
 		MouseOver = [WEEKDAYS][]GridCoord{}
 		TotalOver = 0
