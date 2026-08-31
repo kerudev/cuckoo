@@ -93,7 +93,7 @@ func DrawLoop(path string) {
 			Footer.Y = Grid.Height + Grid.Y
 
 			FileButton.Width = float32(S_Screen.Val.W-Offset.X*2) - BackButton.Width - float32(BoxPad) - float32(BoxSize)*3
-			FileButtonText.Width = FileButton.Width
+			FileButtonText.Width = FileButton.Width - FileButtonIcon.X + float32(BoxPad)
 
 			ErrorBox.Width = float32(S_Screen.Val.W - Offset.X*2 - BoxPad)
 

@@ -71,11 +71,17 @@ var FileButton = rl.Rectangle{
 	Width:  0, // Depends on S_Screen.Val.W
 	Height: BackButton.Height,
 }
-var FileButtonText = rl.Rectangle{
+var FileButtonIcon = rl.Rectangle{
 	X:      FileButton.X + float32(BoxPad)/2,
 	Y:      FileButton.Y,
-	Width:  0, // Depends on S_Screen.Val.W
+	Width:  16, // Default size of an icon
 	Height: FileButton.Height,
+}
+var FileButtonText = rl.Rectangle{
+	X:      FileButtonIcon.X + FileButtonIcon.Width + float32(BoxPad)/2,
+	Y:      FileButtonIcon.Y,
+	Width:  0, // Depends on S_Screen.Val.W
+	Height: FileButtonIcon.Height,
 }
 
 var LockButton = rl.Rectangle{

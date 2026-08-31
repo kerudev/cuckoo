@@ -69,7 +69,19 @@ func DrawFilePicker() {
 	}
 
 	rg.DrawText(
-		icon+" "+S_PickerPath.Val,
+		icon,
+		FileButtonIcon,
+		int32(rg.TEXT_ALIGN_LEFT),
+		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
+	)
+
+	fmt.Println("===========================")
+	fmt.Println(rl.MeasureText(S_PickerPath.Val, FontSize))
+	fmt.Println(int32(FileButtonText.Width))
+
+	// TODO draw text with ... on the start when text is too long
+	rg.DrawText(
+		S_PickerPath.Val,
 		FileButtonText,
 		int32(rg.TEXT_ALIGN_LEFT),
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
