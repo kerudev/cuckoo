@@ -1,11 +1,21 @@
 # cuckoo
 
-> [!NOTE]
-> This program is on early development.
-
 A crontab visualizer made in Go with Raylib bindings.
 
-Made for learning purposes.
+Initially made for learning purposes, finished out of love <3 (or masochism).
+
+<!-- Generated with: https://github.com/darkmavis1980/markdown-index-generator -->
+<!-- index-start -->
+## Index
+
+- [Motivation](#motivation)
+- [Install & use](#install--use)
+- [Dependencies](#dependencies)
+- [Build](#build)
+- [Roadmap](#roadmap)
+  - [CGO_ENABLED=0](#cgo_enabled0)
+  - [WASM](#wasm)
+<!-- index-end -->
 
 ## Motivation
 
@@ -29,37 +39,50 @@ It's hard if can't visualize the data, right? That's where `cuckoo` comes in.
 To install cuckoo:
 
 ```sh
-go install github.com/kerudev/cuckoo
+go install github.com/kerudev/cuckoo@latest
 ```
 
-cuckoo takes a simple JSON file whit the following structure:
+Takes a JSON file with the following structure:
 
 ```json
 {
-    "CRON_NAME": "CRON_VALUE",
-    ...
+  "process_1": "*/5 * * * *",
+  "process_2": "0 */2 * * *",
+  "process_3": "15 3 * * *",
+  // ...
 }
+```
+
+Or a CSV file with two columns (header names are just a convention, but mind
+the colons!):
+
+```csv
+name,cron
+process_1,"*/5 * * * *"
+process_2,"0 */2 * * *"
+process_3,"15 3 * * *"
+# ...
 ```
 
 To run cuckoo:
 
 ```sh
-cuckoo -path path/to/data
+cuckoo                      # Runs from the current directory
+cuckoo -path path/to/data   # Runs from a directory / loads and parses a file
 ```
 
 ## Dependencies
 
 cuckoo's dependencies:
-- [raylib-go](https://github.com/gen2brain/raylib-go): Go bindings for raylib.
+- [raylib-go](https://github.com/gen2brain/raylib-go): Go bindings for raylib & raygui.
 
 dev dependencies:
 - [air](https://github.com/air-verse/air): hot module reloading for Go.
 
-## About raylib-go
+## Build
 
-When running `go build` or `go run` on development, you may need to pass the
-`tags` argument. This tells the bindings how to handle windows and keyboard and
-mouse events.
+When running `go build` or `go run`, you may want to pass the `tags` argument.
+This tells the bindings how to handle windows, and keyboard and mouse events.
 
 Example:
 
@@ -67,10 +90,48 @@ Example:
 go run -tags x11 . -path ...
 ```
 
+I usually compile with the `noaudio` tag to save space, as there are no audio
+involved in cuckoo:
+
+```sh
+go build -tags x11
+du -sh cuckoo
+7.8M    cuckoo
+
+go build -tags noaudio,x11
+du -sh cuckoo
+6.5M    cuckoo
+```
+
 - List of tags: https://github.com/gen2brain/raylib-go/blob/master/README.md#build-tags
 - Related discussion: https://github.com/gen2brain/raylib-go/discussions/554
 
-## About WASM
+## Roadmap
+
+### CGO_ENABLED=0
+
+Although cuckoo is a really small program, I feel like it spends too much time
+on the CPU, probably due to not being able to compile without cgo.
+
+The `debug` module has a `DebugServer()` that I use to measure performance.
+
+I run cuckoo on one shell and this command on other shell:
+
+```sh
+go tool pprof http://localhost:6060/debug/pprof/profile?seconds=10
+
+ flat  flat%   sum%        cum   cum%
+7.96s 80.24% 80.24%      9.51s 95.87%  runtime.cgocall
+0.29s  2.92% 83.17%      0.49s  4.94%  runtime.casgstatus
+0.28s  2.82% 85.99%      0.76s  7.66%  runtime.reentersyscall
+```
+
+Seems like 95% of the time is spent on the CPU doing cgo stuff.
+
+Right now, cuckoo can't compile with `CGO_ENABLED=0` because raygui doesn't
+support it, but I plan for that to change.
+
+### WASM
 
 This project is currently being developed just for desktop. A WASM port is in
 the works but not ready yet, as the project that ports raylib to WASM doesn't
