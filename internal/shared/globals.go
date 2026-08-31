@@ -165,9 +165,10 @@ var S_FileActive = NewState(int32(-1))
 var S_FileFocused = NewState(int32(-1))
 
 var S_FilePath = NewState("")
-var S_FileName = NewState("")
-var S_FilePicker = NewState(false)
+var S_PickerPath = NewState("")
+var S_PickerIsOn = NewState(false)
 
+var S_PathExists = NewState(false)
 var S_DirLastUpdate = NewState(int64(0))
 var S_FileLastUpdate = NewState(int64(0))
 

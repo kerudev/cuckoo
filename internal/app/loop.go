@@ -33,19 +33,20 @@ func DrawLoop(path string) {
 		ErrorText = err.Error()
 	}
 
-	S_FilePath.Set(absPath)
+	S_PickerPath.Set(absPath)
 
 	if !isDir {
-		S_FileName.Set(absPath)
+		S_FilePath.Set(absPath)
 
 		// Force update before loop so handleNewFile is not called again on the first frame
-		S_FileName.Update()
+		S_FilePath.Update()
 	}
 
 	// Init raylib
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagWindowAlwaysRun | rl.FlagMsaa4xHint)
 	rl.InitWindow(800, 800, "cuckoo")
 	rl.SetWindowMinSize(800, 800)
+	// rl.SetTargetFPS(10)
 	rl.SetExitKey(rl.KeyNull)
 
 	Font = rl.GetFontDefault()
@@ -122,7 +123,7 @@ func DrawLoop(path string) {
 			ShowHelp = !ShowHelp
 		}
 
-		BlockUI = ShowHelp || S_FilePicker.Eq(true) || S_FileName.Eq("")
+		BlockUI = ShowHelp || S_PickerIsOn.Eq(true) || S_FilePath.Eq("")
 
 		if !BlockUI {
 			handleKeyEvents()
@@ -159,8 +160,8 @@ func DrawLoop(path string) {
 		rl.EndDrawing()
 
 		// Recalculate coordinates when the file picker gets closed and a new file is chosen
-		if S_FileName.HasChanged() {
-			handleNewFile(S_FileName.Val)
+		if S_FilePath.HasChanged() {
+			handleNewFile(S_FilePath.Val)
 
 			// Reset all the mouse over stuff as data has changed
 			MouseOver = [WEEKDAYS][]GridCoord{}
@@ -239,8 +240,8 @@ func handleNewFile(path string) {
 		}
 	}
 
+	S_PickerPath.Set(path)
 	S_FilePath.Set(path)
-	S_FileName.Set(path)
 }
 
 func handleKeyEvents() {

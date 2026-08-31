@@ -22,6 +22,7 @@ var AllowedExt = []string{
 func IsDir(path string) (bool, error) {
 	stat, err := os.Stat(path)
 	if err != nil {
+		// Return false as stat is nil
 		return false, err
 	}
 	return stat.IsDir(), nil

@@ -20,26 +20,38 @@ var EmptyPickerMessage = fmt.Sprintf(`Nothing here!
 )
 
 func DrawFilePicker() {
-	if ShowHelp || S_FilePicker.Eq(false) {
+	if ShowHelp || S_PickerIsOn.Eq(false) {
 		rg.SetState(rg.STATE_DISABLED)
 	}
 
-	// Icon: ARROW_LEFT_FILL
-	backButtonClicked := rg.Button(BackButton, "#118#")
+	isDir, err := IsDir(S_PickerPath.Val)
+	if err != nil {
+		ErrorText = "Selected path doesn't exist (maybe it got deleted or moved?)"
+	}
 
-	if ShowHelp || S_FilePicker.Eq(false) {
+	S_PathExists.Set(err == nil)
+
+	// Navigate to the previous directory
+	var dirName string
+	if isDir {
+		dirName = S_PickerPath.Val
+	} else {
+		dirName = filepath.Dir(S_PickerPath.Val)
+	}
+
+	// Icon: ARROW_LEFT_FILL
+	if rg.Button(BackButton, "#118#") {
+		S_PickerPath.Set(filepath.Dir(dirName))
+		S_FileScroll.Set(-1)
+	}
+
+	if ShowHelp || S_PickerIsOn.Eq(false) {
 		rg.SetState(rg.STATE_NORMAL)
 	}
 
 	if ShowHelp {
 		rg.SetState(rg.STATE_DISABLED)
 		defer rg.SetState(rg.STATE_NORMAL)
-	}
-
-	isDir, err := IsDir(S_FilePath.Val)
-	if err != nil {
-		ErrorText = "Path doesn't exist"
-		return
 	}
 
 	var icon string
@@ -53,49 +65,38 @@ func DrawFilePicker() {
 
 	// Toggle file picker
 	if rg.Button(FileButton, "") {
-		S_FilePicker.Set(!S_FilePicker.Val)
+		S_PickerIsOn.Set(!S_PickerIsOn.Val)
 	}
 
 	rg.DrawText(
-		icon+" "+S_FilePath.Val,
+		icon+" "+S_PickerPath.Val,
 		FileButtonText,
 		int32(rg.TEXT_ALIGN_LEFT),
 		rg.GetStyle(rg.BUTTON, rg.TEXT_COLOR_NORMAL).AsColor(),
 	)
 
 	// Warn the user when the file has changed
-	S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
+	if S_PathExists.Eq(true) {
+		S_FileLastUpdate.Set(GetUnix(S_FilePath.Val))
 
-	if S_FileLastUpdate.HasChanged() && S_FileLastUpdate.Old > 0 {
-		ErrorText = "The contents of have changed"
+		if S_FileLastUpdate.HasChanged() && S_FileLastUpdate.Old > 0 {
+			ErrorText = "The file has been updated. Select it again if you need to reload data."
+		}
 	}
 
 	// Return early if the file picker is not active
-	if S_FilePicker.Eq(false) {
+	if S_PickerIsOn.Eq(false) {
 		// Reset S_FileName when File Picker was open previously
-		if S_FilePicker.HasChanged() && S_FileName.Not("") {
-			S_FilePath.Set(S_FileName.Val)
+		if S_PickerIsOn.HasChanged() && S_FilePath.Not("") {
+			S_PickerPath.Set(S_FilePath.Val)
 		}
 
 		return
 	}
 
-	var dirName string
-	if isDir {
-		dirName = S_FilePath.Val
-	} else {
-		dirName = filepath.Dir(S_FilePath.Val)
-	}
-
-	// Navigate to the previous directory
-	if backButtonClicked {
-		S_FilePath.Set(filepath.Dir(dirName))
-		S_FileScroll.Set(-1)
-	}
-
 	filePicker := Grid.ToFloat32()
 
-	if DirFilesCount == 0 {
+	if DirFilesCount == 0 || S_DirLastUpdate.Eq(0) {
 		// Draw warning message button when there are no files in the directory
 		filePicker.Height = float32(ListViewItemH)*1.5 + 4
 
@@ -121,29 +122,37 @@ func DrawFilePicker() {
 
 			if isDir {
 				// Append name when the selected path is a dir
-				S_FilePath.Set(filepath.Join(S_FilePath.Val, newName))
+				S_PickerPath.Set(filepath.Join(S_PickerPath.Val, newName))
 			} else {
 				// Append name to the parent path when the selected path is a file
-				S_FilePath.Set(filepath.Join(filepath.Dir(S_FilePath.Val), newName))
+				S_PickerPath.Set(filepath.Join(filepath.Dir(S_PickerPath.Val), newName))
 			}
 
-			if pathIsDir, _ := IsDir(S_FilePath.Val); pathIsDir {
+			pathIsDir, _ := IsDir(S_PickerPath.Val)
+			if pathIsDir {
 				// Change S_FileScroll so nothing is selected by default
 				S_FileScroll.Set(-1)
 			} else {
 				// If the path is a dir, change S_FileScroll so nothing is selected by default
-				S_FileName.Set(S_FilePath.Val)
-				S_FileLastUpdate.Set(GetUnix(S_FileName.Val))
+				S_FilePath.Set(S_PickerPath.Val)
+				S_FileLastUpdate.Set(GetUnix(S_FilePath.Val))
 			}
 		}
 	}
 
-	if S_DirLastUpdate.Eq(0) || isDir && S_FilePath.HasChanged() {
-		S_DirLastUpdate.Set(GetUnix(dirName))
+	// Update dirName as the path may have changed
+	isDir, _ = IsDir(S_PickerPath.Val)
+	if isDir {
+		dirName = S_PickerPath.Val
+	} else {
+		dirName = filepath.Dir(S_PickerPath.Val)
 	}
 
+	// Get last update constantly
+	S_DirLastUpdate.Set(GetUnix(dirName))
+
 	// Read the directory only when it has changes
-	if S_DirLastUpdate.HasChanged() || isDir {
+	if S_PathExists.HasChanged() || S_DirLastUpdate.HasChanged() || S_PickerPath.HasChanged() || S_PickerIsOn.HasChanged() {
 		dirContent, err := os.ReadDir(dirName)
 		if err != nil {
 			ErrorText = err.Error()
