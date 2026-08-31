@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"math"
 	"path/filepath"
 
@@ -112,6 +113,11 @@ func DrawLoop(path string) {
 		}
 
 		// Show or hide help window
+		if rl.IsKeyPressed(rl.KeyD) {
+			ShowFPS = !ShowFPS
+		}
+
+		// Show or hide help window
 		if rl.IsKeyPressed(rl.KeyH) {
 			ShowHelp = !ShowHelp
 		}
@@ -144,6 +150,10 @@ func DrawLoop(path string) {
 
 		if ShowAbout {
 			ui.DrawAbout()
+		}
+
+		if ShowFPS {
+			rl.DrawText(fmt.Sprintf("FPS: %d", rl.GetFPS()), 0, 0, 20, rl.Black)
 		}
 
 		rl.EndDrawing()

@@ -15,6 +15,7 @@ var HelpLines = []string{
 	"Drag&Drop file > Changes grid coordinates",
 	"#138# > Locked state indicator. Click to unlock",
 	"#193#/H > Toggle help window",
+	"D > Toggle debug information (just FPS count for now)",
 
 	"-File Picker",
 	"#118# > Go back by one directory",
@@ -24,14 +25,15 @@ var HelpLines = []string{
 	"LClick/L > Lock coordinates where mouse is over",
 	"Wheel[U/D] > Zoom in/out",
 	"LShift + Wheel[U/D] > Scroll right/left",
-	"Hold RMouse (while zoomed) > Scroll right/left",
+	"(Zoomed) Hold RMouse > Scroll right/left",
+	"(Zoomed) LClick & Drag Scrollbar > Scroll right/left",
 
 	"-Tooltip",
 	"Wheel[U/D] > Scroll up/down",
 
 	"-UI options",
 	"Group by > Groups coordinates by hour or hour+minute (default)",
-	"1-7 (numbers or keypad) > Toggle weekdays (0-6)",
+	"1-7 (numbers/keypad) > Toggle weekdays (0-6)",
 	"Minute group > Group coordinates by N minutes",
 
 	"-User options",

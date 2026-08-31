@@ -137,6 +137,7 @@ var TotalOver = 0
 var TooltipHasOverflow = false
 
 var ErrorText = ""
+var ShowFPS = false
 var ShowHelp = false
 var ShowAbout = false
 var BlockUI = false
